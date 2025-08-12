@@ -1,21 +1,41 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  description: MyText
-  price: 9.99
-  stock_quantity: 9.99
-  purchase_unit: MyString
-  sale_unit: MyString
-  unit_conversion: 9.99
-  category: one
+coca_cola:
+  name: "CocaCola 600ml"
+  description: "Refresco sabor cola en botella de 600ml"
+  price: 20.00
+  stock_quantity: 10
+  purchase_unit: "caja"
+  sale_unit: "pieza"
+  unit_conversion: 24
+  category: bebidas
 
-two:
-  name: MyString
-  description: MyText
-  price: 9.99
-  stock_quantity: 9.99
-  purchase_unit: MyString
-  sale_unit: MyString
-  unit_conversion: 9.99
-  category: two
+leche_entera:
+  name: "Leche Entera 1L"
+  description: "Leche entera pasteurizada de 1 litro"
+  price: 22.50
+  stock_quantity: 15
+  purchase_unit: "caja"
+  sale_unit: "litro"
+  unit_conversion: 12
+  category: lacteos
+
+arroz_blanco:
+  name: "Arroz Blanco 1kg"
+  description: "Arroz blanco de grano largo"
+  price: 28.00
+  stock_quantity: 25
+  purchase_unit: "saco"
+  sale_unit: "kilo"
+  unit_conversion: 50
+  category: abarrotes_secos
+
+pan_bolillo:
+  name: "Bolillo"
+  description: "Pan bolillo fresco del día"
+  price: 2.50
+  stock_quantity: 100
+  purchase_unit: "paquete"
+  sale_unit: "pieza"
+  unit_conversion: 1
+  category: panaderia_reposteria

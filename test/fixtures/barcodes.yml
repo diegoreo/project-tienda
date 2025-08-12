@@ -1,9 +1,5 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+coca_cola_barcode:
+  code: "7501055330678"
+  product: coca_cola
 
-one:
-  code: MyString
-  product: one
-
-two:
-  code: MyString
-  product: two

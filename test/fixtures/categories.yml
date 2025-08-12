@@ -1,9 +1,33 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  description: MyString
+bebidas:
+  name: "Bebidas"
+  description: "Refrescos, jugos, aguas y otras bebidas"
 
-two:
-  name: MyString
-  description: MyString
+lacteos:
+  name: "Lácteos"
+  description: "Leche, queso, yogurt y otros derivados"
+
+abarrotes_secos:
+  name: "Abarrotes secos"
+  description: "Pastas, arroz, granos y otros productos secos"
+
+panaderia_reposteria:
+  name: "Panadería y repostería"
+  description: "Pan, pasteles, galletas y otros productos horneados"
+
+carnes_embutidos:
+  name: "Carnes y embutidos"
+  description: "Carnes frescas, frías y embutidos"
+
+frutas_verduras:
+  name: "Frutas y verduras"
+  description: "Frutas frescas y verduras de temporada"
+
+dulces_botanas:
+  name: "Dulces y botanas"
+  description: "Golosinas, papas fritas y botanas"
+
+articulos_limpieza:
+  name: "Artículos de limpieza"
+  description: "Detergentes, limpiadores y utensilios de limpieza"
