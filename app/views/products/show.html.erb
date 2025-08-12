@@ -1,0 +1,53 @@
+<h1>Producto a detalle:</h1>
+
+<div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; font-family: Arial, sans-serif; background-color: #f9f9f9;">
+  <h1 class="name" style="color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 8px;">
+    <%= @product.name %>
+  </h1>
+
+  <p class="description" style="font-size: 16px; color: #555;">
+    <strong>Descripción:</strong> <%= @product.description.presence || "No disponible" %>
+  </p>
+
+  <p class="price" style="font-size: 16px; color: #555;">
+    <strong>Precio:</strong> $<%= number_with_precision(@product.price, precision: 2) %>
+  </p>
+
+ <p style="font-size: 16px; color: #555;">
+  <strong>Stock disponible (en <%= @product.sale_unit %>):</strong> <%= @product.stock_for_sale %>
+</p>
+
+
+   <p style="font-size: 16px; color: #555;">
+    <strong>Se compra por:</strong>  <%= @product.purchase_unit %>(s)
+  </p>
+
+  <p style="font-size: 16px; color: #555;">
+    <strong>Unidad de venta:</strong> <%= @product.sale_unit %>
+  </p>
+
+  <p style="font-size: 16px; color: #555;">
+    <strong>Conversión de unidades:</strong> 1 <%= @product.purchase_unit %> = <%= @product.unit_conversion %> <%= @product.sale_unit %>(s)
+  </p>
+
+  <p style="font-size: 16px; color: #555;">
+    <strong>Categoría:</strong> <%= @product.category&.name || "Sin categoría" %>
+  </p>
+
+  <% if @product.barcodes.any? %>
+    <div style="margin-top: 20px;">
+      <strong>Códigos de barras:</strong>
+      <ul>
+        <% @product.barcodes.each do |barcode| %>
+          <li><%= barcode.code %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% else %>
+    <p><em>No hay códigos de barras registrados.</em></p>
+  <% end %>
+
+  <div style="margin-top: 30px;">
+    <%= link_to "Volver a productos", products_path, style: "text-decoration:none; color:#2980b9;" %>
+  </div>
+</div>
