@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_07_005449) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_13_190024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,9 +40,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_005449) do
     t.bigint "category_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "purchase_unit_id", null: false
+    t.bigint "sale_unit_id", null: false
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["purchase_unit_id"], name: "index_products_on_purchase_unit_id"
+    t.index ["sale_unit_id"], name: "index_products_on_sale_unit_id"
+  end
+
+  create_table "units", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "abbreviation"
+    t.string "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   add_foreign_key "barcodes", "products"
   add_foreign_key "products", "categories"
+  add_foreign_key "products", "units", column: "purchase_unit_id"
+  add_foreign_key "products", "units", column: "sale_unit_id"
 end

@@ -1,6 +1,11 @@
 class Product < ApplicationRecord
   belongs_to :category
   has_many :barcodes, dependent: :destroy
+  belongs_to :purchase_unit, class_name: "Unit"
+  belongs_to :sale_unit, class_name: "Unit"
+  # Esto permite que el formulario de Product acepte datos para barcodes
+  accepts_nested_attributes_for :barcodes, allow_destroy: true
+
   # Validaciones de presencia (obligatorios)
   validates :name, :price, :stock_quantity, :purchase_unit, :sale_unit, :unit_conversion, presence: true
   # Validación de unicidad del nombre
