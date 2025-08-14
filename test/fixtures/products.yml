@@ -5,8 +5,8 @@ coca_cola:
   description: "Refresco sabor cola en botella de 600ml"
   price: 20.00
   stock_quantity: 10
-  purchase_unit: "caja"
-  sale_unit: "pieza"
+  purchase_unit: caja
+  sale_unit: pieza
   unit_conversion: 24
   category: bebidas
 
@@ -15,8 +15,8 @@ leche_entera:
   description: "Leche entera pasteurizada de 1 litro"
   price: 22.50
   stock_quantity: 15
-  purchase_unit: "caja"
-  sale_unit: "litro"
+  purchase_unit: caja
+  sale_unit: litro
   unit_conversion: 12
   category: lacteos
 

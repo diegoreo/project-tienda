@@ -1,0 +1,31 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+caja:
+  name: "caja"
+  abbreviation: "caj"
+  description: "Contenedor de varias piezas" 
+
+pieza:
+  name: "pieza"
+  abbreviation: "pz"
+  description: Unidad individual
+
+litro:
+  name: "litro"
+  abbreviation: "L"
+  description: "Medida de volumen líquido"
+
+saco:
+  name: "saco"
+  abbreviation: "sac"
+  description: "Contenedor de producto a granel"
+
+kilo:
+  name: "kilo"
+  abbreviation: "kg"
+  description: "Unidad de peso"
+
+paquete:
+  name: "paquete"
+  abbreviation: "paq"
+  description: "Conjunto de varias piezas empaquetadas"

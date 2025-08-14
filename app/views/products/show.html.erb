@@ -13,21 +13,26 @@
     <strong>Precio:</strong> $<%= number_with_precision(@product.price, precision: 2) %>
   </p>
 
- <p style="font-size: 16px; color: #555;">
-  <strong>Stock disponible (en <%= @product.sale_unit %>):</strong> <%= @product.stock_for_sale %>
-</p>
+  <p style="font-size: 16px; color: #555;">
+    <strong>Inventario disponible:</strong> <%= @product.stock_for_sale %> <%= @product.sale_unit&.name || 'unidades' %>
+  </p>
 
 
-   <p style="font-size: 16px; color: #555;">
-    <strong>Se compra por:</strong>  <%= @product.purchase_unit %>(s)
+  <p style="font-size: 16px; color: #555;">
+    <strong>Se compra por:</strong> <%= @product.purchase_unit&.name || 'N/D' %>
   </p>
 
   <p style="font-size: 16px; color: #555;">
-    <strong>Unidad de venta:</strong> <%= @product.sale_unit %>
+    <strong>Unidad de venta:</strong> <%= @product.sale_unit&.name || 'N/D' %>
   </p>
 
   <p style="font-size: 16px; color: #555;">
-    <strong>Conversión de unidades:</strong> 1 <%= @product.purchase_unit %> = <%= @product.unit_conversion %> <%= @product.sale_unit %>(s)
+    <strong>Conversión de unidades:</strong>
+    1 <%= @product.purchase_unit&.name || 'compra' %> = <%= @product.unit_conversion %> <%= @product.sale_unit&.name || 'venta' %>(s)
+    <% if @product.stock_quantity.present? && @product.unit_conversion.present? %>
+      <br>
+      <em>Equivalencia del inventario inicial: <%= (@product.stock_quantity * @product.unit_conversion).to_i %> <%= @product.sale_unit&.name || 'unidades' %></em>
+    <% end %>
   </p>
 
   <p style="font-size: 16px; color: #555;">
@@ -39,7 +44,7 @@
       <strong>Códigos de barras:</strong>
       <ul>
         <% @product.barcodes.each do |barcode| %>
-          <li><%= barcode.code %></li>
+          <li><%= barcode.code.presence || 'N/D' %></li>
         <% end %>
       </ul>
     </div>
