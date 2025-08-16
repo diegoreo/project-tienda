@@ -1,0 +1,110 @@
+
+<%= form_with(model: @product, local: true) do |form| %>
+
+  <!-- Nombre y descripción -->
+  <div class="form-group">
+    <%= form.label :name, "Nombre del producto" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "Ej. CocaCola 600ml" %>
+    <%= field_error_messages(@product, :name) %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :description, "Descripción" %>
+    <%= form.text_area :description, class: "form-control", rows: 3, placeholder: "Describe el producto" %>
+    <%= field_error_messages(@product, :description) %>
+  </div>
+
+  <!-- Categoría -->
+  <div class="form-group">
+    <%= form.label :category_id, "Categoría" %>
+    <%= form.collection_select :category_id, Category.all, :id, :name, { prompt: "Selecciona una categoría" }, class: "form-control" %>
+    <%= field_error_messages(@product, :category_id) %>
+  </div>
+
+  <!-- Unidades -->
+  <div data-controller="conversion">
+    <div class="form-group">
+      <%= form.label :purchase_unit_id, "Unidad de compra" %>
+      <%= form.collection_select :purchase_unit_id, Unit.all, :id, :name, 
+        { prompt: "Seleccione unidad de compra" }, 
+        data: { conversion_target: "purchaseUnitSelect", action: "change->conversion#updateStockLabel" } %>
+      <%= field_error_messages(@product, :purchase_unit_id) %>
+    </div>
+    
+    <div class="form-group">
+      <%= form.label :sale_unit_id, "Unidad de venta" %>
+      <%= form.collection_select :sale_unit_id, Unit.all, :id, :name, prompt: "Seleccione unidad de venta" %>  
+      <%= field_error_messages(@product, :sale_unit_id) %>
+    </div>
+
+  
+
+<!-- conversion normal con stimulus -->
+  
+    <div class="form-group">
+      <%= form.label :unit_conversion, "Conversión (unidad compra → unidad venta)" %>
+      <%= form.number_field :unit_conversion, class: "form-control", step: 1, 
+          placeholder: "Ej. 24", data: { conversion_target: "unitConversion", action: "input->conversion#calculate" } %>
+      <small class="form-text text-muted">
+        Ejemplo: Si cada caja trae 24 piezas, escribe 24.
+      </small>
+      <%= field_error_messages(@product, :unit_conversion) %>
+    </div>
+<!-- Inventario inicial -->
+  <div class="form-group">
+      <label data-conversion-target="stockLabel">
+        Inventario inicial (en <%= form.object.purchase_unit&.name || "unidad" %>)
+      </label>
+      <%= form.number_field :stock_quantity, class: "form-control", 
+          placeholder: "Ej. 10", data: { conversion_target: "stockQuantity", action: "input->conversion#calculate" } %>
+      <small class="form-text text-muted">
+        Ingresa la cantidad inicial en la unidad de compra. Por ejemplo, si compras en cajas, indica cuántas cajas tienes.
+      </small>
+      <%= field_error_messages(@product, :stock_quantity) %>
+    </div>
+
+    <p style="font-weight: bold; color: #2980b9;" data-conversion-target="result">
+      Ingresa cantidad y conversión
+    </p>
+  </div>
+
+
+<!-- termina test stimulus cant en uni venta -->
+  <!-- Precio -->
+  <div class="form-group">
+    <%= form.label :price, "Precio" %>
+    <%= form.number_field :price, step: 0.01, class: "form-control", placeholder: "Ej. 20.00" %>
+    <%= field_error_messages(@product, :price) %>
+  </div>
+
+  <!-- Códigos de barras con stimulus -->
+  <div class="form-group mt-4" data-controller="barcodes">
+    <label>Códigos de barras </label>
+    <div data-barcodes-target="container">
+      <%= form.fields_for :barcodes do |barcode_form| %>
+        <%= render "barcode_fields", f: barcode_form %>
+      <% end %>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-action="barcodes#add">
+      + Agregar otro código
+    </button>
+  </div>
+
+
+<!-- boton guardar -->
+  <div class="actions mt-3">
+    <%= form.submit "Guardar producto", class: "btn btn-primary" %>
+  </div>
+
+  <!-- Template oculto para nuevos códigos -->
+  <template id="barcode-template">
+    <div class="barcode-field" data-new-record="true">
+      <%= form.fields_for :barcodes, Barcode.new, child_index: "NEW_RECORD" do |barcode_form| %>
+        <%= render "barcode_fields", f: barcode_form %>
+      <% end %>
+    </div>
+  </template>
+
+<% end %>
+
+

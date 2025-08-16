@@ -54,5 +54,11 @@
 
   <div style="margin-top: 30px;">
     <%= link_to "Volver a productos", products_path, style: "text-decoration:none; color:#2980b9;" %>
+    <%= link_to "Editar producto", edit_product_path(@product), style: "text-decoration:none; color:#2980b9;" %>
+    <%= link_to "Eliminar producto", product_path(@product), data: {
+      turbo_method: :delete,
+      turbo_confirm: "Estas seguro de eliminar este producto?"
+    }, style: "text-decoration:none; color:#2980b9;" %>
+
   </div>
 </div>
