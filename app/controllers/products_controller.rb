@@ -4,7 +4,7 @@ class ProductsController < ApplicationController
   end
 
   def show
-    @product = Product.find(params[:id])
+    product
   end
 
   def new
@@ -18,8 +18,25 @@ class ProductsController < ApplicationController
     if @product.save
       redirect_to products_path, notice: "Producto creado con exito."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
+  end
+
+  def edit
+    product.barcodes.build
+  end
+
+  def update
+    if product.update(product_params)
+      redirect_to products_path, notice: "Tu producto se ha actualizado correctamnete"
+    else
+      render :edit, status: :unprocessable_content
+    end
+  end
+
+  def destroy
+    product.destroy
+    redirect_to products_path, notice: "El producto se elimino correctamente", status: :see_other
   end
 
   private
@@ -27,8 +44,12 @@ class ProductsController < ApplicationController
     params.require(:product).permit(
       :name, :description, :price, :stock_quantity,
       :purchase_unit_id, :sale_unit_id, :unit_conversion, :category_id,
-      barcodes_attributes: [:code]
+      barcodes_attributes: [:id, :code, :_destroy]
     )
+  end
+
+  def product
+    @product = Product.find(params[:id])
   end
   
 end
