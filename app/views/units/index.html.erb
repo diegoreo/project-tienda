@@ -1,0 +1,9 @@
+<h1>Unidades de medida</h1>
+
+<div class="actions">
+  <%= link_to "Nueva unidad de medida", new_unit_path, class: "btn-new" %>
+</div>
+
+<div class="units-grid">
+  <%= render partial: "unit", collection: @units %>
+</div>

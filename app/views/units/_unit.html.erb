@@ -1,0 +1,15 @@
+<div class="unit-card">
+  <h2 class="unit-title"><%= unit.name %></h2>
+  
+  <p class="unit-details">
+    <strong>Abreviatura:</strong> <%= unit.abbreviation %><br>
+    <strong>Descripción:</strong> <%= unit.description %>
+  </p>
+
+  <div class="unit-actions">
+    <%= link_to "Editar", edit_unit_path(unit), class: "btn-edit" %>
+    <%= link_to "Eliminar", unit_path(unit), 
+          data: { turbo_method: :delete, turbo_confirm: "¿Estas seguro de eliminar esta unidad de medida?" }, 
+          class: "btn-delete" %>
+  </div>
+</div>
