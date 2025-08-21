@@ -1,7 +1,26 @@
 class ProductsController < ApplicationController
   def index
+    @categories = Category.order(:name)
+  
+    # Base query
     @products = Product.all
+  
+    # Búsqueda con pg_search
+    if params[:query].present?
+      @products = @products.search_by_name_description_and_barcode(params[:query])
+    end
+  
+    # Filtrado por categoría
+    if params[:category_id].present?
+      @products = @products.where(category_id: params[:category_id])
+    end
+  
+    # Orden y preload de asociaciones
+    @products = @products.includes(:purchase_unit, :sale_unit, :category)
+      .order(created_at: :desc)
   end
+  
+  
 
   def show
     product

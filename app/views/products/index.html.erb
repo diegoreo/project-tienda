@@ -1,5 +1,19 @@
 <h1>Productos</h1>
 
+<%= form_with url: products_path, method: :get, local: true do %>
+  <%= text_field_tag :query, params[:query], placeholder: "Buscar productos..." %>
+  <%= submit_tag "Buscar" %>
+<% end %>
 
 
-<%= render partial: "product", collection: @products %>
+<%= turbo_frame_tag "categories" do %>
+  <div>
+    <%= link_to "Todos", products_path %>
+
+    <%= render partial: "category", collection: @categories %>
+  </div>
+
+  <div>
+    <%= render partial: "product", collection: @products %>
+  </div>
+<% end %>

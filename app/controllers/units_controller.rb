@@ -1,6 +1,6 @@
 class UnitsController < ApplicationController
   def index
-    @units = Unit.all
+    @units = Unit.all.order(name: :asc)
   end
 
   def new
