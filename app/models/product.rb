@@ -1,4 +1,17 @@
 class Product < ApplicationRecord
+  include PgSearch::Model
+  pg_search_scope :search_by_name_description_and_barcode,
+    against: [:name, :description],
+    associated_against: {
+      barcodes: :code
+    },
+    using: {
+      tsearch: { prefix: true, dictionary: "spanish", },  # "coc" -> "coca cola"
+      trigram: {
+        threshold: 0.1           # más flexible para errores tipográficos
+      }
+    }
+
   belongs_to :category
   has_many :barcodes, dependent: :destroy
   belongs_to :purchase_unit, class_name: "Unit"
