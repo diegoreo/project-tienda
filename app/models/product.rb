@@ -13,9 +13,12 @@ class Product < ApplicationRecord
     }
 
   belongs_to :category
-  has_many :barcodes, dependent: :destroy
   belongs_to :purchase_unit, class_name: "Unit"
   belongs_to :sale_unit, class_name: "Unit"
+  has_many :barcodes, dependent: :destroy
+  has_many :purchase_items, dependent: :restrict_with_exception
+  has_many :inventories, dependent: :restrict_with_exception
+
   # Esto permite que el formulario de Product acepte datos para barcodes
   accepts_nested_attributes_for :barcodes, allow_destroy: true, reject_if: :all_blank
 
