@@ -35,6 +35,9 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
     if @product.save
+      # Elegir almacén: el seleccionado en el form (top-level) o el primero
+      warehouse = params[:initial_warehouse_id].present? ? Warehouse.find_by(id: params[:initial_warehouse_id]) : Warehouse.first
+      InventoryBootstrapper.call(product: @product, warehouse: warehouse)
       redirect_to products_path, notice: "Producto creado con exito."
     else
       render :new, status: :unprocessable_content
