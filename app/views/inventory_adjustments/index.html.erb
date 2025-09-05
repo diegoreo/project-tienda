@@ -1,0 +1,40 @@
+<h1>Ajustes del inventario</h1>
+
+<p>
+  Inventario de: <strong><%= inventory.product.name %></strong> 
+  en almacén: <strong><%= inventory.warehouse.name %></strong>
+</p>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Tipo de ajuste</th>
+      <th>Cantidad</th>
+      <th>Motivo</th>
+      <th>Realizado por</th>
+      <th>Nota</th>
+      <th>Fecha</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @adjustments.each do |adjustment| %>
+      <tr>
+        <td><%= adjustment.id %></td>
+        <td><%= adjustment.adjustment_type %></td>
+        <td><%= adjustment.quantity %></td>
+        <td><%= adjustment.reason %></td>
+        <td><%= adjustment.performed_by %></td>
+        <td><%= adjustment.note %></td>
+        <td><%= adjustment.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+        <td>
+          <%= link_to "Ver", inventory_inventory_adjustment_path(inventory, adjustment), class: "btn btn-sm btn-outline-primary" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= link_to "Nuevo ajuste", new_inventory_inventory_adjustment_path(inventory), class: "btn btn-primary" %>
+<%= link_to "Volver al inventario", inventories_path, class: "btn btn-secondary" %>

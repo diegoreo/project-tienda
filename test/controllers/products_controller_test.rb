@@ -1,12 +1,14 @@
 require "test_helper"
 class ProductsControllerTest < ActionDispatch::IntegrationTest
-
+  setup do
+    @warehouse = warehouses(:one)
+  end
 
   test "render a list of products" do
     get products_path
 
     assert_response :success
-    assert_select ".product", 4
+    assert_select ".product", 5
     assert_select ".category",8
   end
 
@@ -101,10 +103,10 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
 
     test "can delete products" do
       assert_difference("Product.count", -1) do
-        delete product_path(products(:coca_cola))
+        delete product_path(products(:producto_libre))
       end
       assert_redirected_to products_path
       assert_equal flash[:notice], "El producto se elimino correctamente"
-
     end
+    
 end

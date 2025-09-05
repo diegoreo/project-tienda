@@ -39,3 +39,13 @@ pan_bolillo:
   sale_unit: "pieza"
   unit_conversion: 1
   category: panaderia_reposteria
+
+producto_libre:
+  name: "Producto Libre"
+  description: "Un producto sin dependencias"
+  price: 10.00
+  stock_quantity: 5
+  purchase_unit: caja
+  sale_unit: pieza
+  unit_conversion: 1
+  category: panaderia_reposteria

@@ -1,5 +1,7 @@
 <%= link_to product_path(product), class: "product", "data-turbo-frame": "_top" do %>
-    <h2><%= product.name %></h2>
-    <span>precio: <%= product.price %>$</span>   <span>stock: <%= product.stock_for_sale %> <%= (product.sale_unit&.name || "Unidades").pluralize(product.stock_for_sale) %> </span>  <span> categoria: <%= product.category&.name || "Sin categoría"  %></span>
-<% end %>  
-
+  <h2><%= product.name %></h2>
+  <span>precio: <%= product.price %>$</span>   
+  <% total_quantity = product.inventories.sum(:quantity) %> 
+  <span>stock: <%= total_quantity %> <%= (product.sale_unit&.name || "Unidades").pluralize(total_quantity) %> </span>  
+  <span>categoria: <%= product.category&.name || "Sin categoría" %></span>
+<% end %>

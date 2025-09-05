@@ -1,0 +1,18 @@
+<h1>Detalle del ajuste</h1>
+
+<p>
+  Inventario de: <strong><%= inventory.product.name %></strong> 
+  en almacén: <strong><%= inventory.warehouse.name %></strong>
+</p>
+
+<ul class="list-group">
+  <li class="list-group-item"><strong>ID:</strong> <%= @adjustment.id %></li>
+  <li class="list-group-item"><strong>Tipo de ajuste:</strong> <%= @adjustment.adjustment_type %></li>
+  <li class="list-group-item"><strong>Cantidad:</strong> <%= @adjustment.quantity %></li>
+  <li class="list-group-item"><strong>Motivo:</strong> <%= @adjustment.reason %></li>
+  <li class="list-group-item"><strong>Realizado por:</strong> <%= @adjustment.performed_by %></li>
+  <li class="list-group-item"><strong>Nota:</strong> <%= @adjustment.note.presence || "-" %></li>
+  <li class="list-group-item"><strong>Fecha:</strong> <%= @adjustment.created_at.strftime("%d/%m/%Y %H:%M") %></li>
+</ul>
+
+<%= link_to "Volver a ajustes", inventory_inventory_adjustments_path(inventory), class: "btn btn-secondary mt-3" %>

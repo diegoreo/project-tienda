@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_21_232639) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_27_172042) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -41,6 +41,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_21_232639) do
     t.index ["product_id", "warehouse_id"], name: "index_inventories_on_product_id_and_warehouse_id", unique: true
     t.index ["product_id"], name: "index_inventories_on_product_id"
     t.index ["warehouse_id"], name: "index_inventories_on_warehouse_id"
+  end
+
+  create_table "inventory_adjustments", force: :cascade do |t|
+    t.bigint "inventory_id", null: false
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.integer "adjustment_type", default: 0, null: false
+    t.string "reason", null: false
+    t.text "note"
+    t.string "performed_by", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["inventory_id"], name: "index_inventory_adjustments_on_inventory_id"
   end
 
   create_table "inventory_movements", force: :cascade do |t|
@@ -129,6 +141,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_21_232639) do
   add_foreign_key "barcodes", "products"
   add_foreign_key "inventories", "products"
   add_foreign_key "inventories", "warehouses"
+  add_foreign_key "inventory_adjustments", "inventories"
   add_foreign_key "inventory_movements", "inventories"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "units", column: "purchase_unit_id"

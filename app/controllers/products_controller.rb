@@ -63,11 +63,21 @@ class ProductsController < ApplicationController
 
   private
   def product_params
-    params.require(:product).permit(
-      :name, :description, :price, :stock_quantity,
-      :purchase_unit_id, :sale_unit_id, :unit_conversion, :category_id,
-      barcodes_attributes: [:id, :code, :_destroy]
-    )
+    base_params = [
+      :name,
+      :description,
+      :price,
+      :purchase_unit_id,
+      :sale_unit_id,
+      :unit_conversion,
+      :category_id,
+      { barcodes_attributes: [:id, :code, :_destroy] }
+    ]
+  
+    # Solo permitir stock_quantity al crear
+    base_params << :stock_quantity if action_name == "create"
+  
+    params.require(:product).permit(base_params)
   end
 
   def product

@@ -1,11 +1,19 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+coca_cola_central:
+  product: coca_cola
+  warehouse: one
+  quantity: 240.0   # 10 * 24
 
-# This model initially had no columns defined. If you add columns to the
-# model remove the "{}" from the fixture names and add the columns immediately
-# below each fixture, per the syntax in the comments below
-#
-one: {}
-# column: value
-#
-two: {}
-# column: value
+leche_entera_central:
+  product: leche_entera
+  warehouse: one
+  quantity: 180.0   # 15 * 12
+
+arroz_blanco_central:
+  product: arroz_blanco
+  warehouse: one
+  quantity: 1250.0   # 25 * 50
+
+pan_bolillo_central:
+  product: pan_bolillo
+  warehouse: one
+  quantity: 100.0   # 100 * 1

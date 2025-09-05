@@ -1,0 +1,8 @@
+<h2> <%= warehouse.name %> </h2>
+<strong>Ubicacion:</strong> <%= warehouse.location %>
+
+<div>
+    <%= link_to "Editar", edit_warehouse_path(warehouse)%>
+    <%= link_to "Eliminar", warehouse_path(warehouse),
+          data: { turbo_method: :delete, turbo_confirm: "¿Estas seguro de eliminar este almacen?" } %>
+</div>
