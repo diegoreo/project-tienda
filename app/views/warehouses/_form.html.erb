@@ -1,0 +1,26 @@
+<%= form_with(model: @warehouse, local: true) do |form| %>
+  <% if @warehouse.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@warehouse.errors.count, "error") %> impiden guardar el almacén:</h2>
+      <ul>
+        <% @warehouse.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name %><br>
+    <%= form.text_field :name, required: true %>
+  </div>
+
+  <div>
+    <%= form.label :location %><br>
+    <%= form.text_field :location, required: true %>
+  </div>
+
+  <div>
+    <%= form.submit "Guardar Almacén" %>
+  </div>
+<% end %>

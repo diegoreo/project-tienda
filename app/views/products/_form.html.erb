@@ -51,23 +51,24 @@
       <%= field_error_messages(@product, :unit_conversion) %>
     </div>
 <!-- Inventario inicial -->
-  <div class="form-group">
-      <label data-conversion-target="stockLabel">
-        Inventario inicial (en <%= form.object.purchase_unit&.name || "unidad" %>)
-      </label>
-      <%= form.number_field :stock_quantity, class: "form-control", 
-          placeholder: "Ej. 10", data: { conversion_target: "stockQuantity", action: "input->conversion#calculate" } %>
-      <small class="form-text text-muted">
-        Ingresa la cantidad inicial en la unidad de compra. Por ejemplo, si compras en cajas, indica cuántas cajas tienes.
-      </small>
-      <%= field_error_messages(@product, :stock_quantity) %>
+  <% if form.object.new_record? %>
+    <div class="form-group">
+        <label data-conversion-target="stockLabel">
+          Inventario inicial (en <%= form.object.purchase_unit&.name || "unidad" %>)
+        </label>
+        <%= form.number_field :stock_quantity, class: "form-control", 
+            placeholder: "Ej. 10", data: { conversion_target: "stockQuantity", action: "input->conversion#calculate" } %>
+        <small class="form-text text-muted">
+          Ingresa la cantidad inicial en la unidad de compra. Por ejemplo, si compras en cajas, indica cuántas cajas tienes.
+        </small>
+        <%= field_error_messages(@product, :stock_quantity) %>
+      </div>
+
+      <p style="font-weight: bold; color: #2980b9;" data-conversion-target="result">
+        Ingresa cantidad y conversión
+      </p>
     </div>
-
-    <p style="font-weight: bold; color: #2980b9;" data-conversion-target="result">
-      Ingresa cantidad y conversión
-    </p>
-  </div>
-
+  <% end %>
 
 <!-- termina test stimulus cant en uni venta -->
   <!-- Precio -->

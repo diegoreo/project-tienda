@@ -1,0 +1,19 @@
+<h1>Detalle del Inventario</h1>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <p><strong>ID:</strong> <%= @inventory.id %></p>
+    <p><strong>Producto:</strong> <%= @inventory.product.name %></p>
+    <p><strong>Almacén:</strong> <%= @inventory.warehouse.name %></p>
+    <p><strong>Cantidad actual:</strong> <%= @inventory.quantity %></p>
+    <% if @inventory.minimum_quantity %>
+      <p><strong>Cantidad mínima:</strong> <%= @inventory.minimum_quantity %></p>
+    <% end %>
+  </div>
+</div>
+
+<div class="mb-3">
+  <%= link_to "Ver ajustes de inventario", inventory_inventory_adjustments_path(@inventory), class: "btn btn-secondary" %>
+  <%= link_to "Nuevo ajuste", new_inventory_inventory_adjustment_path(@inventory), class: "btn btn-primary" %>
+  <%= link_to "Volver al listado", inventories_path, class: "btn btn-light" %>
+</div>

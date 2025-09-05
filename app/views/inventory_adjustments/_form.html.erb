@@ -1,0 +1,59 @@
+<%= form_with(model: [inventory, @adjustment], local: true, data: { controller: "inventory-adjustment" }) do |form| %>
+  <% if @adjustment.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(@adjustment.errors.count, "error") %> impidieron guardar el ajuste:</h2>
+      <ul>
+        <% @adjustment.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Inventario actual -->
+  <div class="field">
+    <%= form.label :current_inventory, "Inventario antes del ajuste" %>
+    <span data-inventory-adjustment-target="currentQuantity"><%= inventory.quantity %></span>
+  </div>
+
+  <!-- Cantidad a ajustar -->
+  <div class="field">
+    <%= form.label :quantity, "Cantidad" %>
+    <%= form.number_field :quantity, step: 0.001, data: { inventory_adjustment_target: "quantityInput", action: "input->inventory-adjustment#recalculate" } %>
+  </div>
+
+  <!-- Tipo de ajuste -->
+  <div class="field">
+    <%= form.label :adjustment_type, "Tipo de ajuste" %>
+    <%= form.select :adjustment_type, [["Aumentar", "increase"], ["Disminuir", "decrease"]], {}, data: { action: "change->inventory-adjustment#recalculate" } %>
+  </div>
+
+  <!-- Inventario final -->
+  <div class="field">
+    <strong>Inventario final despues del ajuste:</strong>
+    <span data-inventory-adjustment-target="finalQuantity"><%= inventory.quantity %></span>
+  </div>
+
+  <!-- Motivo -->
+  <div class="field">
+    <%= form.label :reason, "Motivo" %>
+    <%= form.text_field :reason %>
+  </div>
+
+  <!-- Realizado por -->
+  <div class="field">
+    <%= form.label :performed_by, "Realizado por" %>
+    <%= form.text_field :performed_by %>
+  </div>
+
+  <!-- Nota -->
+  <div class="field">
+    <%= form.label :note, "Nota" %>
+    <%= form.text_area :note %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Guardar ajuste" %>
+  </div>
+<% end %>
+

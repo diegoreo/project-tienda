@@ -1,0 +1,38 @@
+# test/fixtures/inventory_adjustments.yml
+# Ajustes de inventario iniciales para pruebas
+
+ajuste_coca_cola_inicial:
+  inventory: coca_cola_central
+  adjustment_type: increase
+  quantity: 5
+  reason: "Ajuste inicial de stock"
+  performed_by: "Sistema"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ajuste_leche_entera_inicial:
+  inventory: leche_entera_central
+  adjustment_type: decrease
+  quantity: 3
+  reason: "Pérdida por caducidad"
+  performed_by: "Sistema"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ajuste_arroz_blanco_inicial:
+  inventory: arroz_blanco_central
+  adjustment_type: increase
+  quantity: 10
+  reason: "Reposición de inventario"
+  performed_by: "Sistema"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
+
+ajuste_pan_bolillo_inicial:
+  inventory: pan_bolillo_central
+  adjustment_type: decrease
+  quantity: 8
+  reason: "Merma por producto dañado"
+  performed_by: "Sistema"
+  created_at: <%= Time.current %>
+  updated_at: <%= Time.current %>
