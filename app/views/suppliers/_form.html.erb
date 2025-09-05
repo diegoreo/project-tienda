@@ -1,0 +1,26 @@
+<%= form_with(model: @supplier, local: true) do |form| %>
+  <% if @supplier.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@supplier.errors.count, "error") %> impiden guardar el proveedor:</h2>
+      <ul>
+        <% @supplier.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name %><br>
+    <%= form.text_field :name, required: true %>
+  </div>
+
+  <div>
+    <%= form.label :contact_info %><br>
+    <%= form.text_area :contact_info, required: true %>
+  </div>
+
+  <div>
+    <%= form.submit "Guardar Proveedor" %>
+  </div>
+<% end %>

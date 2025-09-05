@@ -1,0 +1,8 @@
+<h2> <%= supplier.name %> </h2>
+<strong>Informacion:</strong> <%= supplier.contact_info %>
+
+<div>
+    <%= link_to "Editar", edit_supplier_path(supplier)%>
+    <%= link_to "Eliminar", supplier_path(supplier),
+          data: { turbo_method: :delete, turbo_confirm: "¿Estas seguro de eliminar este proveedor?" } %>
+</div>
