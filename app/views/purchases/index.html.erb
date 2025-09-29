@@ -1,0 +1,37 @@
+<h1>Listado de Compras</h1>
+
+<div style="margin-bottom: 1rem;">
+  <%= link_to "Nueva Compra", new_purchase_path, class: "btn btn-primary" %>
+</div>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Proveedor</th>
+      <th>Almacén</th>
+      <th>Fecha</th>
+      <th>Total</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @purchases.each do |purchase| %>
+      <tr>
+        <td><%= purchase.id %></td>
+        <td><%= purchase.supplier.name %></td>
+        <td><%= purchase.warehouse.name %></td>
+        <td><%= l(purchase.purchase_date, format: :long) %></td>
+        <td><%= number_to_currency(purchase.total || 0) %></td>
+        <td>
+          <%= link_to "Ver", purchase_path(purchase), class: "btn btn-sm btn-info" %> |
+          <%= link_to "Editar", edit_purchase_path(purchase), class: "btn btn-sm btn-warning" %> |
+          <%= link_to "Eliminar", purchase_path(purchase),
+                method: :delete,
+                data: { confirm: "¿Estás seguro de eliminar esta compra?" },
+                class: "btn btn-sm btn-danger" %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

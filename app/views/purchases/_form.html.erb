@@ -1,0 +1,60 @@
+<%= form_with model: @purchase, local: true, data: { controller: "purchase-items" } do |f| %>
+  <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+    <div>
+      <%= f.label :supplier_id, "Proveedor" %>
+      <%= f.collection_select :supplier_id, Supplier.all, :id, :name, prompt: "Selecciona un proveedor", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :warehouse_id, "Almacén" %>
+      <%= f.collection_select :warehouse_id, Warehouse.all, :id, :name, prompt: "Selecciona un almacén", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :purchase_date, "Fecha de Compra" %>
+      <%= f.date_field :purchase_date, required: true %>
+    </div>
+  </div>
+
+  <h3>Productos de la Compra</h3>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Costo Unitario</th>
+        <th>Factor de Conversión</th>
+        <th>Subtotal</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody data-purchase-items-target="items">
+      <%= f.fields_for :purchase_items do |item_fields| %>
+        <%= render "purchase_item_fields", f: item_fields %>
+      <% end %>
+    </tbody>
+    <tfoot>
+      <tr>
+          <td colspan="4" class="text-end"><strong>Total:</strong></td>
+          <td id="purchase-total">$0.00</td>
+          <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <!-- Template corregido -->
+  <template id="purchase-item-template">
+    <%= f.fields_for :purchase_items, PurchaseItem.new, child_index: "NEW_RECORD" do |item_fields| %>
+      <%= render "purchase_item_fields", f: item_fields %>
+    <% end %>
+  </template>
+
+  <div style="margin: 1rem 0;">
+    <button type="button" data-action="purchase-items#addItem">➕ Agregar producto</button>
+  </div>
+
+  <div>
+    <%= f.submit "Registrar compra" %>
+  </div>
+<% end %>

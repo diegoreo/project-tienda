@@ -10,6 +10,10 @@ Rails.application.routes.draw do
   resources :inventories, only: [:index, :show] do
     resources :inventory_adjustments, only: [:index, :new, :create, :show]
   end
+
+  resources :purchases do
+    resources :purchase_items, only: [:create, :update, :destroy]
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
