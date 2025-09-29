@@ -1,0 +1,25 @@
+<tr class="purchase-item-fields" data-new-record="<%= f.object.new_record? %>" data-controller="purchase-item">
+  <td>
+    <%= f.collection_select :product_id, Product.all, :id, :name, prompt: "Selecciona un producto", required: true %>
+  </td>
+  <td>
+    <%= f.number_field :quantity, min: 1, required: true,
+          data: { action: "input->purchase-item#updateSubtotal" } %>
+  </td>
+  <td>
+    <%= f.number_field :unit_cost, min: 0, step: 0.01, required: true,
+          data: { action: "input->purchase-item#updateSubtotal" } %>
+  </td>
+  <td>
+    <%= f.number_field :conversion_factor, min: 1, required: true %>
+  </td>
+  <td class="subtotal-cell" data-purchase-item-target="subtotal">
+    $0.00
+  </td>
+  <td>
+    <%= f.hidden_field :_destroy %>
+    <button type="button" data-action="purchase-items#removeItem">Eliminar</button>
+  </td>
+</tr>
+
+
