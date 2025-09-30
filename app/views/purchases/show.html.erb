@@ -1,0 +1,41 @@
+<h1>Detalle de Compra #<%= @purchase.id %></h1>
+
+<div style="margin-bottom: 2rem;">
+  <p><strong>Proveedor:</strong> <%= @purchase.supplier.name %></p>
+  <p><strong>Almacén:</strong> <%= @purchase.warehouse.name %></p>
+  <p><strong>Fecha:</strong> <%= @purchase.purchase_date %></p>
+  <p><strong>Total:</strong> <%= number_to_currency(@purchase.total || 0) %></p>
+</div>
+
+<h2>Productos</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Producto</th>
+      <th>Cantidad</th>
+      <th>Precio Compra</th>
+      <th>Factor Conversión</th>
+      <th>Subtotal</th>
+      <th>Costo/Pieza</th>
+      <th>Piezas Totales</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @purchase.purchase_items.each do |item| %>
+      <tr>
+        <td><%= item.product.name %></td>
+        <td><%= item.quantity %></td>
+        <td><%= number_to_currency(item.purchase_price) %></td>
+        <td><%= item.conversion_factor %></td>
+        <td><%= number_to_currency(item.subtotal) %></td>
+        <td><%= number_to_currency(item.cost_per_piece) %></td>
+        <td><%= item.quantity_sale_units %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<div style="margin-top: 2rem;">
+  <%= link_to "Editar", edit_purchase_path(@purchase), class: "btn" %>
+  <%= link_to "Volver a compras", purchases_path, class: "btn" %>
+</div>

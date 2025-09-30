@@ -10,8 +10,9 @@ class Purchase < ApplicationRecord
 
   # Método para calcular el total de la compra
   def calculate_total
-    purchase_items.sum("quantity * unit_cost")
+    purchase_items.sum("quantity * purchase_price")
   end
+  
 
   # Método para procesar la compra y actualizar inventarios
   def process_inventory!
