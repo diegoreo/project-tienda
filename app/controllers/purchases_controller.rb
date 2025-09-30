@@ -13,39 +13,52 @@ class PurchasesController < ApplicationController
   # GET /purchases/new
   def new
     @purchase = Purchase.new
-    # Inicializa al menos un item para el formulario
     @purchase.purchase_items.build
+  end
+
+  # GET /purchases/:id/edit - FALTABA ESTA ACCIÓN
+  def edit
+    @purchase.purchase_items.build if @purchase.purchase_items.empty?
   end
 
   # POST /purchases
   def create
     @purchase = Purchase.new(purchase_params)
-
-    if @purchase.save
-      # Procesar inventarios y movimientos explícitamente
-      @purchase.process_inventory!
-
-      redirect_to purchases_path, notice: "Compra registrada correctamente"
-    else
-      render :new, status: :unprocessable_content
+    
+    # Calcular quantity_sale_units antes de guardar
+    @purchase.purchase_items.each do |item|
+      item.quantity_sale_units = item.quantity_sale_units_calc
     end
-  end
-
-  # GET /purchases/:id/edit
-  def edit
-    # Permitir agregar items vacíos en el formulario
-    @purchase.purchase_items.build if @purchase.purchase_items.empty?
+    
+    if @purchase.save
+      # Procesar inventario
+      @purchase.process_inventory!
+      redirect_to @purchase, notice: "Compra registrada correctamente."
+    else
+      render :new, status: :unprocessable_entity
+    end
   end
 
   # PATCH/PUT /purchases/:id
   def update
     if @purchase.update(purchase_params)
-      # Reprocesar inventarios: 
-      # Ojo, aquí dependerá de si quieres restar el stock antiguo y sumar el nuevo
-      # Para simplicidad, podrías dejar que solo cree nuevos movimientos por items añadidos
-      redirect_to purchase_path(@purchase), notice: "Compra actualizada correctamente"
+      # Recalcular TODOS los campos calculados de cada item
+      @purchase.purchase_items.each do |item|
+        next if item.marked_for_destruction?
+        
+        item.quantity_sale_units = item.quantity_sale_units_calc
+        item.subtotal = item.calculate_subtotal
+        item.cost_per_piece = item.calculate_cost_per_piece
+        item.save!
+      end
+      
+      # Recalcular y actualizar el total de la compra
+      total = @purchase.purchase_items.reject(&:marked_for_destruction?).sum(&:subtotal)
+      @purchase.update_column(:total, total)
+      
+      redirect_to @purchase, notice: "Compra actualizada correctamente."
     else
-      render :edit, status: :unprocessable_content
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -63,18 +76,32 @@ class PurchasesController < ApplicationController
 
   def purchase_params
     params.require(:purchase).permit(
-      :supplier_id,
-      :warehouse_id,
-      :purchase_date,
+      :supplier_id, :warehouse_id, :purchase_date,
       purchase_items_attributes: [
-        :id, 
-        :product_id, 
-        :quantity, 
-        :unit_cost, 
-        :conversion_factor, 
-        :quantity_sale_units, 
+        :id, :product_id, :quantity, :purchase_price,
+        :conversion_factor, :subtotal, :cost_per_piece,
         :_destroy
       ]
     )
   end
 end
+
+
+
+
+
+#camb
+=begin
+def create
+  @purchase = Purchase.new(purchase_params)
+
+  if @purchase.save
+    # Procesar inventarios y movimientos explícitamente
+    @purchase.process_inventory!
+
+    redirect_to purchases_path, notice: "Compra registrada correctamente"
+  else
+    render :new, status: :unprocessable_content
+  end
+end
+=end

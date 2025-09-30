@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_27_172042) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_30_185719) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -91,17 +91,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_172042) do
     t.bigint "purchase_id", null: false
     t.bigint "product_id", null: false
     t.decimal "quantity", precision: 12, scale: 2, null: false
-    t.decimal "unit_cost", precision: 12, scale: 2, null: false
+    t.decimal "purchase_price", precision: 12, scale: 2, null: false
     t.decimal "conversion_factor", precision: 12, scale: 6, default: "1.0", null: false
     t.decimal "quantity_sale_units", precision: 12, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "cost_per_piece", precision: 12, scale: 2, default: "0.0", null: false
+    t.decimal "subtotal", precision: 14, scale: 2, default: "0.0", null: false
     t.index ["product_id"], name: "index_purchase_items_on_product_id"
     t.index ["purchase_id"], name: "index_purchase_items_on_purchase_id"
     t.check_constraint "conversion_factor > 0::numeric", name: "chk_purchase_items_conversion_positive"
+    t.check_constraint "purchase_price >= 0::numeric", name: "chk_purchase_items_unit_cost_nonnegative"
     t.check_constraint "quantity > 0::numeric", name: "chk_purchase_items_quantity_positive"
     t.check_constraint "quantity_sale_units > 0::numeric", name: "chk_purchase_items_quantity_sale_units_positive"
-    t.check_constraint "unit_cost >= 0::numeric", name: "chk_purchase_items_unit_cost_nonnegative"
   end
 
   create_table "purchases", force: :cascade do |t|
@@ -111,6 +113,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_172042) do
     t.decimal "total", precision: 12, scale: 2, default: "0.0"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "processed_at"
+    t.index ["processed_at"], name: "index_purchases_on_processed_at"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
     t.index ["warehouse_id"], name: "index_purchases_on_warehouse_id"
   end

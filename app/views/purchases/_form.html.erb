@@ -23,9 +23,10 @@
       <tr>
         <th>Producto</th>
         <th>Cantidad</th>
-        <th>Costo Unitario</th>
+        <th>Precio Compra</th>
         <th>Factor de Conversión</th>
         <th>Subtotal</th>
+        <th>Costo por Pieza</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -34,16 +35,9 @@
         <%= render "purchase_item_fields", f: item_fields %>
       <% end %>
     </tbody>
-    <tfoot>
-      <tr>
-          <td colspan="4" class="text-end"><strong>Total:</strong></td>
-          <td id="purchase-total">$0.00</td>
-          <td></td>
-      </tr>
-    </tfoot>
   </table>
 
-  <!-- Template corregido -->
+  <!-- Template para agregar nuevos productos -->
   <template id="purchase-item-template">
     <%= f.fields_for :purchase_items, PurchaseItem.new, child_index: "NEW_RECORD" do |item_fields| %>
       <%= render "purchase_item_fields", f: item_fields %>
@@ -54,7 +48,12 @@
     <button type="button" data-action="purchase-items#addItem">➕ Agregar producto</button>
   </div>
 
-  <div>
+  <div style="margin-top: 1rem;">
+    <strong>Total: </strong>
+    <span id="purchase-total">0.00</span>
+  </div>
+
+  <div style="margin-top: 1rem;">
     <%= f.submit "Registrar compra" %>
   </div>
 <% end %>

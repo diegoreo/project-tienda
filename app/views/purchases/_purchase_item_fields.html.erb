@@ -1,25 +1,29 @@
-<tr class="purchase-item-fields" data-new-record="<%= f.object.new_record? %>" data-controller="purchase-item">
+<tr class="purchase-item-fields" data-new-record="<%= f.object.new_record? %>">
   <td>
     <%= f.collection_select :product_id, Product.all, :id, :name, prompt: "Selecciona un producto", required: true %>
   </td>
   <td>
-    <%= f.number_field :quantity, min: 1, required: true,
-          data: { action: "input->purchase-item#updateSubtotal" } %>
+    <%= f.number_field :quantity, min: 1, required: true, step: 1,
+          data: { action: "input->purchase-items#updateSubtotal" } %>
   </td>
   <td>
-    <%= f.number_field :unit_cost, min: 0, step: 0.01, required: true,
-          data: { action: "input->purchase-item#updateSubtotal" } %>
+    <%= f.number_field :purchase_price, min: 0, step: 0.01, required: true,
+          data: { action: "input->purchase-items#updateSubtotal" } %>
   </td>
   <td>
-    <%= f.number_field :conversion_factor, min: 1, required: true %>
+    <%= f.number_field :conversion_factor, min: 1, required: true, step: 1,
+          data: { action: "input->purchase-items#updateSubtotal" } %>
   </td>
-  <td class="subtotal-cell" data-purchase-item-target="subtotal">
+  <td data-purchase-item-target="subtotal">
     $0.00
+    <%= f.hidden_field :subtotal, data: { purchase_item_target: "subtotalInput" } %>
+  </td>
+  <td data-purchase-item-target="costPerPiece">
+    $0.00
+    <%= f.hidden_field :cost_per_piece, data: { purchase_item_target: "costPerPieceInput" } %>
   </td>
   <td>
     <%= f.hidden_field :_destroy %>
     <button type="button" data-action="purchase-items#removeItem">Eliminar</button>
   </td>
 </tr>
-
-
