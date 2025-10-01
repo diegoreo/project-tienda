@@ -15,17 +15,18 @@ class InventoryMovement < ApplicationRecord
     waste: 7,               # Merma (caducidad, rotura)
     adjustment: 8,          # Ajuste manual
     donation: 9,            # Donación (entrada/salida)
-    other: 10               # Otro motivo no clasificado
+    other: 10,              # Otro motivo no clasificado
+    purchase_cancellation: 11  # Eliminación de compra
   }
+  
   validates :movement_type, presence: true
   validates :reason, presence: true
   validates :quantity, numericality: { greater_than: 0 }
 
-  # Validación personalizada
   # Definimos qué motivos son válidos para cada tipo de movimiento
   VALID_REASONS_BY_TYPE = {
     "incoming" => %i[initial_stock purchase return_from_client transfer_in donation other adjustment],
-    "outgoing" => %i[sale return_to_supplier transfer_out waste other adjustment]
+    "outgoing" => %i[sale return_to_supplier transfer_out waste other adjustment purchase_cancellation]
   }.freeze
 
   validate :reason_allowed_for_movement_type
@@ -39,4 +40,3 @@ class InventoryMovement < ApplicationRecord
     errors.add(:reason, "'#{reason}' no es válido para un movimiento de tipo '#{movement_type}'")
   end
 end
-
