@@ -1,9 +1,31 @@
 <h1>Detalle de Compra #<%= @purchase.id %></h1>
 
+<!-- Advertencia de estado de edición -->
+<% if @purchase.processed_at.present? %>
+  <% if @purchase.editable? %>
+    <div style="background: #fff3cd; padding: 1rem; margin-bottom: 1rem; border-radius: 5px; border-left: 4px solid #ffc107;">
+      ⚠️ Esta compra puede editarse durante <%= Purchase::EDITABLE_DAYS - @purchase.days_since_processed %> días más
+      (procesada el <%= l(@purchase.processed_at, format: :long) %>).
+    </div>
+  <% else %>
+    <div style="background: #f8d7da; padding: 1rem; margin-bottom: 1rem; border-radius: 5px; border-left: 4px solid #dc3545;">
+      🔒 Esta compra ya no puede editarse. Fue procesada hace <%= @purchase.days_since_processed %> días
+      (límite: <%= Purchase::EDITABLE_DAYS %> días).
+    </div>
+  <% end %>
+<% else %>
+  <div style="background: #d1ecf1; padding: 1rem; margin-bottom: 1rem; border-radius: 5px; border-left: 4px solid #17a2b8;">
+    ℹ️ Esta compra aún no ha sido procesada en el inventario.
+  </div>
+<% end %>
+
 <div style="margin-bottom: 2rem;">
   <p><strong>Proveedor:</strong> <%= @purchase.supplier.name %></p>
   <p><strong>Almacén:</strong> <%= @purchase.warehouse.name %></p>
-  <p><strong>Fecha:</strong> <%= @purchase.purchase_date %></p>
+  <p><strong>Fecha de Compra:</strong> <%= l(@purchase.purchase_date, format: :long) %></p>
+  <% if @purchase.processed_at.present? %>
+    <p><strong>Procesada el:</strong> <%= l(@purchase.processed_at, format: :long) %></p>
+  <% end %>
   <p><strong>Total:</strong> <%= number_to_currency(@purchase.total || 0) %></p>
 </div>
 
@@ -27,15 +49,27 @@
         <td><%= item.quantity %></td>
         <td><%= number_to_currency(item.purchase_price) %></td>
         <td><%= item.conversion_factor %></td>
-        <td><%= number_to_currency(item.subtotal) %></td>
-        <td><%= number_to_currency(item.cost_per_piece) %></td>
-        <td><%= item.quantity_sale_units %></td>
+        <td><%= number_to_currency(item.subtotal || 0) %></td>
+        <td><%= number_to_currency(item.cost_per_piece || 0) %></td>
+        <td><%= item.quantity_sale_units || 0 %></td>
       </tr>
     <% end %>
   </tbody>
+  <tfoot>
+    <tr style="font-weight: bold; border-top: 2px solid #dee2e6;">
+      <td colspan="4" style="text-align: right;">TOTAL:</td>
+      <td><%= number_to_currency(@purchase.total || 0) %></td>
+      <td colspan="2"></td>
+    </tr>
+  </tfoot>
 </table>
 
-<div style="margin-top: 2rem;">
-  <%= link_to "Editar", edit_purchase_path(@purchase), class: "btn" %>
+<div style="margin-top: 2rem; display: flex; gap: 1rem;">
+  <% if @purchase.editable? %>
+    <%= link_to "Editar", edit_purchase_path(@purchase), class: "btn" %>
+  <% end %>
   <%= link_to "Volver a compras", purchases_path, class: "btn" %>
+  <%= link_to "Eliminar", purchase_path(@purchase), 
+      data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta compra?" }, 
+      class: "btn btn-danger" %>
 </div>
