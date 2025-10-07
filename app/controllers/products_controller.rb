@@ -24,6 +24,10 @@ class ProductsController < ApplicationController
 
   def show
     product
+    respond_to do |format|
+      format.html # busca la vista show.html.erb por defecto
+      format.json { render json: @product.as_json(only: [:id, :name, :price]) }
+    end
   end
 
   def new

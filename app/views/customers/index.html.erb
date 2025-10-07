@@ -1,0 +1,207 @@
+<div class="customers-container">
+  <div class="header-section">
+    <h1>Clientes</h1>
+    <div class="actions">
+      <%= link_to "Nuevo Cliente", new_customer_path, class: "btn-new" %>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <%= form_with url: customers_path, method: :get, local: true do |f| %>
+      <div class="filter-group">
+        <%= f.label :type, "Tipo de cliente" %>
+        <%= f.select :type, 
+          options_for_select([
+            ['Todos', ''],
+            ['Mostrador', 'walk_in'],
+            ['Regular', 'regular'],
+            ['Mayorista', 'wholesale']
+          ], params[:type]), 
+          {}, 
+          class: "filter-select" %>
+      </div>
+
+      <div class="filter-group">
+        <%= f.label :with_debt, "Con adeudo" %>
+        <%= f.check_box :with_debt, {}, "true", "false" %>
+      </div>
+
+      <%= f.submit "Filtrar", class: "btn-filter" %>
+      <%= link_to "Limpiar", customers_path, class: "btn-clear" %>
+    <% end %>
+  </div>
+
+  <!-- Tabla de clientes -->
+  <div class="customers-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Tipo</th>
+          <th>Límite Crédito</th>
+          <th>Deuda Actual</th>
+          <th>Crédito Disponible</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr>
+            <td><%= link_to customer.name, customer_path(customer) %></td>
+            <td><%= customer.phone %></td>
+            <td><%= customer.email %></td>
+            <td>
+              <span class="badge badge-<%= customer.customer_type %>">
+                <%= I18n.t("enums.customer.customer_type.#{customer.customer_type}") %>
+              </span>
+            </td>
+            <td><%= number_to_currency(customer.credit_limit || 0) %></td>
+            <td class="<%= customer.current_debt > 0 ? 'text-danger' : '' %>">
+              <%= number_to_currency(customer.current_debt) %>
+            </td>
+            <td><%= number_to_currency(customer.available_credit) %></td>
+            <td class="actions-cell">
+              <%= link_to "Ver", customer_path(customer), class: "btn-view" %>
+              <%= link_to "Editar", edit_customer_path(customer), class: "btn-edit" %>
+              <%= link_to "Eliminar", customer_path(customer),
+                data: { turbo_method: :delete, turbo_confirm: "¿Eliminar a #{customer.name}?" },
+                class: "btn-delete" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+  .customers-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .header-section h1 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .filters-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .filters-section form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filter-select {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .customers-table {
+    overflow-x: auto;
+  }
+
+  .customers-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .customers-table th {
+    background: #3498db;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .customers-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #ecf0f1;
+  }
+
+  .customers-table tr:hover {
+    background: #f8f9fa;
+  }
+
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .badge-walk_in { background: #e3f2fd; color: #1976d2; }
+  .badge-regular { background: #e8f5e9; color: #388e3c; }
+  .badge-wholesale { background: #fff3e0; color: #f57c00; }
+
+  .text-danger {
+    color: #e74c3c;
+    font-weight: 600;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-new, .btn-filter, .btn-clear {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .btn-new {
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: white;
+  }
+
+  .btn-filter {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+  }
+
+  .btn-clear {
+    background: #95a5a6;
+    color: white;
+  }
+
+  .btn-view, .btn-edit, .btn-delete {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .btn-view { background: #3498db; color: white; }
+  .btn-edit { background: #f39c12; color: white; }
+  .btn-delete { background: #e74c3c; color: white; }
+</style>
