@@ -1,0 +1,228 @@
+<div class="sale-detail">
+  <div class="header-section">
+    <h1>Venta #<%= @sale.id %></h1>
+    <div class="actions">
+      <% if @sale.can_be_cancelled? %>
+        <%= link_to "Cancelar Venta", cancel_sale_path(@sale),
+          data: { turbo_method: :post, turbo_confirm: "¿Cancelar esta venta?" },
+          class: "btn-cancel" %>
+      <% end %>
+      <%= link_to "Volver", sales_path, class: "btn-back" %>
+    </div>
+  </div>
+
+  <!-- Estado de la venta -->
+  <% if @sale.cancelled? %>
+    <div class="alert alert-danger">
+      ⚠️ Esta venta fue cancelada
+    </div>
+  <% end %>
+
+  <!-- Información general -->
+  <div class="info-card">
+    <h2>Información General</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <strong>Fecha:</strong> <%= l(@sale.sale_date, format: :long) %>
+      </div>
+      <div class="info-item">
+        <strong>Cliente:</strong> <%= @sale.customer&.name || 'Público general' %>
+      </div>
+      <div class="info-item">
+        <strong>Almacén:</strong> <%= @sale.warehouse.name %>
+      </div>
+      <div class="info-item">
+        <strong>Método de pago:</strong>
+        <span class="badge badge-<%= @sale.payment_method %>">
+          <%= @sale.payment_method.humanize %>
+        </span>
+      </div>
+      <div class="info-item">
+        <strong>Estado de pago:</strong>
+        <span class="badge badge-<%= @sale.payment_status %>">
+          <%= @sale.payment_status.humanize %>
+        </span>
+      </div>
+      <div class="info-item">
+        <strong>Estado:</strong>
+        <span class="badge badge-<%= @sale.status %>">
+          <%= @sale.status.humanize %>
+        </span>
+      </div>
+    </div>
+
+    <% if @sale.notes.present? %>
+      <div style="margin-top: 1rem;">
+        <strong>Notas:</strong>
+        <p><%= simple_format(@sale.notes) %></p>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Productos vendidos -->
+  <div class="info-card">
+    <h2>Productos</h2>
+    <table class="products-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Precio Unit.</th>
+          <th>Descuento</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @sale.sale_items.each do |item| %>
+          <tr>
+            <td><%= item.product.name %></td>
+            <td><%= item.quantity %></td>
+            <td><%= number_to_currency(item.unit_price) %></td>
+            <td><%= number_to_currency(item.discount) %></td>
+            <td><%= number_to_currency(item.subtotal) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="4"><strong>TOTAL:</strong></td>
+          <td><strong><%= number_to_currency(@sale.total) %></strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<style>
+  .sale-detail {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .header-section h1 {
+    margin: 0;
+    color: #2c3e50;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+  }
+
+  .alert-danger {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+  }
+
+  .info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+
+  .info-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .info-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+  }
+
+  .info-item strong {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .badge-cash { background: #d4edda; color: #155724; }
+  .badge-card { background: #cce5ff; color: #004085; }
+  .badge-credit { background: #fff3cd; color: #856404; }
+  .badge-mixed { background: #e2e3e5; color: #383d41; }
+  .badge-paid { background: #d4edda; color: #155724; }
+  .badge-partial { background: #fff3cd; color: #856404; }
+  .badge-pending { background: #f8d7da; color: #721c24; }
+  .badge-completed { background: #d4edda; color: #155724; }
+  .badge-cancelled { background: #f8d7da; color: #721c24; }
+
+  .products-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .products-table th {
+    background: #34495e;
+    color: white;
+    padding: 1rem;
+    text-align: left;
+  }
+
+  .products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #ecf0f1;
+  }
+
+  .total-row {
+    background: #ecf0f1;
+    font-size: 1.2rem;
+  }
+
+  .btn-cancel, .btn-back {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .btn-cancel {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .btn-back {
+    background: #95a5a6;
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

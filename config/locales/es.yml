@@ -1,0 +1,16 @@
+es:
+  activerecord:
+    attributes:
+      customer:
+        name: "Nombre"
+        phone: "Teléfono"
+        email: "Email"
+        customer_type: "Tipo de cliente"
+        credit_limit: "Límite de crédito"
+        
+  enums:
+    customer:
+      customer_type:
+        walk_in: "Cliente de mostrador"
+        regular: "Cliente frecuente"
+        wholesale: "Cliente mayorista"

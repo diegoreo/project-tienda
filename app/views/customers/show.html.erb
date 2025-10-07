@@ -1,0 +1,153 @@
+<div class="customer-detail">
+  <div class="header-section">
+    <h1><%= @customer.name %></h1>
+    <div class="actions">
+      <%= link_to "Editar", edit_customer_path(@customer), class: "btn-edit" %>
+      <%= link_to "Volver", customers_path, class: "btn-back" %>
+    </div>
+  </div>
+
+  <!-- Información del cliente -->
+  <div class="info-card">
+    <h2>Información General</h2>
+    <div class="info-grid">
+      <div class="info-item">
+        <strong>Tipo:</strong>
+        <span class="badge badge-<%= @customer.customer_type %>">
+          <%= I18n.t("enums.customer.customer_type.#{@customer.customer_type}") %>
+        </span>
+      </div>
+      <div class="info-item">
+        <strong>Teléfono:</strong> <%= @customer.phone || 'No registrado' %>
+      </div>
+      <div class="info-item">
+        <strong>Email:</strong> <%= @customer.email || 'No registrado' %>
+      </div>
+      <div class="info-item">
+        <strong>RFC:</strong> <%= @customer.rfc || 'No registrado' %>
+      </div>
+      <div class="info-item">
+        <strong>Dirección:</strong> <%= @customer.address || 'No registrada' %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información de crédito -->
+  <div class="info-card">
+    <h2>Crédito</h2>
+    <div class="credit-info">
+      <div class="credit-item">
+        <span class="credit-label">Límite de crédito:</span>
+        <span class="credit-value"><%= number_to_currency(@customer.credit_limit || 0) %></span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-label">Deuda actual:</span>
+        <span class="credit-value <%= @customer.current_debt > 0 ? 'text-danger' : '' %>">
+          <%= number_to_currency(@customer.current_debt) %>
+        </span>
+      </div>
+      <div class="credit-item">
+        <span class="credit-label">Crédito disponible:</span>
+        <span class="credit-value text-success">
+          <%= number_to_currency(@customer.available_credit) %>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <% if @customer.notes.present? %>
+    <div class="info-card">
+      <h2>Notas</h2>
+      <p><%= simple_format(@customer.notes) %></p>
+    </div>
+  <% end %>
+
+  <!-- Historial reciente (para implementar después) -->
+  <div class="info-card">
+    <h2>Ventas Recientes</h2>
+    <p class="text-muted">Próximamente...</p>
+  </div>
+</div>
+
+<style>
+  .customer-detail {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+
+  .info-card h2 {
+    margin: 0 0 1.5rem 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .info-item {
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+  }
+
+  .info-item strong {
+    display: block;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .credit-info {
+    display: flex;
+    justify-content: space-around;
+    gap: 2rem;
+  }
+
+  .credit-item {
+    text-align: center;
+    flex: 1;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .credit-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+  }
+
+  .credit-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+
+  .text-success { color: #27ae60; }
+  .text-danger { color: #e74c3c; }
+  .text-muted { color: #95a5a6; font-style: italic; }
+
+  @media (max-width: 768px) {
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+    .credit-info {
+      flex-direction: column;
+    }
+  }
+</style>

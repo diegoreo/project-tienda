@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   resources :units, except: :show
   resources :warehouses, except: :show
   resources :suppliers, except: :show
+  resources :customers
 
 
   resources :inventories, only: [:index, :show] do
@@ -14,6 +15,14 @@ Rails.application.routes.draw do
   resources :purchases do
     resources :purchase_items, only: [:create, :update, :destroy]
   end
+
+
+  resources :sales do
+    member do
+      post :cancel
+    end
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

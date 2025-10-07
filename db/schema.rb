@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_30_185719) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_02_182813) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -28,6 +28,25 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_185719) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "phone"
+    t.string "email"
+    t.text "address"
+    t.string "rfc"
+    t.decimal "credit_limit", precision: 10, scale: 2
+    t.decimal "current_debt", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "customer_type", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_type"], name: "index_customers_on_customer_type"
+    t.index ["email"], name: "index_customers_on_email"
+    t.index ["name"], name: "index_customers_on_name"
+    t.index ["phone"], name: "index_customers_on_phone"
+    t.index ["rfc"], name: "index_customers_on_rfc"
   end
 
   create_table "inventories", force: :cascade do |t|
@@ -119,6 +138,39 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_185719) do
     t.index ["warehouse_id"], name: "index_purchases_on_warehouse_id"
   end
 
+  create_table "sale_items", force: :cascade do |t|
+    t.bigint "sale_id", null: false
+    t.bigint "product_id", null: false
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.decimal "unit_price", precision: 10, scale: 2, null: false
+    t.decimal "discount", precision: 10, scale: 2, default: "0.0"
+    t.decimal "subtotal", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_sale_items_on_product_id"
+    t.index ["sale_id"], name: "index_sale_items_on_sale_id"
+  end
+
+  create_table "sales", force: :cascade do |t|
+    t.bigint "customer_id"
+    t.bigint "user_id"
+    t.bigint "warehouse_id", null: false
+    t.date "sale_date", null: false
+    t.decimal "total", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "payment_status", default: 0, null: false
+    t.integer "payment_method", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_sales_on_customer_id"
+    t.index ["payment_status"], name: "index_sales_on_payment_status"
+    t.index ["sale_date"], name: "index_sales_on_sale_date"
+    t.index ["status"], name: "index_sales_on_status"
+    t.index ["user_id"], name: "index_sales_on_user_id"
+    t.index ["warehouse_id"], name: "index_sales_on_warehouse_id"
+  end
+
   create_table "suppliers", force: :cascade do |t|
     t.string "name", null: false
     t.string "contact_info"
@@ -154,4 +206,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_185719) do
   add_foreign_key "purchase_items", "purchases"
   add_foreign_key "purchases", "suppliers"
   add_foreign_key "purchases", "warehouses"
+  add_foreign_key "sale_items", "products"
+  add_foreign_key "sale_items", "sales"
+  add_foreign_key "sales", "customers"
+  add_foreign_key "sales", "warehouses"
 end

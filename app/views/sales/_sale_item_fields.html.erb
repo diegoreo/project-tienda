@@ -1,0 +1,50 @@
+<tr class="sale-item-fields" data-new-record="<%= f.object.new_record? %>">
+  <td>
+    <%= f.collection_select :product_id, 
+      Product.order(:name), 
+      :id, 
+      :name, 
+      { prompt: "Selecciona producto" }, 
+      { required: true, 
+        data: { 
+          action: "change->sale-items#loadProductPrice",
+          'sale-items-target': 'productSelect'
+        } } %>
+  </td>
+  <td>
+    <%= f.number_field :quantity, 
+      min: 0.001, 
+      step: 0.001,
+      value: f.object.new_record? ? 1 : f.object.quantity,
+      required: true, 
+      data: { action: "input->sale-items#updateSubtotal" } %>
+  </td>
+  <td>
+    <%= f.number_field :unit_price, 
+      min: 0, 
+      step: 0.01,
+      value: f.object.unit_price,
+      required: true,
+      data: { 
+        action: "input->sale-items#updateSubtotal",
+        'sale-items-target': 'priceInput'
+      } %>
+  </td>
+  <td>
+    <%= f.number_field :discount, 
+      min: 0, 
+      step: 0.01, 
+      value: f.object.new_record? ? 0 : f.object.discount,
+      data: { action: "input->sale-items#updateSubtotal" } %>
+  </td>
+  <td data-sale-item-target="subtotal">
+    $0.00
+    <%= f.hidden_field :subtotal, data: { sale_item_target: "subtotalInput" } %>
+  </td>
+  <td>
+    <%= f.hidden_field :_destroy %>
+    <button type="button" data-action="sale-items#removeItem" class="btn-remove">
+      Eliminar
+    </button>
+  </td>
+</tr>
