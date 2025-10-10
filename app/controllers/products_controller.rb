@@ -65,6 +65,33 @@ class ProductsController < ApplicationController
     redirect_to products_path, notice: "El producto se elimino correctamente", status: :see_other
   end
 
+  def search
+    query = params[:q]
+    warehouse_id = params[:warehouse_id]
+    
+    if query.blank?
+      render json: []
+      return
+    end
+    
+    # 1. Primero buscar coincidencia exacta por código de barras
+    barcode = Barcode.includes(product: [:inventories, :barcodes])
+                     .find_by("LOWER(code) = ?", query.downcase)
+    
+    if barcode && barcode.product
+      # Encontró por código de barras - devolver solo este producto
+      render json: [format_product_for_pos(barcode.product, warehouse_id)]
+      return
+    end
+    
+    # 2. Si no encontró por código, buscar por nombre con pg_search
+    products = Product.search_by_name_description_and_barcode(query)
+                      .includes(:inventories, :barcodes)
+                      .limit(10)
+    
+    render json: products.map { |p| format_product_for_pos(p, warehouse_id) }
+  end
+
   private
   def product_params
     base_params = [
@@ -86,6 +113,21 @@ class ProductsController < ApplicationController
 
   def product
     @product = Product.find(params[:id])
+  end
+
+  def format_product_for_pos(product, warehouse_id)
+    inventory = product.inventories.find_by(warehouse_id: warehouse_id)
+    stock = inventory&.quantity || 0
+    
+    {
+      id: product.id,
+      name: product.name,
+      price: product.price.to_f,
+      stock: stock.to_f,
+      has_stock: stock > 0,
+      barcodes: product.barcodes.pluck(:code),
+      unit: product.sale_unit.abbreviation
+    }
   end
   
 end

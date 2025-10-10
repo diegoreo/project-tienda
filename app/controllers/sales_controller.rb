@@ -15,12 +15,26 @@ class SalesController < ApplicationController
   end
   
   def new
-    @sale = Sale.new(sale_date: Date.current)
-    
-    # Establecer cliente por defecto
-    public_customer = Customer.find_by(name: "Público General")
-    @sale.customer_id = public_customer.id if public_customer
-    
+    # Si viene de una venta exitosa, restaurar configuración
+    if params[:success] == 'true'
+      @sale = Sale.new(
+        customer_id: params[:customer_id],
+        warehouse_id: params[:warehouse_id],
+        payment_method: params[:payment_method] || 'cash',
+        sale_date: Date.current
+      )
+      
+      @success_message = "✅ Venta ##{params[:sale_id]} registrada - Total: #{view_context.number_to_currency(params[:total])}"
+    else
+      @sale = Sale.new(sale_date: Date.current)
+      
+      # Establecer cliente por defecto
+      public_customer = Customer.find_by(name: "Público General")
+      @sale.customer_id = public_customer.id if public_customer
+      # Establecer almacén por defecto (el primero si no hay uno guardado)
+      # El JavaScript se encargará de restaurar la preferencia guardada
+      @sale.warehouse_id = Warehouse.first&.id
+    end
     # Crear primer item con valores por defecto
     @sale.sale_items.build(quantity: 1, discount: 0)
   end
@@ -29,14 +43,22 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
     @sale.sale_date = Date.current
     
-    # Calcular subtotales de items
     @sale.sale_items.each do |item|
       item.subtotal = item.calculate_subtotal
     end
     
     if @sale.save
       @sale.process_sale!
-      redirect_to @sale, notice: "Venta registrada correctamente."
+      
+      # Redirigir a new con parámetros de éxito
+      redirect_to new_sale_path(
+        success: true,
+        sale_id: @sale.id,
+        total: @sale.total,
+        customer_id: @sale.customer_id,
+        warehouse_id: @sale.warehouse_id,
+        payment_method: @sale.payment_method
+      ), notice: "Venta registrada correctamente"
     else
       render :new, status: :unprocessable_entity
     end

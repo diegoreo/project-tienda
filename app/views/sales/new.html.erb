@@ -1,2 +1,60 @@
-<h1>Nueva Venta</h1>
+<% if @success_message %>
+  <div class="success-alert">
+    <%= @success_message %>
+  </div>
+<% end %>
+
+<h1>Venta de Mostrador</h1>
 <%= render 'form', sale: @sale %>
+
+<style>
+  .success-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+    font-size: 1.1rem;
+    font-weight: 600;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  // Auto-ocultar el mensaje después de 3 segundos
+  setTimeout(() => {
+    const alert = document.querySelector('.success-alert');
+    if (alert) {
+      alert.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => alert.remove(), 300);
+    }
+  }, 3000);
+</script>
+
+<style>
+  @keyframes slideOut {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(400px);
+      opacity: 0;
+    }
+  }
+</style>
