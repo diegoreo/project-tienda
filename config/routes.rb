@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
 
-  resources :products 
+  resources :products do
+    collection do
+      get :search
+    end
+  end 
   resources :categories, except: :show
   resources :units, except: :show
   resources :warehouses, except: :show
