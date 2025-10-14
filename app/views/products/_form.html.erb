@@ -1,100 +1,177 @@
-
-<%= form_with(model: @product, local: true) do |form| %>
-
-  <!-- Nombre y descripción -->
-  <div class="form-group">
-    <%= form.label :name, "Nombre del producto" %>
-    <%= form.text_field :name, class: "form-control", placeholder: "Ej. CocaCola 600ml" %>
-    <%= field_error_messages(@product, :name) %>
-  </div>
-
-  <div class="form-group">
-    <%= form.label :description, "Descripción" %>
-    <%= form.text_area :description, class: "form-control", rows: 3, placeholder: "Describe el producto" %>
-    <%= field_error_messages(@product, :description) %>
-  </div>
-
-  <!-- Categoría -->
-  <div class="form-group">
-    <%= form.label :category_id, "Categoría" %>
-    <%= form.collection_select :category_id, Category.all, :id, :name, { prompt: "Selecciona una categoría" }, class: "form-control" %>
-    <%= field_error_messages(@product, :category_id) %>
-  </div>
-
-  <!-- Unidades -->
-  <div data-controller="conversion">
-    <div class="form-group">
-      <%= form.label :purchase_unit_id, "Unidad de compra" %>
-      <%= form.collection_select :purchase_unit_id, Unit.all, :id, :name, 
-        { prompt: "Seleccione unidad de compra" }, 
-        data: { conversion_target: "purchaseUnitSelect", action: "change->conversion#updateStockLabel" } %>
-      <%= field_error_messages(@product, :purchase_unit_id) %>
-    </div>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <%= form_with(model: @product, local: true, class: "space-y-6") do |form| %>
     
-    <div class="form-group">
-      <%= form.label :sale_unit_id, "Unidad de venta" %>
-      <%= form.collection_select :sale_unit_id, Unit.all, :id, :name, prompt: "Seleccione unidad de venta" %>  
-      <%= field_error_messages(@product, :sale_unit_id) %>
-    </div>
+    <!-- Encabezado del formulario -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg shadow-md">
+    <h2 class="text-2xl font-bold">
+      <%= @product.new_record? ? "Nuevo Producto" : "Editar Producto" %>
+    </h2>
+    <p class="text-blue-100 text-sm mt-1">Complete la información del producto</p>
+  </div>
 
-  
+  <!-- Información Básica -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Información Básica
+    </h3>
 
-<!-- conversion normal con stimulus -->
-  
-    <div class="form-group">
-      <%= form.label :unit_conversion, "Conversión (unidad compra → unidad venta)" %>
-      <%= form.number_field :unit_conversion, class: "form-control", step: 1, 
-          placeholder: "Ej. 24", data: { conversion_target: "unitConversion", action: "input->conversion#calculate" } %>
-      <small class="form-text text-muted">
-        Ejemplo: Si cada caja trae 24 piezas, escribe 24.
-      </small>
-      <%= field_error_messages(@product, :unit_conversion) %>
-    </div>
-<!-- Inventario inicial -->
-  <% if form.object.new_record? %>
-    <div class="form-group">
-        <label data-conversion-target="stockLabel">
-          Inventario inicial (en <%= form.object.purchase_unit&.name || "unidad" %>)
-        </label>
-        <%= form.number_field :stock_quantity, class: "form-control", 
-            placeholder: "Ej. 10", data: { conversion_target: "stockQuantity", action: "input->conversion#calculate" } %>
-        <small class="form-text text-muted">
-          Ingresa la cantidad inicial en la unidad de compra. Por ejemplo, si compras en cajas, indica cuántas cajas tienes.
-        </small>
-        <%= field_error_messages(@product, :stock_quantity) %>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Nombre -->
+      <div class="lg:col-span-2">
+        <%= form.label :name, "Nombre del producto", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :name, 
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200", 
+            placeholder: "Ej. CocaCola 600ml" %>
+        <%= field_error_messages(@product, :name) %>
       </div>
 
-      <p style="font-weight: bold; color: #2980b9;" data-conversion-target="result">
-        Ingresa cantidad y conversión
-      </p>
-    </div>
-  <% end %>
+      <!-- Descripción -->
+      <div class="lg:col-span-2">
+        <%= form.label :description, "Descripción", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_area :description, 
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200", 
+            rows: 3, 
+            placeholder: "Describe el producto" %>
+        <%= field_error_messages(@product, :description) %>
+      </div>
 
-<!-- termina test stimulus cant en uni venta -->
-  <!-- Precio -->
-  <div class="form-group">
-    <%= form.label :price, "Precio" %>
-    <%= form.number_field :price, step: 0.01, class: "form-control", placeholder: "Ej. 20.00" %>
-    <%= field_error_messages(@product, :price) %>
+      <!-- Categoría -->
+      <div class="lg:col-span-2">
+        <%= form.label :category_id, "Categoría", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.collection_select :category_id, Category.all, :id, :name, 
+            { prompt: "Selecciona una categoría" }, 
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white" %>
+        <%= field_error_messages(@product, :category_id) %>
+      </div>
+    </div>
   </div>
 
-  <!-- Códigos de barras con stimulus -->
-  <div class="form-group mt-4" data-controller="barcodes">
-    <label>Códigos de barras </label>
-    <div data-barcodes-target="container">
+  <!-- Unidades y Conversión -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-controller="conversion">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+      </svg>
+      Unidades y Conversión
+    </h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Unidad de compra -->
+      <div>
+        <%= form.label :purchase_unit_id, "Unidad de compra", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.collection_select :purchase_unit_id, Unit.all, :id, :name, 
+            { prompt: "Seleccione unidad de compra" }, 
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white",
+            data: { conversion_target: "purchaseUnitSelect", action: "change->conversion#updateStockLabel" } %>
+        <%= field_error_messages(@product, :purchase_unit_id) %>
+      </div>
+      
+      <!-- Unidad de venta -->
+      <div>
+        <%= form.label :sale_unit_id, "Unidad de venta", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.collection_select :sale_unit_id, Unit.all, :id, :name, 
+            { prompt: "Seleccione unidad de venta" },
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white" %>  
+        <%= field_error_messages(@product, :sale_unit_id) %>
+      </div>
+
+      <!-- Conversión -->
+      <div class="md:col-span-2">
+        <%= form.label :unit_conversion, "Conversión (unidad compra → unidad venta)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.number_field :unit_conversion, 
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200", 
+            step: 1, 
+            placeholder: "Ej. 24", 
+            data: { conversion_target: "unitConversion", action: "input->conversion#calculate" } %>
+        <p class="mt-2 text-sm text-gray-500">
+          Ejemplo: Si cada caja trae 24 piezas, escribe 24.
+        </p>
+        <%= field_error_messages(@product, :unit_conversion) %>
+      </div>
+
+      <!-- Inventario inicial (solo en productos nuevos) -->
+      <% if form.object.new_record? %>
+        <div class="md:col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2" data-conversion-target="stockLabel">
+            Inventario inicial (en <%= form.object.purchase_unit&.name || "unidad" %>)
+          </label>
+          <%= form.number_field :stock_quantity, 
+              class: "w-full px-4 py-2.5 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white", 
+              placeholder: "Ej. 10", 
+              data: { conversion_target: "stockQuantity", action: "input->conversion#calculate" } %>
+          <p class="mt-2 text-sm text-gray-600">
+            Ingresa la cantidad inicial en la unidad de compra. Por ejemplo, si compras en cajas, indica cuántas cajas tienes.
+          </p>
+          
+          <!-- Resultado del cálculo -->
+          <div class="mt-3 p-3 bg-white rounded-md border border-blue-200">
+            <p class="text-sm font-semibold text-blue-700" data-conversion-target="result">
+              Ingresa cantidad y conversión
+            </p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Precio -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Precio
+    </h3>
+
+    <div class="max-w-md">
+      <%= form.label :price, "Precio de venta", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">$</span>
+        <%= form.number_field :price, 
+            step: 0.01, 
+            class: "w-full pl-8 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200", 
+            placeholder: "20.00" %>
+      </div>
+      <%= field_error_messages(@product, :price) %>
+    </div>
+  </div>
+
+  <!-- Códigos de barras -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-controller="barcodes">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+      </svg>
+      Códigos de barras
+    </h3>
+
+    <div data-barcodes-target="container" class="space-y-3">
       <%= form.fields_for :barcodes do |barcode_form| %>
         <%= render "barcode_fields", f: barcode_form %>
       <% end %>
     </div>
-    <button type="button" class="btn btn-sm btn-outline-primary mt-2" data-action="barcodes#add">
-      + Agregar otro código
+    
+    <button type="button" 
+            class="mt-4 inline-flex items-center px-4 py-2 border border-blue-300 text-sm font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200" 
+            data-action="barcodes#add">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Agregar otro código
     </button>
   </div>
 
-
-<!-- boton guardar -->
-  <div class="actions mt-3">
-    <%= form.submit "Guardar producto", class: "btn btn-primary" %>
+  <!-- Botones de acción -->
+  <div class="flex flex-col sm:flex-row gap-3 pt-4">
+    <%= form.submit @product.new_record? ? "Crear Producto" : "Guardar Cambios", 
+        class: "flex-1 sm:flex-none inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-md hover:shadow-lg transition duration-200" %>
+    
+    <%= link_to "Cancelar", 
+        @product.new_record? ? products_path : product_path(@product), 
+        class: "flex-1 sm:flex-none inline-flex justify-center items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200" %>
   </div>
 
   <!-- Template oculto para nuevos códigos -->
@@ -107,5 +184,3 @@
   </template>
 
 <% end %>
-
-

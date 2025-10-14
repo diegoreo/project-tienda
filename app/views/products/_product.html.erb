@@ -1,7 +1,107 @@
-<%= link_to product_path(product), class: "product", "data-turbo-frame": "_top" do %>
-  <h2><%= product.name %></h2>
-  <span>precio: <%= product.price %>$</span>   
-  <% total_quantity = product.inventories.sum(:quantity) %> 
-  <span>stock: <%= total_quantity %> <%= (product.sale_unit&.name || "Unidades").pluralize(total_quantity) %> </span>  
-  <span>categoria: <%= product.category&.name || "Sin categoría" %></span>
-<% end %>
+<div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group <%= 'opacity-75' unless product.active %>">
+  <!-- Status Badge (si está inactivo) -->
+  <% unless product.active %>
+    <div class="bg-red-500 text-white text-center py-2 font-semibold text-sm">
+      <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+      </svg>
+      PRODUCTO INACTIVO
+    </div>
+  <% end %>
+
+  <!-- Product Image Placeholder -->
+  <div class="bg-gradient-to-br from-blue-100 to-blue-200 h-48 flex items-center justify-center relative">
+    <svg class="w-20 h-20 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+    </svg>
+    
+    <!-- Active/Inactive indicator badge -->
+    <div class="absolute top-3 right-3">
+      <% if product.active %>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+          <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
+          Activo
+        </span>
+      <% else %>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+          <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+          Inactivo
+        </span>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Product Info -->
+  <div class="p-4">
+    <%= link_to product_path(product), data: { turbo: false } do %>
+      <h3 class="text-lg font-bold text-gray-800 mb-2 truncate hover:text-blue-600 transition">
+        <%= product.name %>
+      </h3>
+    <% end %>
+    
+    <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+      <%= product.description %>
+    </p>
+
+    <!-- Price and Stock -->
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-2xl font-bold text-green-600">
+          <%= number_to_currency(product.price) %>
+        </p>
+        <p class="text-xs text-gray-500">
+          <%= product.sale_unit.abbreviation %>
+        </p>
+      </div>
+      
+      <div class="text-right">
+        <% total_stock = product.inventories.sum(:quantity) %>
+        <p class="text-lg font-semibold <%= total_stock > 10 ? 'text-green-600' : total_stock > 0 ? 'text-yellow-600' : 'text-red-600' %>">
+          <%= total_stock.to_i %>
+        </p>
+        <p class="text-xs text-gray-500">En stock</p>
+      </div>
+    </div>
+
+    <!-- Category Badge -->
+    <% if product.category %>
+      <span class="inline-block px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full mb-3">
+        <%= product.category.name %>
+      </span>
+    <% end %>
+
+    <!-- Actions -->
+    <% if product.active %>
+      <!-- Producto ACTIVO: botones normales -->
+      <div class="flex gap-2 mb-2">
+        <%= link_to "Ver", product_path(product), data: { turbo: false }, class: "flex-1 text-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition" %>
+        <%= link_to "Editar", edit_product_path(product), data: { turbo: false }, class: "flex-1 text-center px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition" %>
+      </div>
+      
+      <%= button_to product_path(product), 
+          method: :delete, 
+          data: { turbo_confirm: "¿Estás seguro? Si tiene historial de inventario o compras será desactivado en lugar de eliminado." },
+          class: "w-full text-center px-4 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded-md hover:bg-red-200 transition inline-flex items-center justify-center" do %>
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Eliminar
+      <% end %>
+    <% else %>
+      <!-- Producto INACTIVO: botón para reactivar -->
+      <div class="flex gap-2 mb-2">
+        <%= link_to "Ver", product_path(product), data: { turbo: false }, class: "flex-1 text-center px-4 py-2 bg-gray-300 text-gray-600 text-sm font-semibold rounded-md hover:bg-gray-400 transition" %>
+      </div>
+      
+      <%= button_to activate_product_path(product), 
+          method: :patch,
+          data: { turbo_confirm: "¿Deseas reactivar este producto?" },
+          class: "w-full text-center px-4 py-2 bg-green-500 text-white text-sm font-semibold rounded-md hover:bg-green-600 transition inline-flex items-center justify-center" do %>
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Reactivar Producto
+      <% end %>
+    <% end %>
+  </div>
+</div>

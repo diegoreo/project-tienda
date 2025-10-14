@@ -1,16 +1,18 @@
 Rails.application.routes.draw do
-
   resources :products do
     collection do
       get :search
     end
-  end 
+    member do
+      patch :activate
+    end
+  end
+
   resources :categories, except: :show
   resources :units, except: :show
   resources :warehouses, except: :show
   resources :suppliers, except: :show
   resources :customers
-
 
   resources :inventories, only: [:index, :show] do
     resources :inventory_adjustments, only: [:index, :new, :create, :show]
@@ -19,7 +21,6 @@ Rails.application.routes.draw do
   resources :purchases do
     resources :purchase_items, only: [:create, :update, :destroy]
   end
-
 
   resources :sales do
     member do

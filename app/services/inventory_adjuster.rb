@@ -1,4 +1,3 @@
-# app/services/inventory_adjuster.rb
 class InventoryAdjuster
   # Aplica un ajuste y actualiza el inventario
   # Todos los parámetros son obligatorios excepto :note

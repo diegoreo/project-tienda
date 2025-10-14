@@ -34,9 +34,25 @@ class Product < ApplicationRecord
   validates :unit_conversion, numericality: { greater_than: 0 }
   # Opcional: longitud mínima de nombre
   validates :name, length: { minimum: 2 }
- 
- 
- 
+
+  # ========== SCOPES PARA PRODUCTOS ACTIVOS/INACTIVOS ==========
+  scope :active, -> { where(active: true) }
+  scope :inactive, -> { where(active: false) }
+
+  # ========== MÉTODOS PARA ACTIVAR/DESACTIVAR ==========
+  def deactivate!
+    update(active: false)
+  end
+
+  def activate!
+    update(active: true)
+  end
+
+  def can_be_deleted?
+    !inventories.exists? && !purchase_items.exists?
+  end
+
+  # ========== MÉTODOS EXISTENTES ==========
   # Método útil: stock en unidades de venta
   def stock_for_sale
     (stock_quantity || 0) * (unit_conversion || 1)
