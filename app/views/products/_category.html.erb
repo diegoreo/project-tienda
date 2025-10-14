@@ -1,3 +1,4 @@
-<%= link_to products_path(category_id: category.id), class: "category" do  %>
-<%= category.name %>
+<%= link_to products_path(category_id: category.id, show_inactive: params[:show_inactive], query: params[:query]), 
+    class: "px-4 py-2 rounded-full text-sm font-medium transition #{params[:category_id].to_i == category.id ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+  <%= category.name %>
 <% end %>

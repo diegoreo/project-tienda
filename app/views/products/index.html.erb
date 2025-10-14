@@ -1,19 +1,123 @@
-<h1>Productos</h1>
+<div class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-6">
+    
+    <!-- Header Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Productos</h1>
+          <p class="text-gray-600 mt-1">Gestiona tu catálogo de productos</p>
+          
+          <!-- Contador de productos -->
+          <div class="flex gap-4 mt-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+              <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              <%= Product.active.count %> Activos
+            </span>
+            <% if Product.inactive.count > 0 %>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                <%= Product.inactive.count %> Inactivos
+              </span>
+            <% end %>
+          </div>
+        </div>
+        <%= link_to new_product_path, class: "inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition duration-200" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nuevo Producto
+        <% end %>
+      </div>
 
-<%= form_with url: products_path, method: :get, local: true do %>
-  <%= text_field_tag :query, params[:query], placeholder: "Buscar productos..." %>
-  <%= submit_tag "Buscar" %>
-<% end %>
+      <!-- Search Bar -->
+      <%= form_with url: products_path, method: :get, local: true, class: "mt-6" do %>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <%= text_field_tag :query, params[:query], 
+            placeholder: "Buscar productos por nombre, descripción o código de barras...", 
+            class: "block w-full pl-10 pr-32 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
+          <%= hidden_field_tag :show_inactive, params[:show_inactive] %>
+          <%= hidden_field_tag :category_id, params[:category_id] %>
+          <%= submit_tag "Buscar", class: "absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
 
+    <%= turbo_frame_tag "categories" do %>
+      <!-- Category and Status Filters -->
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <!-- Filtro de estado (Activos/Inactivos) -->
+        <div class="mb-4 pb-4 border-b border-gray-200">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="font-semibold text-gray-700">Mostrar:</span>
+          </div>
+          
+          <div class="flex flex-wrap gap-2">
+            <%= link_to products_path(query: params[:query], category_id: params[:category_id]), 
+                class: "px-4 py-2 rounded-full text-sm font-medium transition inline-flex items-center #{params[:show_inactive].blank? ? 'bg-green-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Solo Activos
+            <% end %>
 
-<%= turbo_frame_tag "categories" do %>
-  <div>
-    <%= link_to "Todos", products_path %>
+            <%= link_to products_path(show_inactive: 'true', query: params[:query], category_id: params[:category_id]), 
+                class: "px-4 py-2 rounded-full text-sm font-medium transition inline-flex items-center #{params[:show_inactive] == 'true' ? 'bg-gray-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+              </svg>
+              Todos (Activos e Inactivos)
+            <% end %>
+          </div>
+        </div>
 
-    <%= render partial: "category", collection: @categories %>
+        <!-- Filtro de categorías -->
+        <div class="flex items-center gap-2 mb-3">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span class="font-semibold text-gray-700">Filtrar por categoría:</span>
+        </div>
+        
+        <div class="flex flex-wrap gap-2">
+          <%= link_to products_path(show_inactive: params[:show_inactive], query: params[:query]), 
+              class: "px-4 py-2 rounded-full text-sm font-medium transition #{params[:category_id].blank? ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+            Todos
+          <% end %>
+
+          <%= render partial: "category", collection: @categories %>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <% if @products.any? %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <%= render partial: "product", collection: @products %>
+        </div>
+      <% else %>
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+          <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
+          <p class="text-gray-500 mb-6">Intenta con otra búsqueda o agrega un nuevo producto</p>
+          <%= link_to new_product_path, class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Crear Primer Producto
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
   </div>
-
-  <div>
-    <%= render partial: "product", collection: @products %>
-  </div>
-<% end %>
+</div>

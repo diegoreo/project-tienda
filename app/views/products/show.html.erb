@@ -1,64 +1,170 @@
-<h1>Producto a detalle:</h1>
+<div class="bg-gray-50 min-h-screen py-8">
+  <div class="container mx-auto px-4 max-w-5xl">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 flex items-center space-x-2 text-sm text-gray-600">
+      <%= link_to products_path, class: "hover:text-blue-600 transition" do %>
+        Productos
+      <% end %>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+      <span class="text-gray-900 font-medium"><%= @product.name %></span>
+    </nav>
 
-<div style="max-width: 600px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; font-family: Arial, sans-serif; background-color: #f9f9f9;">
-  <h1 class="name" style="color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 8px;">
-    <%= @product.name %>
-  </h1>
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      
+      <!-- Header Section -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-bold mb-2"><%= @product.name %></h1>
+            <% if @product.category %>
+              <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                <%= @product.category.name %>
+              </span>
+            <% end %>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-blue-100 mb-1">Precio de venta</p>
+            <p class="text-4xl font-bold">
+              <%= number_to_currency(@product.price) %>
+            </p>
+            <p class="text-sm text-blue-100">por <%= @product.sale_unit&.abbreviation || 'unidad' %></p>
+          </div>
+        </div>
+      </div>
 
-  <p class="description" style="font-size: 16px; color: #555;">
-    <strong>Descripción:</strong> <%= @product.description.presence || "No disponible" %>
-  </p>
+      <!-- Content Grid -->
+      <div class="grid md:grid-cols-3 gap-6 p-6">
+        
+        <!-- Main Info Column -->
+        <div class="md:col-span-2 space-y-6">
+          
+          <!-- Description -->
+          <div class="bg-gray-50 rounded-lg p-5">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+              </svg>
+              Descripción
+            </h2>
+            <p class="text-gray-700">
+              <%= @product.description.presence || "No hay descripción disponible" %>
+            </p>
+          </div>
 
-  <p class="price" style="font-size: 16px; color: #555;">
-    <strong>Precio:</strong> $<%= number_with_precision(@product.price, precision: 2) %>
-  </p>
+          <!-- Units Info -->
+          <div class="bg-gray-50 rounded-lg p-5">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+              Unidades de Medida
+            </h2>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-600 mb-1">Se compra por:</p>
+                <p class="text-lg font-semibold text-gray-800">
+                  <%= @product.purchase_unit&.name || 'N/D' %>
+                </p>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-600 mb-1">Se vende por:</p>
+                <p class="text-lg font-semibold text-gray-800">
+                  <%= @product.sale_unit&.name || 'N/D' %>
+                </p>
+              </div>
+            </div>
 
-  <p style="font-size: 16px; color: #555;">
-    <strong>Inventario disponible:</strong> <%= @product.stock_for_sale %> <%= @product.sale_unit&.name || 'unidades' %>
-  </p>
+            <div class="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
+              <p class="text-sm font-medium text-blue-900">
+                📦 Factor de conversión: 
+                <span class="font-bold">
+                  1 <%= @product.purchase_unit&.abbreviation || 'compra' %> = 
+                  <%= @product.unit_conversion %> <%= @product.sale_unit&.abbreviation || 'venta' %>
+                </span>
+              </p>
+            </div>
+          </div>
 
+          <!-- Barcodes -->
+          <div class="bg-gray-50 rounded-lg p-5">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+              </svg>
+              Códigos de Barras
+            </h2>
+            
+            <% if @product.barcodes.any? %>
+              <div class="space-y-2">
+                <% @product.barcodes.each do |barcode| %>
+                  <div class="bg-white rounded-lg p-3 border border-gray-200 font-mono text-lg">
+                    <%= barcode.code.presence || 'Sin código' %>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="text-gray-500 italic">No hay códigos de barras registrados</p>
+            <% end %>
+          </div>
 
-  <p style="font-size: 16px; color: #555;">
-    <strong>Se compra por:</strong> <%= @product.purchase_unit&.name || 'N/D' %>
-  </p>
+        </div>
 
-  <p style="font-size: 16px; color: #555;">
-    <strong>Unidad de venta:</strong> <%= @product.sale_unit&.name || 'N/D' %>
-  </p>
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          
+          <!-- Stock Card -->
+          <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-5 border-2 border-green-200">
+            <h3 class="text-sm font-semibold text-green-800 mb-2">Stock Disponible</h3>
+            <p class="text-4xl font-bold text-green-700 mb-1">
+              <%= @product.stock_for_sale %>
+            </p>
+            <p class="text-sm text-green-600">
+              <%= @product.sale_unit&.name || 'unidades' %>
+            </p>
+            
+            <% if @product.stock_quantity.present? && @product.unit_conversion.present? %>
+              <div class="mt-4 pt-4 border-t border-green-200">
+                <p class="text-xs text-green-700">
+                  Inventario por <%= @product.purchase_unit&.abbreviation %>:
+                  <span class="font-semibold"><%= @product.stock_quantity.to_i %></span>
+                </p>
+              </div>
+            <% end %>
+          </div>
 
-  <p style="font-size: 16px; color: #555;">
-    <strong>Conversión de unidades:</strong>
-    1 <%= @product.purchase_unit&.name || 'compra' %> = <%= @product.unit_conversion %> <%= @product.sale_unit&.name || 'venta' %>(s)
-    <% if @product.stock_quantity.present? && @product.unit_conversion.present? %>
-      <br>
-      <em>Equivalencia del inventario inicial: <%= (@product.stock_quantity * @product.unit_conversion).to_i %> <%= @product.sale_unit&.name || 'unidades' %></em>
-    <% end %>
-  </p>
+          <!-- Actions -->
+          <div class="space-y-3">
+            <%= link_to edit_product_path(@product), data: { turbo: false }, class: "flex items-center justify-center w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-md" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              Editar Producto
+            <% end %>
 
-  <p style="font-size: 16px; color: #555;">
-    <strong>Categoría:</strong> <%= @product.category&.name || "Sin categoría" %>
-  </p>
+            <%= link_to products_path, data: { turbo: false }, class: "flex items-center justify-center w-full px-4 py-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              </svg>
+              Volver a Productos
+            <% end %>
 
-  <% if @product.barcodes.any? %>
-    <div style="margin-top: 20px;">
-      <strong>Códigos de barras:</strong>
-      <ul>
-        <% @product.barcodes.each do |barcode| %>
-          <li><%= barcode.code.presence || 'N/D' %></li>
-        <% end %>
-      </ul>
+            <%= link_to product_path(@product), data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar este producto?" }, class: "flex items-center justify-center w-full px-4 py-3 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200 transition border-2 border-red-300" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Eliminar Producto
+            <% end %>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
-  <% else %>
-    <p><em>No hay códigos de barras registrados.</em></p>
-  <% end %>
-
-  <div style="margin-top: 30px;">
-    <%= link_to "Volver a productos", products_path, style: "text-decoration:none; color:#2980b9;" %>
-    <%= link_to "Editar producto", edit_product_path(@product), style: "text-decoration:none; color:#2980b9;" %>
-    <%= link_to "Eliminar producto", product_path(@product), data: {
-      turbo_method: :delete,
-      turbo_confirm: "Estas seguro de eliminar este producto?"
-    }, style: "text-decoration:none; color:#2980b9;" %>
-
   </div>
 </div>
