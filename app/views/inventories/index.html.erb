@@ -1,27 +1,495 @@
-<h1>Inventarios</h1>
+<div class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-6">
+    
+    <!-- Header Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Inventarios</h1>
+          <p class="text-gray-600 mt-1">Control de stock por almacén</p>
+          
+          <!-- Estadísticas rápidas -->
+          <div class="flex flex-wrap gap-3 mt-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              <%= @total_inventories %> Productos
+            </span>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              <%= @total_warehouses %> Almacenes
+            </span>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Valor: <%= number_to_currency(@total_inventory_value) %>
+            </span>
+            
+            <% if @low_stock_count > 0 %>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 animate-pulse">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <%= @low_stock_count %> Stock bajo
+              </span>
+            <% end %>
+          </div>
+        </div>
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Producto</th>
-      <th>Almacén</th>
-      <th>Cantidad</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @inventories.each do |inventory| %>
-      <tr>
-        <td><%= inventory.id %></td>
-        <td><%= inventory.product.name %></td>
-        <td><%= inventory.warehouse.name %></td>
-        <td><%= inventory.quantity %></td>
-        <td>
-          <%= link_to "Ver detalle", inventory_path(inventory), class: "btn btn-sm btn-primary" %>
-          <%= link_to "Ajustes", inventory_inventory_adjustments_path(inventory), class: "btn btn-sm btn-secondary" %>
-        </td>
-      </tr>
+        <!-- Botón Exportar CSV -->
+        <div class="flex gap-3">
+          <%= link_to inventories_path(format: :csv, query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id], sort: params[:sort], direction: params[:direction]), 
+              class: "inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition duration-200" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Exportar CSV
+          <% end %>
+
+          <!-- Toggle Vista -->
+          <div class="inline-flex rounded-lg shadow-sm" role="group">
+            <%= link_to inventories_path(view: 'table', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id], sort: params[:sort], direction: params[:direction]),
+                class: "inline-flex items-center px-4 py-3 text-sm font-medium rounded-l-lg border transition #{params[:view] != 'cards' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              <span class="hidden sm:inline">Tabla</span>
+            <% end %>
+            
+            <%= link_to inventories_path(view: 'cards', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id], sort: params[:sort], direction: params[:direction]),
+                class: "inline-flex items-center px-4 py-3 text-sm font-medium rounded-r-lg border-t border-r border-b transition #{params[:view] == 'cards' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+              </svg>
+              <span class="hidden sm:inline">Tarjetas</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <%= form_with url: inventories_path, method: :get, local: true do %>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <%= text_field_tag :query, params[:query], 
+            placeholder: "Buscar producto por nombre o código de barras...", 
+            class: "block w-full pl-10 pr-28 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm" %>
+          <%= hidden_field_tag :warehouse_id, params[:warehouse_id] %>
+          <%= hidden_field_tag :stock_status, params[:stock_status] %>
+          <%= hidden_field_tag :category_id, params[:category_id] %>
+          <%= submit_tag "Buscar", class: "absolute right-2 top-1/2 transform -translate-y-1/2 px-5 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Filtros compactos -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+        <!-- Filtro de Almacén -->
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+          <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Almacén:</span>
+          <div class="flex flex-wrap gap-2 overflow-x-auto">
+            <%= link_to inventories_path(query: params[:query], stock_status: params[:stock_status], category_id: params[:category_id]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:warehouse_id].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Todos
+            <% end %>
+            
+            <% @warehouses.each do |warehouse| %>
+              <%= link_to inventories_path(warehouse_id: warehouse.id, query: params[:query], stock_status: params[:stock_status], category_id: params[:category_id]), 
+                  class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:warehouse_id].to_i == warehouse.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                <%= warehouse.name %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Separador -->
+        <div class="hidden lg:block w-px h-8 bg-gray-300"></div>
+
+        <!-- Filtro de Estado de Stock -->
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Estado:</span>
+          <div class="flex flex-wrap gap-2">
+            <%= link_to inventories_path(warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status].blank? ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Todos
+            <% end %>
+            
+            <%= link_to inventories_path(stock_status: 'optimal', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Óptimo
+            <% end %>
+            
+            <%= link_to inventories_path(stock_status: 'medium', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'medium' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Medio
+            <% end %>
+            
+            <%= link_to inventories_path(stock_status: 'low', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'low' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Bajo
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Separador -->
+        <div class="hidden lg:block w-px h-8 bg-gray-300"></div>
+
+        <!-- Filtro de Categoría -->
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Categoría:</span>
+          <div class="flex flex-wrap gap-2 overflow-x-auto">
+            <%= link_to inventories_path(warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
+                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:category_id].blank? ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              Todas
+            <% end %>
+            
+            <% @categories.each do |category| %>
+              <%= link_to inventories_path(category_id: category.id, warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
+                  class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:category_id].to_i == category.id ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                <%= category.name %>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla o Tarjetas según vista seleccionada -->
+    <% if params[:view] == 'cards' %>
+      <!-- Vista de Tarjetas -->
+      <% if @inventories.any? %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <% @inventories.each do |inventory| %>
+            <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+              <!-- Header con estado -->
+              <div class="<%= inventory.quantity > 50 ? 'bg-gradient-to-br from-green-100 to-green-200' : inventory.quantity > 10 ? 'bg-gradient-to-br from-yellow-100 to-yellow-200' : 'bg-gradient-to-br from-red-100 to-red-200' %> h-24 flex items-center justify-center relative">
+                <svg class="w-12 h-12 <%= inventory.quantity > 50 ? 'text-green-400' : inventory.quantity > 10 ? 'text-yellow-400' : 'text-red-400' %>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                
+                <!-- Badge de estado -->
+                <div class="absolute top-2 right-2">
+                  <% if inventory.quantity > 50 %>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-600 text-white">
+                      Óptimo
+                    </span>
+                  <% elsif inventory.quantity > 10 %>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-600 text-white">
+                      Medio
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-600 text-white">
+                      Bajo
+                    </span>
+                  <% end %>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="p-5">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 truncate">
+                  <%= inventory.product.name %>
+                </h3>
+                
+                <% if inventory.product.category %>
+                  <span class="inline-block px-2 py-1 text-xs font-semibold text-purple-700 bg-purple-100 rounded-full mb-3">
+                    <%= inventory.product.category.name %>
+                  </span>
+                <% end %>
+
+                <!-- Detalles -->
+                <div class="space-y-2 mb-4">
+                  <div class="flex items-center text-sm">
+                    <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span class="text-gray-600"><%= inventory.warehouse.name %></span>
+                  </div>
+
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-xs text-gray-500">Cantidad</p>
+                      <p class="text-2xl font-bold <%= inventory.quantity > 50 ? 'text-green-600' : inventory.quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                        <%= number_with_delimiter(inventory.quantity.to_i) %>
+                        <span class="text-sm font-normal text-gray-500"><%= inventory.product.sale_unit.abbreviation %></span>
+                      </p>
+                    </div>
+
+                    <div class="text-right">
+                      <p class="text-xs text-gray-500">Valor</p>
+                      <p class="text-lg font-semibold text-emerald-600">
+                        <%= number_to_currency(inventory.quantity * inventory.product.price) %>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="flex gap-2 pt-3 border-t border-gray-200">
+                  <%= link_to inventory_path(inventory), 
+                      class: "flex-1 text-center px-3 py-2 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition inline-flex items-center justify-center" do %>
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    Ver
+                  <% end %>
+                  
+                  <%= link_to inventory_inventory_adjustments_path(inventory), 
+                      class: "flex-1 text-center px-3 py-2 bg-orange-600 text-white text-xs font-semibold rounded-md hover:bg-orange-700 transition inline-flex items-center justify-center" do %>
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Ajustar
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+          <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay inventarios registrados</h3>
+          <p class="text-gray-500">Los inventarios se crean automáticamente al agregar productos</p>
+        </div>
+      <% end %>
+    <% else %>
+      <!-- Vista de Tabla (original) -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+            <tr>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                ID
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <%= link_to inventories_path(sort: 'product_name', direction: params[:sort] == 'product_name' && params[:direction] == 'asc' ? 'desc' : 'asc', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id]), class: "flex items-center hover:text-blue-600 transition" do %>
+                  Producto
+                  <% if params[:sort] == 'product_name' %>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <% if params[:direction] == 'asc' %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      <% else %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      <% end %>
+                    </svg>
+                  <% else %>
+                    <svg class="w-4 h-4 ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <%= link_to inventories_path(sort: 'warehouse_name', direction: params[:sort] == 'warehouse_name' && params[:direction] == 'asc' ? 'desc' : 'asc', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id]), class: "flex items-center hover:text-blue-600 transition" do %>
+                  Almacén
+                  <% if params[:sort] == 'warehouse_name' %>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <% if params[:direction] == 'asc' %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      <% else %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      <% end %>
+                    </svg>
+                  <% else %>
+                    <svg class="w-4 h-4 ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <%= link_to inventories_path(sort: 'quantity', direction: params[:sort] == 'quantity' && params[:direction] == 'asc' ? 'desc' : 'asc', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id]), class: "flex items-center hover:text-blue-600 transition" do %>
+                  Cantidad
+                  <% if params[:sort] == 'quantity' || params[:sort].blank? %>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <% if params[:direction] == 'desc' %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      <% else %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      <% end %>
+                    </svg>
+                  <% else %>
+                    <svg class="w-4 h-4 ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Estado
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                <%= link_to inventories_path(sort: 'value', direction: params[:sort] == 'value' && params[:direction] == 'asc' ? 'desc' : 'asc', query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id]), class: "flex items-center hover:text-blue-600 transition" do %>
+                  Valor
+                  <% if params[:sort] == 'value' %>
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <% if params[:direction] == 'asc' %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                      <% else %>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      <% end %>
+                    </svg>
+                  <% else %>
+                    <svg class="w-4 h-4 ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  <% end %>
+                <% end %>
+              </th>
+              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% if @inventories.any? %>
+              <% @inventories.each do |inventory| %>
+                <tr class="hover:bg-gray-50 transition duration-150">
+                  <!-- ID -->
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    #<%= inventory.id %>
+                  </td>
+                  
+                  <!-- Producto -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">
+                          <%= inventory.product.name %>
+                        </div>
+                        <% if inventory.product.category %>
+                          <div class="text-xs text-gray-500">
+                            <%= inventory.product.category.name %>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <!-- Almacén -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <svg class="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                      </svg>
+                      <div class="text-sm text-gray-900">
+                        <%= inventory.warehouse.name %>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  <!-- Cantidad -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-bold <%= inventory.quantity > 50 ? 'text-green-600' : inventory.quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                      <%= number_with_delimiter(inventory.quantity.to_i) %>
+                      <span class="text-xs font-normal text-gray-500 ml-1">
+                        <%= inventory.product.sale_unit.abbreviation %>
+                      </span>
+                    </div>
+                  </td>
+                  
+                  <!-- Estado del Stock -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <% if inventory.quantity > 50 %>
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
+                        Óptimo
+                      </span>
+                    <% elsif inventory.quantity > 10 %>
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                        <span class="w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>
+                        Medio
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                        <span class="w-2 h-2 bg-red-500 rounded-full mr-1.5"></span>
+                        Bajo
+                      </span>
+                    <% end %>
+                  </td>
+                  
+                  <!-- Valor Total (Cantidad × Precio) -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-semibold text-emerald-600">
+                      <%= number_to_currency(inventory.quantity * inventory.product.price) %>
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      <%= number_to_currency(inventory.product.price) %> / <%= inventory.product.sale_unit.abbreviation %>
+                    </div>
+                  </td>
+                  
+                  <!-- Acciones -->
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div class="flex items-center justify-end gap-2">
+                      <%= link_to inventory_path(inventory), 
+                          class: "inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition" do %>
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Ver
+                      <% end %>
+                      
+                      <%= link_to inventory_inventory_adjustments_path(inventory), 
+                          class: "inline-flex items-center px-3 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-md hover:bg-orange-700 transition" do %>
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                        Ajustar
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="8" class="px-6 py-12 text-center">
+                  <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                  </svg>
+                  <h3 class="text-lg font-semibold text-gray-700 mb-2">No hay inventarios registrados</h3>
+                  <p class="text-gray-500">Los inventarios se crean automáticamente al agregar productos</p>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <% end %>
-  </tbody>
-</table>
+    <!-- Fin Toggle Vista -->
+
+  </div>
+</div>

@@ -1,9 +1,53 @@
-<h1>Categorías</h1>
+<div class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-6">
+    
+    <!-- Header Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Categorías</h1>
+          <p class="text-gray-600 mt-1">Organiza tus productos por categorías</p>
+          
+          <!-- Contador de categorías -->
+          <div class="flex gap-4 mt-3">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+              </svg>
+              <%= @categories.count %> Categorías
+            </span>
+          </div>
+        </div>
+        
+        <%= link_to new_category_path, class: "inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition duration-200" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nueva Categoría
+        <% end %>
+      </div>
+    </div>
 
-<div class="actions">
-  <%= link_to "Nueva categoría", new_category_path, class: "btn-new" %>
-</div>
+    <!-- Categories Grid -->
+    <% if @categories.any? %>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <%= render partial: "category", collection: @categories %>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-lg shadow-md p-12 text-center">
+        <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+        </svg>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No hay categorías</h3>
+        <p class="text-gray-500 mb-6">Comienza creando tu primera categoría para organizar tus productos</p>
+        <%= link_to new_category_path, class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" do %>
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Crear Primera Categoría
+        <% end %>
+      </div>
+    <% end %>
 
-<div class="categories-grid">
-  <%= render partial: "category", collection: @categories %>
+  </div>
 </div>

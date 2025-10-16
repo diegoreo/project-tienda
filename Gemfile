@@ -34,6 +34,8 @@ gem "bootsnap", require: false
 # Postgresql fulltextsearch
 gem "pg_search", "~> 2.3"
 
+#csv para hacer documento de texto
+gem 'csv'
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
