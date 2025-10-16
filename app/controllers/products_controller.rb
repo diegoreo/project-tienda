@@ -2,8 +2,15 @@ class ProductsController < ApplicationController
   def index
     @categories = Category.order(:name)
     
-    # Mostrar activos por defecto, o todos si se solicita
-    @products = params[:show_inactive] == 'true' ? Product.all : Product.active
+    # Filtrar por estado: activos (default), inactivos, o todos
+    case params[:status]
+    when 'inactive'
+      @products = Product.inactive
+    when 'all'
+      @products = Product.all
+    else
+      @products = Product.active  # Por defecto mostrar solo activos
+    end
     
     # Búsqueda con pg_search
     if params[:query].present?

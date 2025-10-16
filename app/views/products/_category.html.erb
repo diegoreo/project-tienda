@@ -1,4 +1,4 @@
-<%= link_to products_path(category_id: category.id, show_inactive: params[:show_inactive], query: params[:query]), 
-    class: "px-4 py-2 rounded-full text-sm font-medium transition #{params[:category_id].to_i == category.id ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+<%= link_to products_path(category_id: category.id, status: params[:status], query: params[:query]), 
+    class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:category_id].to_i == category.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
   <%= category.name %>
 <% end %>
