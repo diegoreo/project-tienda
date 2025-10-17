@@ -11,7 +11,7 @@ Rails.application.routes.draw do
   resources :categories, except: :show
   resources :units, except: :show
   resources :warehouses, except: :show
-  resources :suppliers, except: :show
+  resources :suppliers
   resources :customers
 
   resources :inventories, only: [:index, :show] do
