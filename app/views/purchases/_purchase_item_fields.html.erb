@@ -1,29 +1,110 @@
-<tr class="purchase-item-fields" data-new-record="<%= f.object.new_record? %>">
-  <td>
-    <%= f.collection_select :product_id, Product.all, :id, :name, prompt: "Selecciona un producto", required: true %>
+<tr class="purchase-item-fields hover:bg-gray-50" data-new-record="<%= f.object.new_record? %>">
+  <!-- Producto con Buscador -->
+  <td class="px-4 py-3" data-controller="purchase-product-search">
+    <%= f.hidden_field :product_id, data: { 'purchase-product-search-target': 'productIdInput' } %>
+    
+    <!-- Vista cuando NO hay producto: Muestra input de búsqueda -->
+    <div class="relative" data-purchase-product-search-target="searchContainer">
+      <input 
+        type="text" 
+        placeholder="🔍 Buscar producto..."
+        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        data-purchase-product-search-target="searchInput"
+        data-action="input->purchase-product-search#searchProducts keydown->purchase-product-search#handleSearchKeydown"
+        autocomplete="off"
+      >
+      
+      <!-- Resultados - z-index SUPER ALTO -->
+      <div class="absolute left-0 right-0 top-full mt-1 z-[9999] bg-white border-2 border-green-500 rounded-lg shadow-2xl max-h-64 overflow-y-auto hidden"
+           data-purchase-product-search-target="searchResults">
+      </div>
+    </div>
+    
+    <!-- Vista cuando SÍ hay producto: Muestra chip grande verde -->
+    <div class="hidden" data-purchase-product-search-target="selectedContainer">
+      <div class="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-lg px-4 py-3 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex-1 min-w-0">
+            <div class="text-base font-bold text-green-900 truncate" data-purchase-product-search-target="productNameDisplay"></div>
+            <div class="text-xs text-green-700 mt-0.5">Producto seleccionado</div>
+          </div>
+          <button 
+            type="button"
+            class="flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition shadow-sm"
+            data-action="click->purchase-product-search#changeProduct"
+            title="Cambiar producto">
+            Cambiar
+          </button>
+        </div>
+      </div>
+    </div>
   </td>
-  <td>
-    <%= f.number_field :quantity, min: 1, required: true, step: 1,
-          data: { action: "input->purchase-items#updateSubtotal" } %>
+
+  <!-- Cantidad -->
+  <td class="px-4 py-3">
+    <%= f.number_field :quantity, 
+        min: 1, 
+        required: true, 
+        step: 1,
+        placeholder: "0",
+        data: { action: "input->purchase-items#updateSubtotal" },
+        class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-right" %>
   </td>
-  <td>
-    <%= f.number_field :purchase_price, min: 0, step: 0.01, required: true,
-          data: { action: "input->purchase-items#updateSubtotal" } %>
+
+  <!-- Precio Compra -->
+  <td class="px-4 py-3">
+    <div class="relative">
+      <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">$</span>
+      <%= f.number_field :purchase_price, 
+          min: 0, 
+          step: 0.01, 
+          required: true,
+          placeholder: "0.00",
+          data: { action: "input->purchase-items#updateSubtotal" },
+          class: "w-full pl-7 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-right" %>
+    </div>
   </td>
-  <td>
-    <%= f.number_field :conversion_factor, min: 1, required: true, step: 1,
-          data: { action: "input->purchase-items#updateSubtotal" } %>
+
+  <!-- Factor de Conversión -->
+  <td class="px-4 py-3">
+    <%= f.number_field :conversion_factor, 
+        min: 1, 
+        required: true, 
+        step: 1,
+        placeholder: "1",
+        data: { 
+          action: "input->purchase-items#updateSubtotal",
+          'purchase-product-search-target': 'conversionInput'
+        },
+        class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-right" %>
   </td>
-  <td data-purchase-item-target="subtotal">
-    $0.00
+
+  <!-- Subtotal -->
+  <td class="px-4 py-3">
+    <div class="text-sm font-semibold text-green-600" data-purchase-item-target="subtotal">
+      $0.00
+    </div>
     <%= f.hidden_field :subtotal, data: { purchase_item_target: "subtotalInput" } %>
   </td>
-  <td data-purchase-item-target="costPerPiece">
-    $0.00
+
+  <!-- Costo por Pieza -->
+  <td class="px-4 py-3">
+    <div class="text-sm font-medium text-gray-700" data-purchase-item-target="costPerPiece">
+      $0.00
+    </div>
     <%= f.hidden_field :cost_per_piece, data: { purchase_item_target: "costPerPieceInput" } %>
   </td>
-  <td>
+
+  <!-- Acciones -->
+  <td class="px-4 py-3 text-center">
     <%= f.hidden_field :_destroy %>
-    <button type="button" data-action="purchase-items#removeItem">Eliminar</button>
+    <button type="button" 
+            data-action="purchase-items#removeItem"
+            class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-md hover:bg-red-200 transition"
+            title="Eliminar producto">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    </button>
   </td>
 </tr>

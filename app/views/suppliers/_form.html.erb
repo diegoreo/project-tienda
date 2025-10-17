@@ -1,26 +1,228 @@
-<%= form_with(model: @supplier, local: true) do |form| %>
-  <% if @supplier.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@supplier.errors.count, "error") %> impiden guardar el proveedor:</h2>
-      <ul>
-        <% @supplier.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <%= form_with(model: @supplier, local: true, class: "space-y-6") do |form| %>
+    
+    <!-- Encabezado del formulario -->
+    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-4 rounded-lg shadow-md">
+      <h2 class="text-2xl font-bold">
+        <%= @supplier.new_record? ? "Nuevo Proveedor" : "Editar Proveedor" %>
+      </h2>
+      <p class="text-indigo-100 text-sm mt-1">Complete la información del proveedor</p>
     </div>
+
+    <!-- Información Básica -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Información Básica
+      </h3>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Nombre -->
+        <div>
+          <%= form.label :name, "Nombre comercial", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :name, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "Ej. Conocido" %>
+          <% if @supplier.errors[:name].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:name].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Razón Social -->
+        <div>
+          <%= form.label :company_name, "Razón social", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :company_name, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "Ej. Distribuidora Conocido S.A. de C.V." %>
+          <% if @supplier.errors[:company_name].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:company_name].first %></p>
+          <% end %>
+        </div>
+
+        <!-- RFC -->
+        <div>
+          <%= form.label :rfc, "RFC", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :rfc, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 font-mono uppercase", 
+              placeholder: "ABC123456XYZ",
+              maxlength: 13 %>
+          <p class="mt-1 text-xs text-gray-500">12 o 13 caracteres</p>
+          <% if @supplier.errors[:rfc].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:rfc].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <%= form.label :active, "Estado", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <div class="flex items-center space-x-4 mt-3">
+            <label class="inline-flex items-center cursor-pointer">
+              <%= form.radio_button :active, true, class: "w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" %>
+              <span class="ml-2 text-sm text-gray-700">Activo</span>
+            </label>
+            <label class="inline-flex items-center cursor-pointer">
+              <%= form.radio_button :active, false, class: "w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500" %>
+              <span class="ml-2 text-sm text-gray-700">Inactivo</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Información de Contacto -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        Información de Contacto
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Email -->
+        <div>
+          <%= form.label :email, "Email", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.email_field :email, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "ventas@proveedor.com" %>
+          <% if @supplier.errors[:email].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:email].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+          <%= form.label :phone, "Teléfono", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :phone, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "5555551234",
+              maxlength: 10 %>
+          <p class="mt-1 text-xs text-gray-500">10 dígitos sin espacios</p>
+          <% if @supplier.errors[:phone].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:phone].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Celular -->
+        <div>
+          <%= form.label :mobile, "Celular", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :mobile, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "5555559876",
+              maxlength: 10 %>
+          <p class="mt-1 text-xs text-gray-500">10 dígitos sin espacios</p>
+          <% if @supplier.errors[:mobile].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:mobile].first %></p>
+          <% end %>
+        </div>
+
+        <!-- Contacto Adicional (campo legacy) -->
+        <div>
+          <%= form.label :contact_info, "Información adicional", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_field :contact_info, 
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "Extensión, horario, etc." %>
+          <% if @supplier.errors[:contact_info].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:contact_info].first %></p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dirección -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Dirección
+      </h3>
+
+      <div class="grid grid-cols-1 gap-6">
+        <!-- Dirección completa -->
+        <div>
+          <%= form.label :address, "Calle y número", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= form.text_area :address, 
+              rows: 2,
+              class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+              placeholder: "Av. Principal 123, Col. Centro" %>
+          <% if @supplier.errors[:address].any? %>
+            <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:address].first %></p>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Ciudad -->
+          <div>
+            <%= form.label :city, "Ciudad", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :city, 
+                class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+                placeholder: "Ciudad de México" %>
+            <% if @supplier.errors[:city].any? %>
+              <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:city].first %></p>
+            <% end %>
+          </div>
+
+          <!-- Estado -->
+          <div>
+            <%= form.label :state, "Estado", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :state, 
+                class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+                placeholder: "CDMX" %>
+            <% if @supplier.errors[:state].any? %>
+              <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:state].first %></p>
+            <% end %>
+          </div>
+
+          <!-- Código Postal -->
+          <div>
+            <%= form.label :zip_code, "Código Postal", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_field :zip_code, 
+                class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+                placeholder: "03100",
+                maxlength: 5 %>
+            <p class="mt-1 text-xs text-gray-500">5 dígitos</p>
+            <% if @supplier.errors[:zip_code].any? %>
+              <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:zip_code].first %></p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        Notas y Observaciones
+      </h3>
+
+      <div>
+        <%= form.text_area :notes, 
+            rows: 4,
+            class: "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200", 
+            placeholder: "Términos de pago, días de entrega, descuentos especiales, etc." %>
+        <% if @supplier.errors[:notes].any? %>
+          <p class="mt-1 text-sm text-red-600"><%= @supplier.errors[:notes].first %></p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="flex flex-col sm:flex-row gap-3 pt-4">
+      <%= form.submit @supplier.new_record? ? "Crear Proveedor" : "Guardar Cambios", 
+          class: "flex-1 sm:flex-none inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md hover:shadow-lg transition duration-200" %>
+      
+      <%= link_to "Cancelar", 
+          @supplier.new_record? ? suppliers_path : supplier_path(@supplier), 
+          data: { turbo_frame: "_top" },
+          class: "flex-1 sm:flex-none inline-flex justify-center items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200" %>
+    </div>
+
   <% end %>
-
-  <div>
-    <%= form.label :name %><br>
-    <%= form.text_field :name, required: true %>
-  </div>
-
-  <div>
-    <%= form.label :contact_info %><br>
-    <%= form.text_area :contact_info, required: true %>
-  </div>
-
-  <div>
-    <%= form.submit "Guardar Proveedor" %>
-  </div>
-<% end %>
+</div>

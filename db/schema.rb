@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_14_004356) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_17_181403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -178,7 +178,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_14_004356) do
     t.string "contact_info"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "email"
+    t.string "phone"
+    t.string "mobile"
+    t.string "rfc"
+    t.string "company_name"
+    t.text "address"
+    t.string "city"
+    t.string "state"
+    t.string "zip_code"
+    t.boolean "active", default: true, null: false
+    t.text "notes"
+    t.index ["active"], name: "index_suppliers_on_active"
+    t.index ["email"], name: "index_suppliers_on_email"
     t.index ["name"], name: "index_suppliers_on_name"
+    t.index ["rfc"], name: "index_suppliers_on_rfc"
   end
 
   create_table "units", force: :cascade do |t|

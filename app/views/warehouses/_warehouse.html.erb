@@ -1,8 +1,72 @@
-<h2> <%= warehouse.name %> </h2>
-<strong>Ubicacion:</strong> <%= warehouse.location %>
+<div class="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden group">
+  <!-- Icon Header con degradado -->
+  <div class="bg-gradient-to-br from-teal-100 to-teal-200 h-32 flex items-center justify-center relative">
+    <svg class="w-16 h-16 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+    </svg>
+    
+    <!-- Decoración en esquina -->
+    <div class="absolute top-3 right-3">
+      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-600 text-white">
+        Almacén
+      </span>
+    </div>
+  </div>
 
-<div>
-    <%= link_to "Editar", edit_warehouse_path(warehouse)%>
-    <%= link_to "Eliminar", warehouse_path(warehouse),
-          data: { turbo_method: :delete, turbo_confirm: "¿Estas seguro de eliminar este almacen?" } %>
+  <!-- Content -->
+  <div class="p-5">
+    <h2 class="text-xl font-bold text-gray-800 mb-2 truncate">
+      <%= warehouse.name %>
+    </h2>
+    
+    <div class="mb-4">
+      <% if warehouse.location.present? %>
+        <div class="flex items-start text-gray-600 text-sm">
+          <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <span class="line-clamp-2"><%= warehouse.location %></span>
+        </div>
+      <% else %>
+        <p class="text-sm text-gray-400 italic flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Sin ubicación específica
+        </p>
+      <% end %>
+    </div>
+
+    <!-- Stats (opcional, si tienes inventarios por warehouse) -->
+    <% if warehouse.respond_to?(:inventories) && warehouse.inventories.any? %>
+      <div class="mb-4 p-3 bg-teal-50 rounded-lg">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-teal-700 font-medium">Productos en stock</span>
+          <span class="text-teal-900 font-bold"><%= warehouse.inventories.count %></span>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Actions -->
+    <div class="flex gap-2 pt-3 border-t border-gray-200">
+      <%= link_to edit_warehouse_path(warehouse), 
+          class: "flex-1 text-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition inline-flex items-center justify-center" do %>
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Editar
+      <% end %>
+      
+      <%= link_to warehouse_path(warehouse), 
+          data: { turbo_method: :delete, turbo_confirm: "¿Estás seguro de eliminar este almacén? Esta acción no se puede deshacer." },
+          class: "flex-1 text-center px-4 py-2 bg-red-100 text-red-700 text-sm font-semibold rounded-md hover:bg-red-200 transition inline-flex items-center justify-center" do %>
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Eliminar
+      <% end %>
+    </div>
+  </div>
 </div>

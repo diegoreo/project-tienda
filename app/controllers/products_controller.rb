@@ -146,7 +146,8 @@ class ProductsController < ApplicationController
       stock: stock.to_f,
       has_stock: stock > 0,
       barcodes: product.barcodes.pluck(:code),
-      unit: product.sale_unit.abbreviation
+      unit: product.sale_unit.abbreviation,
+      unit_conversion: product.unit_conversion.to_f
     }
   end
 end
