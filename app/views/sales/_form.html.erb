@@ -1,625 +1,311 @@
-<%= form_with model: sale, local: true, data: { controller: "pos-sale" } do |f| %>
-  <div class="pos-container">
-    <% if sale.errors.any? %>
-      <div class="error-container">
-        <h4><%= pluralize(sale.errors.count, "error") %>:</h4>
-        <ul>
-          <% sale.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
+<%= form_with model: sale, local: true, data: { controller: "pos-sale" }, class: "space-y-3" do |f| %>
+  
+  <!-- Errores -->
+  <% if sale.errors.any? %>
+    <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+      <div class="flex items-center gap-2 text-red-800 font-semibold text-sm mb-1">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <%= pluralize(sale.errors.count, "error") %>
       </div>
-    <% end %>
+      <ul class="text-xs text-red-700 ml-7 space-y-0.5">
+        <% sale.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
-    <!-- Configuración de venta -->
-    <div class="sale-config">
-      <div class="config-row">
-        <div class="config-item">
-          <%= f.label :customer_id, "Cliente", class: "config-label" %>
-          <%= f.collection_select :customer_id, 
-            Customer.order(:name), 
-            :id, 
-            :name, 
-            { selected: Customer.find_by(name: "Público General")&.id }, 
-            class: "config-input" %>
-        </div>
+  <!-- Configuración (Cliente, Almacén, Método de pago) -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      
+      <!-- Cliente -->
+      <div>
+        <%= f.label :customer_id, "Cliente", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+        <%= f.collection_select :customer_id, 
+          Customer.order(:name), 
+          :id, 
+          :name, 
+          { selected: Customer.find_by(name: "Público General")&.id }, 
+          class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" %>
+      </div>
 
-        <div class="config-item">
-          <%= f.label :warehouse_id, "Almacén", class: "config-label" %>
-          <%= f.collection_select :warehouse_id, 
-            Warehouse.all, 
-            :id, 
-            :name, 
-            {}, 
-            { 
-              class: "config-input", 
-              required: true,
-              data: { 
-                action: "change->pos-sale#saveWarehousePreference",
-                'pos-sale-target': 'warehouseSelect'
-              }
-            } %>
-        </div>
+      <!-- Almacén -->
+      <div>
+        <%= f.label :warehouse_id, "Almacén", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+        <%= f.collection_select :warehouse_id, 
+          Warehouse.all, 
+          :id, 
+          :name, 
+          {}, 
+          { 
+            class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
+            required: true,
+            data: { 
+              action: "change->pos-sale#saveWarehousePreference",
+              'pos-sale-target': 'warehouseSelect'
+            }
+          } %>
+      </div>
 
-        <div class="config-item">
-          <%= f.label :payment_method, "Método de pago", class: "config-label" %>
-          <%= f.select :payment_method,
-            [
-              ['Efectivo', 'cash'],
-              ['Tarjeta', 'card'],
-              ['Crédito', 'credit'],
-              ['Mixto', 'mixed']
-            ],
-            { selected: 'cash' },
-            { 
-              class: "config-input", 
-              required: true,
-              data: { action: "change->pos-sale#handlePaymentMethodChange" }
-            } %>
-        </div>
+      <!-- Método de pago -->
+      <div>
+        <%= f.label :payment_method, "Método de pago", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+        <%= f.select :payment_method,
+          [
+            ['💵 Efectivo', 'cash'],
+            ['💳 Tarjeta', 'card'],
+            ['📝 Crédito', 'credit'],
+            ['🔀 Mixto', 'mixed']
+          ],
+          { selected: 'cash' },
+          { 
+            class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
+            required: true,
+            data: { action: "change->pos-sale#handlePaymentMethodChange" }
+          } %>
       </div>
     </div>
+  </div>
 
-    <!-- Buscador de productos -->
-    <div class="product-search-section">
-      <div class="search-container">
-        <input 
-          type="text" 
-          placeholder="🔍 Escanea código de barras o busca por nombre del producto..."
-          class="product-search-input"
-          data-pos-sale-target="searchInput"
-          data-action="input->pos-sale#searchProducts keydown->pos-sale#handleSearchKeydown"
-          autocomplete="off"
-        >
-        <div class="search-results" data-pos-sale-target="searchResults"></div>
-      </div>
+  <!-- Búsqueda de productos -->
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+      <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </div>
+    <input 
+      type="text" 
+      placeholder="🔍 Escanea código de barras o busca producto... (F1)"
+      class="w-full pl-12 pr-4 py-3 text-base border-2 border-green-500 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-600 transition shadow-sm"
+      data-pos-sale-target="searchInput"
+      data-action="input->pos-sale#searchProducts keydown->pos-sale#handleSearchKeydown"
+      autocomplete="off"
+    >
+    <!-- Resultados de búsqueda MEJORADOS -->
+    <div class="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-green-500 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50 hidden" data-pos-sale-target="searchResults"></div>
+  </div>
+
+  <!-- Tabla de productos con botón de notas a la derecha -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <!-- Header con botón de notas -->
+    <div class="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-200">
+      <h3 class="text-sm font-semibold text-gray-700">Productos</h3>
+      <button 
+        type="button" 
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-300 rounded-lg hover:bg-green-100 transition"
+        data-action="click->pos-sale#toggleNotes"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Nota
+      </button>
     </div>
 
-    <!-- Lista de productos en la venta -->
-    <div class="sale-items-section">
-      <table class="sale-items-table">
-        <thead>
+    <!-- Área de notas colapsable -->
+    <div class="hidden px-3 py-2 bg-blue-50 border-b border-blue-200" data-pos-sale-target="notesContainer">
+      <%= f.text_area :notes, 
+        class: "w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none", 
+        rows: 2, 
+        placeholder: "Observaciones sobre esta venta..." %>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto" style="max-height: 320px; overflow-y: auto;">
+      <table class="min-w-full divide-y divide-gray-200">
+        <!-- THEAD más compacto y oscuro -->
+        <thead class="bg-gray-700 sticky top-0 z-10">
           <tr>
-            <th>Producto</th>
-            <th>Disponible</th>
-            <th>Cantidad</th>
-            <th>Precio Unit.</th>
-            <th>Descuento</th>
-            <th>Subtotal</th>
-            <th>Acciones</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Stock</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Cant.</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Precio</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Desc.</th>
+            <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-28">Subtotal</th>
+            <th class="px-3 py-1 w-16"></th>
           </tr>
         </thead>
-        <tbody data-pos-sale-target="itemsContainer">
-          <%= f.fields_for :sale_items do |item_fields| %>
-            <%= render "sale_item_row", f: item_fields %>
-          <% end %>
+        <tbody class="bg-white divide-y divide-gray-200" data-pos-sale-target="itemsContainer">
+          <%# NO renderizar items vacíos iniciales - se agregan vía JavaScript %>
         </tbody>
       </table>
-      
-      <div class="empty-cart" data-pos-sale-target="emptyCart">
-        <p>🛒 No hay productos agregados</p>
-        <p class="empty-hint">Escanea o busca productos para comenzar</p>
-      </div>
     </div>
+    
+    <!-- Estado vacío -->
+    <div class="text-center py-12" data-pos-sale-target="emptyCart">
+      <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+      </svg>
+      <p class="text-gray-500 font-medium">Carrito vacío</p>
+      <p class="text-xs text-gray-400 mt-1">Escanea o busca productos</p>
+    </div>
+  </div>
 
-    <!-- Total y acciones -->
-    <div class="sale-footer">
-      <div class="notes-section">
-        <button 
-          type="button" 
-          class="btn-toggle-notes"
-          data-action="click->pos-sale#toggleNotes"
-        >
-          📝 Agregar nota
-        </button>
-        <div class="notes-container" data-pos-sale-target="notesContainer" style="display: none;">
-          <%= f.text_area :notes, class: "notes-textarea", rows: 2, placeholder: "Notas sobre esta venta..." %>
-        </div>
-      </div>
-
-      <div class="total-section">
-        <div class="total-row">
-          <span class="total-label">TOTAL:</span>
-          <span class="total-amount" data-pos-sale-target="totalAmount">$0.00</span>
-        </div>
-      </div>
-
-      <div class="payment-section" data-pos-sale-target="paymentSection" style="display: none;">
-        <h3>Pago en Efectivo</h3>
-        <div class="payment-row">
-          <label>Recibido:</label>
+  <!-- Total y Pago -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    
+    <!-- Pago en Efectivo (solo si payment_method = cash) -->
+    <div class="bg-amber-50 border-2 border-amber-400 rounded-lg p-3 hidden" data-pos-sale-target="paymentSection">
+      <h3 class="text-sm font-bold text-amber-800 mb-2 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        Pago en Efectivo
+      </h3>
+      <div class="space-y-2">
+        <div>
+          <label class="block text-xs font-semibold text-amber-800 mb-1">Recibido: (F3)</label>
           <input 
             type="number" 
             step="0.01" 
             min="0"
             placeholder="0.00"
-            class="payment-input"
+            class="w-full px-3 py-2 text-lg font-bold text-right border-2 border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
             data-pos-sale-target="receivedAmount"
             data-action="input->pos-sale#calculateChange"
           >
         </div>
-        <div class="change-display">
-          <span class="change-label">Cambio:</span>
-          <span class="change-amount" data-pos-sale-target="changeAmount">$0.00</span>
-        </div>
-      </div>
-
-      <div class="action-buttons">
-        <%= f.submit "Registrar Venta (Enter)", class: "btn-complete-sale", data: { 'pos-sale-target': 'submitButton' } %>
-        <button type="button" class="btn-cancel" data-action="click->pos-sale#clearSale">
-          Cancelar (Esc)
-        </button>
-      </div>
-    </div>
-    <!-- Leyenda de atajos -->
-    <div class="shortcuts-legend">
-      <h4>⌨️ Atajos de teclado</h4>
-      <div class="shortcuts-grid">
-        <div class="shortcut-item">
-          <kbd>F1</kbd>
-          <span>Buscar producto</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>F2</kbd>
-          <span>Cambiar pago</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>F3</kbd>
-          <span>Campo recibido</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>Enter</kbd>
-          <span>Completar venta</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>Esc</kbd>
-          <span>Cancelar</span>
-        </div>
-        <div class="shortcut-item">
-          <kbd>↑ ↓</kbd>
-          <span>Navegar resultados</span>
+        <div class="bg-white border-2 border-green-500 rounded-lg px-3 py-2 flex items-center justify-between">
+          <span class="text-xs font-semibold text-green-700">Cambio:</span>
+          <span class="text-xl font-bold text-green-700" data-pos-sale-target="changeAmount">$0.00</span>
         </div>
       </div>
     </div>
 
-    <style>
-      .shortcuts-legend {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        border: 1px solid #dee2e6;
-      }
-  
-      .shortcuts-legend h4 {
-        margin: 0 0 1rem 0;
-        color: #495057;
-        font-size: 0.9rem;
-      }
-  
-      .shortcuts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.75rem;
-      }
-  
-      .shortcut-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-  
-      .shortcut-item kbd {
-        background: white;
-        border: 1px solid #adb5bd;
-        border-radius: 4px;
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #495057;
-        box-shadow: 0 2px 0 #adb5bd;
-        min-width: 40px;
-        text-align: center;
-      }
-  
-      .shortcut-item span {
-        font-size: 0.85rem;
-        color: #6c757d;
-      }
-    </style>
+    <!-- Total -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-4 text-white shadow-lg">
+      <div class="text-xs uppercase tracking-wider mb-1">Total a pagar</div>
+      <div class="text-3xl font-bold" data-pos-sale-target="totalAmount">$0.00</div>
+    </div>
   </div>
+
+  <!-- Botones de acción -->
+  <div class="grid grid-cols-2 gap-3">
+    <%= f.submit "✓ Registrar Venta (Enter)", 
+      class: "px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white text-base font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition duration-200", 
+      data: { 'pos-sale-target': 'submitButton' } %>
+    
+    <button 
+      type="button" 
+      class="px-6 py-3 bg-gray-600 text-white text-base font-semibold rounded-lg hover:bg-gray-700 transition duration-200"
+      data-action="click->pos-sale#clearSale"
+    >
+      ✕ Cancelar (Esc)
+    </button>
+  </div>
+
+  <!-- Atajos de teclado (compactos) -->
+  <div class="bg-gray-50 border border-gray-200 rounded-lg p-2">
+    <details>
+      <summary class="text-xs font-semibold text-gray-600 cursor-pointer hover:text-green-600 transition flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+        </svg>
+        Atajos de teclado
+      </summary>
+      <div class="grid grid-cols-3 gap-2 mt-2">
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F1</kbd>
+          <span class="text-gray-600">Buscar</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F2</kbd>
+          <span class="text-gray-600">Cambiar pago</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F3</kbd>
+          <span class="text-gray-600">Efectivo</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Enter</kbd>
+          <span class="text-gray-600">Registrar</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Esc</kbd>
+          <span class="text-gray-600">Cancelar</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs">
+          <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">↑↓</kbd>
+          <span class="text-gray-600">Navegar</span>
+        </div>
+      </div>
+    </details>
+  </div>
+
 <% end %>
 
+<!-- Estilos MEJORADOS para resultados de búsqueda y tabla -->
 <style>
-  .pos-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
-    background: #f8f9fa;
-    min-height: calc(100vh - 100px);
+  /* Mostrar resultados cuando estén activos */
+  [data-pos-sale-target="searchResults"].active {
+    display: block !important;
   }
-
-  .sale-config {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .config-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .config-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .config-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #495057;
-  }
-
-  .config-input {
-    padding: 0.75rem;
-    border: 2px solid #dee2e6;
-    border-radius: 6px;
-    font-size: 1rem;
-  }
-
-  .config-input:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-
-  .product-search-section {
-    margin-bottom: 1rem;
-  }
-
-  .search-container {
-    position: relative;
-  }
-
-  .product-search-input {
-    width: 100%;
-    padding: 1.5rem;
-    font-size: 1.2rem;
-    border: 3px solid #007bff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
-    transition: all 0.3s ease;
-  }
-
-  .product-search-input:focus {
-    outline: none;
-    box-shadow: 0 6px 16px rgba(0,123,255,0.3);
-    transform: translateY(-2px);
-  }
-
-  .search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 2px solid #007bff;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-    display: none;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-  }
-
-  .search-results.active {
-    display: block;
-  }
-
+  
+  /* Items de búsqueda - HOVER MUY VISIBLE CON GRIS */
   .search-result-item {
-    padding: 1rem;
-    cursor: pointer;
-    border-bottom: 1px solid #e9ecef;
-    transition: background 0.2s;
+    @apply px-4 py-3 cursor-pointer border-b border-gray-200 transition duration-150;
+    position: relative;
+    background-color: #ffffff;
   }
-
+  
+  /* HOVER con mouse - FONDO GRIS EVIDENTE */
   .search-result-item:hover {
-    background: #e7f3ff;
+    background-color: #e5e7eb; /* Gris 200 */
+    border-left: 5px solid #16a34a; /* Verde */
+    padding-left: calc(1rem - 5px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
-
+  
+  /* SELECCIONADO con teclado - GRIS MÁS OSCURO + VERDE */
   .search-result-item.selected {
-    background: #cce5ff;
-  }
-
-  .stock-cell {
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  
-  .stock-cell.in-stock {
-    color: #28a745;
+    background-color: #d1d5db; /* Gris 300 */
+    border-left: 6px solid #15803d; /* Verde oscuro */
+    padding-left: calc(1rem - 6px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transform: translateX(2px);
   }
   
-  .stock-cell.low-stock {
-    color: #ffc107;
+  .search-result-item .product-name {
+    @apply font-semibold text-gray-800 text-sm flex items-center gap-2;
   }
   
-  .stock-cell.out-of-stock {
-    color: #dc3545;
-  }
-
-  .product-name {
-    font-weight: 600;
-    color: #212529;
-    font-size: 1rem;
-  }
-
-  .product-details {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.25rem;
-    font-size: 0.9rem;
-    color: #6c757d;
-  }
-
-  .product-price {
-    color: #28a745;
-    font-weight: 600;
-  }
-
-  .product-stock {
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
+  /* Agregar flecha cuando está seleccionado */
+  .search-result-item.selected .product-name::before {
+    content: "▶";
+    @apply text-green-600 font-bold text-base;
+    animation: pulse 1s ease-in-out infinite;
   }
   
-  .product-stock.in-stock {
-    background: #d4edda;
-    color: #155724;
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
   
-  .product-stock.low-stock {
-    background: #fff3cd;
-    color: #856404;
+  .search-result-item .product-details {
+    @apply flex justify-between items-center mt-1 text-xs;
   }
   
-  .product-stock.out-of-stock {
-    background: #f8d7da;
-    color: #721c24;
-  }
-
-  .sale-items-section {
-    background: white;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    min-height: 300px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .sale-items-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .sale-items-table th {
-    background: #343a40;
-    color: white;
-    padding: 0.75rem;
-    text-align: left;
-    font-size: 0.9rem;
-  }
-
-  .sale-items-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #dee2e6;
-  }
-
-  .sale-items-table input[type="number"] {
-    width: 80px;
-    padding: 0.5rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    text-align: right;
-  }
-
-  .empty-cart {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #adb5bd;
-  }
-
-  .empty-cart p {
-    margin: 0.5rem 0;
-    font-size: 1.2rem;
-  }
-
-  .empty-hint {
-    font-size: 1rem !important;
-  }
-
-  .sale-footer {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .notes-section {
-    margin-bottom: 1rem;
-  }
-
-  .btn-toggle-notes {
-    padding: 0.5rem 1rem;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-
-  .notes-container {
-    margin-top: 0.5rem;
-  }
-
-  .notes-textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #dee2e6;
-    border-radius: 6px;
-    resize: vertical;
-    font-family: inherit;
-  }
-
-  .total-section {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-  }
-
-  .total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .total-label {
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-
-  .total-amount {
-    font-size: 2.5rem;
-    font-weight: 700;
-  }
-
-  .payment-section {
-    background: #fff3e0;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border: 2px solid #ff9800;
+  .search-result-item .product-price {
+    @apply text-green-600 font-bold;
   }
   
-  .payment-section h3 {
-    margin: 0 0 1rem 0;
-    color: #e65100;
+  .search-result-item .product-stock {
+    @apply px-2 py-0.5 rounded-full text-xs font-semibold;
   }
   
-  .payment-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+  .search-result-item .product-stock.in-stock {
+    @apply bg-green-100 text-green-800;
   }
   
-  .payment-row label {
-    font-weight: 600;
-    color: #e65100;
-    min-width: 100px;
+  .search-result-item .product-stock.low-stock {
+    @apply bg-yellow-100 text-yellow-800;
   }
   
-  .payment-input {
-    flex: 1;
-    padding: 1rem;
-    border: 2px solid #ff9800;
-    border-radius: 6px;
-    font-size: 1.5rem;
-    text-align: right;
-    font-weight: 600;
-  }
-  
-  .payment-input:focus {
-    outline: none;
-    border-color: #f57c00;
-    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
-  }
-  
-  .change-display {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: white;
-    border-radius: 6px;
-    border: 2px solid #4caf50;
-  }
-  
-  .change-label {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2e7d32;
-  }
-  
-  .change-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2e7d32;
-  }
-  
-  .change-amount.negative {
-    color: #d32f2f;
-  }
-
-  .action-buttons {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 1rem;
-  }
-
-  .btn-complete-sale {
-    padding: 1.25rem;
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .btn-complete-sale:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,123,255,0.3);
-  }
-
-  .btn-cancel {
-    padding: 1.25rem;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .error-container {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border: 1px solid #f5c6cb;
-  }
-
-  @media (max-width: 768px) {
-    .config-row {
-      grid-template-columns: 1fr;
-    }
-    
-    .action-buttons {
-      grid-template-columns: 1fr;
-    }
+  .search-result-item .product-stock.out-of-stock {
+    @apply bg-red-100 text-red-800;
   }
 </style>
