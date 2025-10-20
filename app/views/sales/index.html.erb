@@ -1,200 +1,295 @@
-<div class="sales-container">
-  <div class="header-section">
-    <h1>Ventas</h1>
-    <div class="actions">
-      <%= link_to "Nueva Venta", new_sale_path, class: "btn-new" %>
-    </div>
-  </div>
-
-  <!-- Filtros -->
-  <div class="filters-section">
-    <%= form_with url: sales_path, method: :get, local: true do |f| %>
-      <div class="filter-group">
-        <%= f.label :payment_method, "Método de pago" %>
-        <%= f.select :payment_method,
-          options_for_select([
-            ['Todos', ''],
-            ['Efectivo', 'cash'],
-            ['Tarjeta', 'card'],
-            ['Crédito', 'credit'],
-            ['Mixto', 'mixed']
-          ], params[:payment_method]),
-          {},
-          class: "filter-select" %>
-      </div>
-
-      <div class="filter-group">
-        <%= f.label :payment_status, "Estado de pago" %>
-        <%= f.select :payment_status,
-          options_for_select([
-            ['Todos', ''],
-            ['Pagado', 'paid'],
-            ['Parcial', 'partial'],
-            ['Pendiente', 'pending']
-          ], params[:payment_status]),
-          {},
-          class: "filter-select" %>
-      </div>
-
-      <%= f.submit "Filtrar", class: "btn-filter" %>
-      <%= link_to "Limpiar", sales_path, class: "btn-clear" %>
-    <% end %>
-  </div>
-
-  <!-- Tabla de ventas -->
-  <div class="sales-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Folio</th>
-          <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Almacén</th>
-          <th>Total</th>
-          <th>Método Pago</th>
-          <th>Estado Pago</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @sales.each do |sale| %>
-          <tr class="<%= 'cancelled-row' if sale.cancelled? %>">
-            <td><strong>#<%= sale.id %></strong></td>
-            <td><%= l(sale.sale_date, format: :short) %></td>
-            <td><%= sale.customer&.name || 'Público general' %></td>
-            <td><%= sale.warehouse.name %></td>
-            <td><strong><%= number_to_currency(sale.total) %></strong></td>
-            <td>
-              <span class="badge badge-payment-<%= sale.payment_method %>">
-                <%= sale.payment_method.humanize %>
-              </span>
-            </td>
-            <td>
-              <span class="badge badge-status-<%= sale.payment_status %>">
-                <%= sale.payment_status.humanize %>
-              </span>
-            </td>
-            <td>
-              <span class="badge badge-<%= sale.status %>">
-                <%= sale.status.humanize %>
-              </span>
-            </td>
-            <td class="actions-cell">
-              <%= link_to "Ver", sale_path(sale), class: "btn-view" %>
-              <% if sale.can_be_cancelled? %>
-                <%= link_to "Cancelar", cancel_sale_path(sale),
-                  data: { turbo_method: :post, turbo_confirm: "¿Cancelar venta ##{sale.id}?" },
-                  class: "btn-cancel" %>
-              <% end %>
-            </td>
-          </tr>
+<div class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-6">
+    
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Historial de Ventas</h1>
+          <p class="text-sm text-gray-600 mt-1">
+            <%= pluralize(@sales.count, 'venta') %> encontrada<%= 's' if @sales.count != 1 %>
+          </p>
+        </div>
+        <%= link_to new_sale_path, 
+          data: { turbo_frame: "_top" },
+          class: "inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition duration-200" do %>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Nueva Venta
         <% end %>
-      </tbody>
-    </table>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+      <%= form_with url: sales_path, method: :get, local: true, class: "space-y-4" do |f| %>
+        
+        <!-- Fila 1: Búsqueda rápida + Fechas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Búsqueda por folio -->
+          <div>
+            <%= f.label :folio, "Buscar por folio", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+              </div>
+              <%= f.text_field :folio, 
+                value: params[:folio],
+                placeholder: "Ej: 123",
+                class: "w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" %>
+            </div>
+          </div>
+
+          <!-- Fecha desde -->
+          <div>
+            <%= f.label :date_from, "Desde", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.date_field :date_from, 
+              value: params[:date_from],
+              class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" %>
+          </div>
+
+          <!-- Fecha hasta -->
+          <div>
+            <%= f.label :date_to, "Hasta", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.date_field :date_to, 
+              value: params[:date_to],
+              class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" %>
+          </div>
+        </div>
+
+        <!-- Fila 2: Selects de filtros -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <!-- Cliente -->
+          <div>
+            <%= f.label :customer_id, "Cliente", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.collection_select :customer_id,
+              Customer.order(:name),
+              :id,
+              :name,
+              { include_blank: "Todos" },
+              { 
+                selected: params[:customer_id],
+                class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+              } %>
+          </div>
+
+          <!-- Almacén -->
+          <div>
+            <%= f.label :warehouse_id, "Almacén", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.collection_select :warehouse_id,
+              Warehouse.all,
+              :id,
+              :name,
+              { include_blank: "Todos" },
+              { 
+                selected: params[:warehouse_id],
+                class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+              } %>
+          </div>
+
+          <!-- Método de pago -->
+          <div>
+            <%= f.label :payment_method, "Método pago", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.select :payment_method,
+              options_for_select([
+                ['Todos', ''],
+                ['💵 Efectivo', 'cash'],
+                ['💳 Tarjeta', 'card'],
+                ['📝 Crédito', 'credit'],
+                ['🔀 Mixto', 'mixed']
+              ], params[:payment_method]),
+              {},
+              class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white" %>
+          </div>
+
+          <!-- Estado de pago -->
+          <div>
+            <%= f.label :payment_status, "Estado pago", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.select :payment_status,
+              options_for_select([
+                ['Todos', ''],
+                ['Pagado', 'paid'],
+                ['Parcial', 'partial'],
+                ['Pendiente', 'pending']
+              ], params[:payment_status]),
+              {},
+              class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white" %>
+          </div>
+
+          <!-- Estado venta -->
+          <div>
+            <%= f.label :status, "Estado", class: "block text-xs font-semibold text-gray-700 mb-1" %>
+            <%= f.select :status,
+              options_for_select([
+                ['Todas', ''],
+                ['Completadas', 'completed'],
+                ['Canceladas', 'cancelled']
+              ], params[:status]),
+              {},
+              class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white" %>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex gap-3">
+          <%= f.submit "🔍 Buscar", class: "px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-semibold rounded-lg hover:from-green-700 hover:to-green-800 transition" %>
+          <%= link_to "Limpiar filtros", sales_path, class: "px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Tabla de ventas -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <% if @sales.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-700">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Folio</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Fecha</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Cliente</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Almacén</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Método</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Pago</th>
+                <th class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Estado</th>
+                <th class="px-4 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <% @sales.each do |sale| %>
+                <tr class="hover:bg-gray-50 transition <%= 'bg-red-50' if sale.cancelled? %>">
+                  <!-- Folio -->
+                  <td class="px-4 py-3">
+                    <span class="text-sm font-bold text-gray-800">#<%= sale.id %></span>
+                  </td>
+
+                  <!-- Fecha -->
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    <%= sale.sale_date.strftime("%d/%m/%Y") %>
+                    <div class="text-xs text-gray-500"><%= sale.created_at.strftime("%H:%M") %></div>
+                  </td>
+
+                  <!-- Cliente -->
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    <%= sale.customer&.name || 'Público General' %>
+                  </td>
+
+                  <!-- Almacén -->
+                  <td class="px-4 py-3 text-sm text-gray-700">
+                    <%= sale.warehouse.name %>
+                  </td>
+
+                  <!-- Total -->
+                  <td class="px-4 py-3">
+                    <span class="text-sm font-bold text-green-700">
+                      <%= number_to_currency(sale.total) %>
+                    </span>
+                  </td>
+
+                  <!-- Método de pago -->
+                  <td class="px-4 py-3">
+                    <% 
+                      payment_colors = {
+                        'cash' => 'bg-green-100 text-green-800',
+                        'card' => 'bg-blue-100 text-blue-800',
+                        'credit' => 'bg-yellow-100 text-yellow-800',
+                        'mixed' => 'bg-purple-100 text-purple-800'
+                      }
+                      payment_icons = {
+                        'cash' => '💵',
+                        'card' => '💳',
+                        'credit' => '📝',
+                        'mixed' => '🔀'
+                      }
+                    %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold <%= payment_colors[sale.payment_method] %>">
+                      <%= payment_icons[sale.payment_method] %> <%= sale.payment_method.humanize %>
+                    </span>
+                  </td>
+
+                  <!-- Estado de pago -->
+                  <td class="px-4 py-3">
+                    <% 
+                      status_colors = {
+                        'paid' => 'bg-green-100 text-green-800',
+                        'partial' => 'bg-yellow-100 text-yellow-800',
+                        'pending' => 'bg-red-100 text-red-800'
+                      }
+                    %>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold <%= status_colors[sale.payment_status] %>">
+                      <%= sale.payment_status.humanize %>
+                    </span>
+                  </td>
+
+                  <!-- Estado -->
+                  <td class="px-4 py-3">
+                    <% if sale.completed? %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        ✓ Completada
+                      </span>
+                    <% else %>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                        ✕ Cancelada
+                      </span>
+                    <% end %>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="px-4 py-3">
+                    <div class="flex items-center justify-center gap-2">
+                      <%= link_to sale_path(sale),
+                        data: { turbo_frame: "_top" },
+                        class: "inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-lg hover:bg-blue-200 transition" do %>
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Ver
+                      <% end %>
+
+                      <% if sale.can_be_cancelled? %>
+                        <%= link_to cancel_sale_path(sale),
+                          data: { 
+                            turbo_method: :post, 
+                            turbo_confirm: "¿Cancelar venta ##{sale.id} por #{number_to_currency(sale.total)}?" 
+                          },
+                          class: "inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded-lg hover:bg-red-200 transition" do %>
+                          <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
+                          Cancelar
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <!-- Estado vacío -->
+        <div class="text-center py-12 px-4">
+          <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron ventas</h3>
+          <p class="text-gray-500 mb-6">Intenta ajustar los filtros o realiza una nueva venta</p>
+          <%= link_to new_sale_path, 
+            data: { turbo_frame: "_top" },
+            class: "inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition" do %>
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nueva Venta
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
   </div>
 </div>
-
-<style>
-  .sales-container {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
-
-  .filters-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-  }
-
-  .filters-section form {
-    display: flex;
-    gap: 1rem;
-    align-items: end;
-  }
-
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .filter-select {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .sales-table table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .sales-table th {
-    background: #3498db;
-    color: white;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-  }
-
-  .sales-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #ecf0f1;
-  }
-
-  .cancelled-row {
-    background: #f8d7da;
-    opacity: 0.7;
-  }
-
-  .badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-
-  .badge-payment-cash { background: #d4edda; color: #155724; }
-  .badge-payment-card { background: #cce5ff; color: #004085; }
-  .badge-payment-credit { background: #fff3cd; color: #856404; }
-  .badge-payment-mixed { background: #e2e3e5; color: #383d41; }
-
-  .badge-status-paid { background: #d4edda; color: #155724; }
-  .badge-status-partial { background: #fff3cd; color: #856404; }
-  .badge-status-pending { background: #f8d7da; color: #721c24; }
-
-  .badge-completed { background: #d4edda; color: #155724; }
-  .badge-cancelled { background: #f8d7da; color: #721c24; }
-
-  .actions-cell {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-new, .btn-filter, .btn-clear, .btn-view, .btn-cancel {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .btn-new { background: linear-gradient(135deg, #27ae60, #229954); color: white; }
-  .btn-filter { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
-  .btn-clear { background: #95a5a6; color: white; }
-  .btn-view { background: #3498db; color: white; }
-  .btn-cancel { background: #e74c3c; color: white; }
-</style>

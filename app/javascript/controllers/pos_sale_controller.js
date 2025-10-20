@@ -306,37 +306,43 @@ export default class extends Controller {
     }
     
     const template = `
-      <tr class="sale-item-row" data-product-id="${product.id}">
+      <tr class="sale-item-row hover:bg-gray-50 transition" data-product-id="${product.id}">
         <input type="hidden" name="sale[sale_items_attributes][${this.itemIndex}][product_id]" value="${product.id}">
         <input type="hidden" name="sale[sale_items_attributes][${this.itemIndex}][unit_price]" value="${product.price}">
         <input type="hidden" name="sale[sale_items_attributes][${this.itemIndex}][subtotal]" value="${product.price}">
         <input type="hidden" name="sale[sale_items_attributes][${this.itemIndex}][_destroy]" value="0">
         
-        <td class="product-name-cell">${product.name}</td>
-        <td class="stock-cell ${stockClass}">${product.stock} ${product.unit || ''}</td>
-        <td>
+        <td class="px-3 py-2 text-sm text-gray-800 font-medium product-name-cell">${product.name}</td>
+        <td class="px-3 py-2 text-xs font-bold stock-cell ${stockClass}">${product.stock} ${product.unit || ''}</td>
+        <td class="px-3 py-2">
           <input type="number" 
             name="sale[sale_items_attributes][${this.itemIndex}][quantity]" 
             min="0.001" 
             step="0.001" 
             value="1"
-            
-            class="quantity-input"
+            class="quantity-input w-full px-3 py-2 text-base font-bold text-right border-2 border-green-400 bg-green-50 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:bg-green-100 transition shadow-sm"
             data-action="input->pos-sale#updateItemSubtotal">
         </td>
-        <td class="price-cell">$${product.price.toFixed(2)}</td>
-        <td>
+        <td class="px-3 py-2 text-sm font-semibold text-gray-700 price-cell">$${product.price.toFixed(2)}</td>
+        <td class="px-3 py-2">
           <input type="number" 
             name="sale[sale_items_attributes][${this.itemIndex}][discount]" 
             min="0" 
             step="0.01" 
             value="0" 
-            class="discount-input"
+            class="discount-input w-full px-3 py-2 text-base font-bold text-right border-2 border-orange-400 bg-orange-50 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 hover:bg-orange-100 transition shadow-sm"
             data-action="input->pos-sale#updateItemSubtotal">
         </td>
-        <td class="subtotal-cell">$${product.price.toFixed(2)}</td>
-        <td>
-          <button type="button" class="btn-remove-item" data-action="click->pos-sale#removeItem">🗑️</button>
+        <td class="subtotal-cell px-3 py-2 text-sm font-bold text-green-700">$${product.price.toFixed(2)}</td>
+        <td class="px-3 py-2">
+          <button type="button" 
+            class="btn-remove-item p-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200 transition" 
+            data-action="click->pos-sale#removeItem"
+            title="Eliminar">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
         </td>
       </tr>
     `
