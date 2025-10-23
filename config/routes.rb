@@ -12,7 +12,9 @@ Rails.application.routes.draw do
   resources :units, except: :show
   resources :warehouses, except: :show
   resources :suppliers
-  resources :customers
+  resources :customers do
+    resources :payments, only: [:index, :new, :create, :destroy]
+  end
 
   resources :inventories, only: [:index, :show] do
     resources :inventory_adjustments, only: [:index, :new, :create, :show]
@@ -25,6 +27,7 @@ Rails.application.routes.draw do
   resources :sales do
     member do
       post :cancel
+      get :payments
     end
   end
 

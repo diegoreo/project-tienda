@@ -1,153 +1,335 @@
-<div class="customer-detail">
-  <div class="header-section">
-    <h1><%= @customer.name %></h1>
-    <div class="actions">
-      <%= link_to "Editar", edit_customer_path(@customer), class: "btn-edit" %>
-      <%= link_to "Volver", customers_path, class: "btn-back" %>
-    </div>
-  </div>
+<div class="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Breadcrumb -->
+    <nav class="mb-6 text-sm">
+      <%= link_to "Clientes", customers_path, class: "text-teal-600 hover:text-teal-800" %> 
+      <span class="text-gray-400 mx-2">/</span>
+      <span class="text-gray-600"><%= @customer.name %></span>
+    </nav>
 
-  <!-- Información del cliente -->
-  <div class="info-card">
-    <h2>Información General</h2>
-    <div class="info-grid">
-      <div class="info-item">
-        <strong>Tipo:</strong>
-        <span class="badge badge-<%= @customer.customer_type %>">
-          <%= I18n.t("enums.customer.customer_type.#{@customer.customer_type}") %>
-        </span>
-      </div>
-      <div class="info-item">
-        <strong>Teléfono:</strong> <%= @customer.phone || 'No registrado' %>
-      </div>
-      <div class="info-item">
-        <strong>Email:</strong> <%= @customer.email || 'No registrado' %>
-      </div>
-      <div class="info-item">
-        <strong>RFC:</strong> <%= @customer.rfc || 'No registrado' %>
-      </div>
-      <div class="info-item">
-        <strong>Dirección:</strong> <%= @customer.address || 'No registrada' %>
-      </div>
-    </div>
-  </div>
-
-  <!-- Información de crédito -->
-  <div class="info-card">
-    <h2>Crédito</h2>
-    <div class="credit-info">
-      <div class="credit-item">
-        <span class="credit-label">Límite de crédito:</span>
-        <span class="credit-value"><%= number_to_currency(@customer.credit_limit || 0) %></span>
-      </div>
-      <div class="credit-item">
-        <span class="credit-label">Deuda actual:</span>
-        <span class="credit-value <%= @customer.current_debt > 0 ? 'text-danger' : '' %>">
-          <%= number_to_currency(@customer.current_debt) %>
-        </span>
-      </div>
-      <div class="credit-item">
-        <span class="credit-label">Crédito disponible:</span>
-        <span class="credit-value text-success">
-          <%= number_to_currency(@customer.available_credit) %>
-        </span>
+    <!-- Header con info del cliente -->
+    <div class="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl shadow-lg p-6 mb-6 text-white">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-3xl font-bold mb-2"><%= @customer.name %></h1>
+          <div class="flex flex-wrap gap-4 text-teal-100">
+            <span class="flex items-center gap-1">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              <%= @customer.phone || "Sin teléfono" %>
+            </span>
+            <span class="flex items-center gap-1">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              <%= @customer.email || "Sin email" %>
+            </span>
+          </div>
+        </div>
+        
+        <div class="flex gap-3">
+          <%= link_to edit_customer_path(@customer), class: "px-4 py-2 bg-white text-teal-700 font-semibold rounded-lg hover:bg-teal-50 transition flex items-center gap-2" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Editar
+          <% end %>
+          
+          <%= link_to customers_path, class: "px-4 py-2 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition flex items-center gap-2" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Volver
+          <% end %>
+        </div>
       </div>
     </div>
-  </div>
 
-  <% if @customer.notes.present? %>
-    <div class="info-card">
-      <h2>Notas</h2>
-      <p><%= simple_format(@customer.notes) %></p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Columna izquierda: Info y estadísticas -->
+      <div class="lg:col-span-1 space-y-6">
+        
+        <!-- Tarjeta de crédito -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            Información de Crédito
+          </h2>
+          
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-gray-500 mb-1">Límite de crédito</p>
+              <p class="text-2xl font-bold text-gray-800"><%= number_to_currency(@customer.credit_limit || 0) %></p>
+            </div>
+            
+            <div class="<%= @customer.current_debt > 0 ? 'bg-red-50 border-l-4 border-red-500' : 'bg-green-50 border-l-4 border-green-500' %> p-3 rounded">
+              <p class="text-sm font-medium mb-1 <%= @customer.current_debt > 0 ? 'text-red-700' : 'text-green-700' %>">
+                Deuda actual
+              </p>
+              <p class="text-3xl font-bold <%= @customer.current_debt > 0 ? 'text-red-600' : 'text-green-600' %>">
+                <%= number_to_currency(@customer.current_debt) %>
+              </p>
+            </div>
+            
+            <div>
+              <p class="text-sm text-gray-500 mb-1">Crédito disponible</p>
+              <p class="text-xl font-semibold text-teal-600"><%= number_to_currency(@customer.available_credit) %></p>
+            </div>
+          </div>
+          
+          <!-- Botón para registrar pago -->
+          <% if @customer.current_debt > 0 %>
+            <%= link_to new_customer_payment_path(@customer), class: "mt-6 w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-green-700 transition shadow-md" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Registrar Pago
+            <% end %>
+          <% end %>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-4">Detalles</h2>
+          <div class="space-y-3 text-sm">
+            <div>
+              <p class="text-gray-500 font-medium">Tipo de cliente</p>
+              <span class="inline-block mt-1 px-3 py-1 rounded-full text-sm font-semibold
+                <%= case @customer.customer_type
+                    when 'walk_in' then 'bg-blue-100 text-blue-700'
+                    when 'regular' then 'bg-green-100 text-green-700'
+                    when 'wholesale' then 'bg-orange-100 text-orange-700'
+                    end %>">
+                <%= I18n.t("enums.customer.customer_type.#{@customer.customer_type}") %>
+              </span>
+            </div>
+            
+            <% if @customer.rfc.present? %>
+              <div>
+                <p class="text-gray-500 font-medium">RFC</p>
+                <p class="text-gray-800"><%= @customer.rfc %></p>
+              </div>
+            <% end %>
+            
+            <% if @customer.address.present? %>
+              <div>
+                <p class="text-gray-500 font-medium">Dirección</p>
+                <p class="text-gray-800"><%= @customer.address %></p>
+              </div>
+            <% end %>
+            
+            <% if @customer.notes.present? %>
+              <div>
+                <p class="text-gray-500 font-medium">Notas</p>
+                <p class="text-gray-600 italic"><%= @customer.notes %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+          <h2 class="text-lg font-bold text-gray-800 mb-4">Estadísticas</h2>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Total de compras</span>
+              <span class="font-bold text-gray-800"><%= @total_sales %></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Monto total</span>
+              <span class="font-bold text-teal-600"><%= number_to_currency(@total_sales_amount) %></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Compras a crédito</span>
+              <span class="font-bold text-orange-600"><%= number_to_currency(@total_credit_sales) %></span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Abonos realizados</span>
+              <span class="font-bold text-green-600"><%= number_to_currency(@total_payments) %></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Columna derecha: Ventas y pagos -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Ventas pendientes de pago (PRIORIDAD) -->
+        <% if @pending_sales.any? %>
+          <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-red-500 to-pink-500 px-6 py-4">
+              <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Ventas Pendientes de Pago
+              </h2>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pagado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pendiente</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <% @pending_sales.each do |sale| %>
+                    <tr class="hover:bg-red-50 transition">
+                      <td class="px-6 py-4 text-sm text-gray-900">
+                        <%= link_to sale_path(sale), class: "font-medium text-teal-600 hover:text-teal-800" do %>
+                          <%= l(sale.sale_date, format: :short) %>
+                        <% end %>
+                      </td>
+                      <td class="px-6 py-4 text-sm font-semibold text-gray-900"><%= number_to_currency(sale.total) %></td>
+                      <td class="px-6 py-4 text-sm text-green-600"><%= number_to_currency(sale.paid_amount) %></td>
+                      <td class="px-6 py-4 text-sm font-bold text-red-600"><%= number_to_currency(sale.pending_amount) %></td>
+                      <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                          <%= sale.payment_status == 'pending' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700' %>">
+                          <%= sale.payment_status == 'pending' ? 'Pendiente' : 'Pago parcial' %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <%= link_to "Abonar", new_customer_payment_path(@customer, sale_id: sale.id), 
+                            class: "text-sm px-3 py-1 bg-green-500 text-white font-semibold rounded hover:bg-green-600 transition" %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Todas las ventas recientes -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="bg-gradient-to-r from-teal-500 to-cyan-500 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              Historial de Compras
+            </h2>
+          </div>
+          
+          <% if @all_sales.any? %>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Almacén</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <% @all_sales.each do |sale| %>
+                    <tr class="hover:bg-gray-50 transition">
+                      <td class="px-6 py-4 text-sm text-gray-900"><%= l(sale.sale_date, format: :short) %></td>
+                      <td class="px-6 py-4 text-sm text-gray-600"><%= sale.warehouse.name %></td>
+                      <td class="px-6 py-4 text-sm font-semibold text-gray-900"><%= number_to_currency(sale.total) %></td>
+                      <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full
+                          <%= case sale.payment_status
+                              when 'paid' then 'bg-green-100 text-green-700'
+                              when 'partial' then 'bg-yellow-100 text-yellow-700'
+                              when 'pending' then 'bg-red-100 text-red-700'
+                              end %>">
+                          <%= I18n.t("enums.sale.payment_status.#{sale.payment_status}") %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4">
+                        <%= link_to "Ver", sale_path(sale), class: "text-sm text-teal-600 hover:text-teal-800 font-medium" %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="px-6 py-12 text-center">
+              <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+              <p class="text-gray-500">Este cliente aún no tiene compras registradas</p>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Historial de pagos -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Historial de Pagos
+            </h2>
+          </div>
+          
+          <% if @recent_payments.any? %>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                  <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Venta</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notas</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <% @recent_payments.each do |payment| %>
+                    <tr class="hover:bg-gray-50 transition">
+                      <td class="px-6 py-4 text-sm text-gray-900"><%= l(payment.payment_date, format: :short) %></td>
+                      <td class="px-6 py-4 text-sm font-bold text-green-600"><%= number_to_currency(payment.amount) %></td>
+                      <td class="px-6 py-4">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                          <%= payment.payment_method.titleize %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 text-sm">
+                        <% if payment.sale %>
+                          <%= link_to "Ver venta", sale_path(payment.sale), class: "text-teal-600 hover:text-teal-800" %>
+                        <% else %>
+                          <span class="text-gray-400">Abono general</span>
+                        <% end %>
+                      </td>
+                      <td class="px-6 py-4 text-sm text-gray-600"><%= payment.notes %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            
+            <%= link_to "Ver todos los pagos →", customer_payments_path(@customer), 
+                class: "block px-6 py-3 text-center text-teal-600 hover:bg-gray-50 font-medium" %>
+          <% else %>
+            <div class="px-6 py-12 text-center">
+              <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <p class="text-gray-500">No hay pagos registrados</p>
+            </div>
+          <% end %>
+        </div>
+
+      </div>
     </div>
-  <% end %>
-
-  <!-- Historial reciente (para implementar después) -->
-  <div class="info-card">
-    <h2>Ventas Recientes</h2>
-    <p class="text-muted">Próximamente...</p>
   </div>
 </div>
-
-<style>
-  .customer-detail {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .info-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
-  }
-
-  .info-card h2 {
-    margin: 0 0 1.5rem 0;
-    color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 0.5rem;
-  }
-
-  .info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .info-item {
-    padding: 0.75rem;
-    background: #f8f9fa;
-    border-radius: 6px;
-  }
-
-  .info-item strong {
-    display: block;
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .credit-info {
-    display: flex;
-    justify-content: space-around;
-    gap: 2rem;
-  }
-
-  .credit-item {
-    text-align: center;
-    flex: 1;
-    padding: 1.5rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-  }
-
-  .credit-label {
-    display: block;
-    font-size: 0.9rem;
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-  }
-
-  .credit-value {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #2c3e50;
-  }
-
-  .text-success { color: #27ae60; }
-  .text-danger { color: #e74c3c; }
-  .text-muted { color: #95a5a6; font-style: italic; }
-
-  @media (max-width: 768px) {
-    .info-grid {
-      grid-template-columns: 1fr;
-    }
-    .credit-info {
-      flex-direction: column;
-    }
-  }
-</style>

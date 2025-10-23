@@ -8,7 +8,6 @@ class Sale < ApplicationRecord
   
   accepts_nested_attributes_for :sale_items, allow_destroy: true, reject_if: :all_blank
   
-  # Enums
   enum :payment_status, {
     paid: 0,      # Pagado completamente
     partial: 1,   # Pago parcial
@@ -31,15 +30,51 @@ class Sale < ApplicationRecord
   validates :sale_date, presence: true
   validates :warehouse, presence: true
   validates :total, numericality: { greater_than_or_equal_to: 0 }
+  validates :pending_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :customer, presence: true, if: -> { payment_method == 'credit' }
   validate :customer_has_credit, if: -> { payment_method == 'credit' && customer.present? }
+  validate :pending_amount_not_exceed_total
   
   # Scopes
   scope :completed, -> { where(status: :completed) }
   scope :today, -> { where(sale_date: Date.current) }
   scope :by_payment_method, ->(method) { where(payment_method: method) }
+  scope :with_pending_payment, -> { where(payment_status: [:pending, :partial]).where("pending_amount > 0") }
   
-  # Métodos
+  # ========== MÉTODOS NUEVOS PARA PAGOS ==========
+  
+  # Monto ya pagado
+  def paid_amount
+    total - pending_amount
+  end
+  
+  # ¿Está completamente pagada?
+  def fully_paid?
+    pending_amount.zero?
+  end
+  
+  # ¿Tiene saldo pendiente?
+  def has_pending_amount?
+    pending_amount > 0
+  end
+  
+  # Actualizar deuda del cliente (llamar desde controller al crear venta)
+  def update_customer_debt!
+    return unless customer_id && payment_method == "credit"
+    
+    customer.update_column(:current_debt, customer.current_debt + pending_amount)
+  end
+  
+  # Revertir deuda (si se cancela venta)
+  def revert_customer_debt!
+    return unless customer_id && has_pending_amount?
+    
+    customer.update_column(:current_debt, customer.current_debt - pending_amount)
+  end
+  
+  # ========== FIN MÉTODOS NUEVOS ==========
+  
+  # Métodos existentes
   def calculate_total
     sale_items.reject(&:marked_for_destruction?).sum(&:subtotal)
   end
@@ -48,6 +83,21 @@ class Sale < ApplicationRecord
     return if status == 'cancelled'
     
     transaction do
+      # Calcular total
+      calculated_total = calculate_total
+      
+      # Establecer pending_amount según el método de pago
+      if payment_method == 'credit'
+        self.pending_amount = calculated_total
+        self.payment_status = :pending
+      else
+        self.pending_amount = 0.0
+        self.payment_status = :paid
+      end
+      
+      self.total = calculated_total
+      save!
+      
       # Actualizar inventario
       sale_items.each do |item|
         inventory = Inventory.find_by!(
@@ -71,11 +121,8 @@ class Sale < ApplicationRecord
       
       # Si es venta a crédito, actualizar deuda del cliente
       if payment_method == 'credit' && customer.present?
-        customer.current_debt += total
-        customer.save!
+        update_customer_debt!
       end
-      
-      update_column(:total, calculate_total)
     end
   end
   
@@ -107,10 +154,9 @@ class Sale < ApplicationRecord
         )
       end
       
-      # Revertir deuda si es crédito
-      if payment_method == 'credit' && customer.present?
-        customer.current_debt -= total
-        customer.save!
+      # Revertir deuda si hay pendiente
+      if has_pending_amount? && customer.present?
+        revert_customer_debt!
       end
       
       update!(status: :cancelled)
@@ -124,6 +170,12 @@ class Sale < ApplicationRecord
     
     unless customer.can_buy_on_credit?(total)
       errors.add(:base, "El cliente no tiene crédito suficiente. Disponible: #{customer.available_credit}")
+    end
+  end
+  
+  def pending_amount_not_exceed_total
+    if pending_amount && total && pending_amount > total
+      errors.add(:pending_amount, "no puede ser mayor al total de la venta")
     end
   end
 end

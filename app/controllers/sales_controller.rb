@@ -25,9 +25,16 @@ class SalesController < ApplicationController
     
     # Filtro por estado (completada/cancelada)
     @sales = @sales.where(status: params[:status]) if params[:status].present?
+    
+    # 🆕 Filtro para ventas con deuda pendiente
+    if params[:with_pending_amount] == 'true'
+      @sales = @sales.where("pending_amount > 0")
+    end
   end
   
   def show
+    # Cargar pagos asociados a esta venta (si existen)
+    @payments = @sale.payments.order(payment_date: :desc) if @sale.payments.any?
   end
   
   def new
@@ -40,17 +47,18 @@ class SalesController < ApplicationController
         sale_date: Date.current
       )
       
-      @success_message = "✅ Venta ##{params[:sale_id]} registrada - Total: #{view_context.number_to_currency(params[:total])}"
+      @success_message = "✅ Venta ##{params[:sale_id]} registrada - Total: $#{sprintf('%.2f', params[:total].to_f)}"
     else
       @sale = Sale.new(sale_date: Date.current)
       
       # Establecer cliente por defecto
       public_customer = Customer.find_by(name: "Público General")
       @sale.customer_id = public_customer.id if public_customer
-      # Establecer almacén por defecto (el primero si no hay uno guardado)
-      # El JavaScript se encargará de restaurar la preferencia guardada
+      
+      # Establecer almacén por defecto
       @sale.warehouse_id = Warehouse.first&.id
     end
+    
     # Crear primer item con valores por defecto
     @sale.sale_items.build(quantity: 1, discount: 0)
   end
@@ -59,11 +67,18 @@ class SalesController < ApplicationController
     @sale = Sale.new(sale_params)
     @sale.sale_date = Date.current
     
+    # Calcular subtotales de cada item
     @sale.sale_items.each do |item|
       item.subtotal = item.calculate_subtotal
     end
     
     if @sale.save
+      # 🔥 process_sale! ahora maneja TODO:
+      # - Calcula el total
+      # - Establece pending_amount según payment_method
+      # - Establece payment_status según payment_method
+      # - Actualiza inventario
+      # - Actualiza deuda del cliente si es crédito
       @sale.process_sale!
       
       # Redirigir a new con parámetros de éxito
@@ -105,10 +120,23 @@ class SalesController < ApplicationController
   
   def cancel
     if @sale.can_be_cancelled?
+      # 🔥 cancel_sale! ahora revierte:
+      # - Inventario
+      # - Deuda del cliente (usando pending_amount)
       @sale.cancel_sale!
       redirect_to @sale, notice: "Venta cancelada y inventario restaurado."
     else
       redirect_to @sale, alert: "Esta venta ya está cancelada."
+    end
+  end
+  
+  # 🆕 Acción para mostrar detalle de pagos de una venta
+  def payments
+    @sale = Sale.find(params[:id])
+    @payments = @sale.payments.order(payment_date: :desc)
+    
+    unless @sale.has_pending_amount?
+      redirect_to @sale, alert: "Esta venta no tiene saldo pendiente."
     end
   end
   

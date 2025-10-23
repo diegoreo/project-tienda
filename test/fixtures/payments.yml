@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  customer: one
+  sale: one
+  amount: 9.99
+  payment_date: 2025-10-20
+  payment_method: 1
+  notes: MyText
+
+two:
+  customer: two
+  sale: two
+  amount: 9.99
+  payment_date: 2025-10-20
+  payment_method: 1
+  notes: MyText

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_17_181403) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_20_215925) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -90,6 +90,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_181403) do
     t.check_constraint "quantity > 0::numeric", name: "chk_inventory_movements_quantity_positive"
   end
 
+  create_table "payments", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.bigint "sale_id"
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.date "payment_date", null: false
+    t.integer "payment_method", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id", "payment_date"], name: "index_payments_on_customer_id_and_payment_date"
+    t.index ["customer_id"], name: "index_payments_on_customer_id"
+    t.index ["payment_date"], name: "index_payments_on_payment_date"
+    t.index ["sale_id"], name: "index_payments_on_sale_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.string "name"
     t.text "description"
@@ -165,6 +180,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_181403) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "pending_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.index ["customer_id", "payment_status"], name: "index_sales_on_customer_id_and_payment_status", where: "(pending_amount > (0)::numeric)"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
     t.index ["payment_status"], name: "index_sales_on_payment_status"
     t.index ["sale_date"], name: "index_sales_on_sale_date"
@@ -215,6 +232,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_181403) do
   add_foreign_key "inventories", "warehouses"
   add_foreign_key "inventory_adjustments", "inventories"
   add_foreign_key "inventory_movements", "inventories"
+  add_foreign_key "payments", "customers"
+  add_foreign_key "payments", "sales"
   add_foreign_key "products", "categories"
   add_foreign_key "products", "units", column: "purchase_unit_id"
   add_foreign_key "products", "units", column: "sale_unit_id"

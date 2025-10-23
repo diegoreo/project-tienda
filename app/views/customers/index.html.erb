@@ -1,207 +1,132 @@
-<div class="customers-container">
-  <div class="header-section">
-    <h1>Clientes</h1>
-    <div class="actions">
-      <%= link_to "Nuevo Cliente", new_customer_path, class: "btn-new" %>
+<div class="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-4xl font-bold text-gray-900">Clientes</h1>
+        <p class="mt-2 text-gray-600">Gestiona tu cartera de clientes y créditos</p>
+      </div>
+      <%= link_to new_customer_path, class: "inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold rounded-lg hover:from-teal-700 hover:to-cyan-700 transition shadow-lg" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        Nuevo Cliente
+      <% end %>
     </div>
-  </div>
 
-  <!-- Filtros -->
-  <div class="filters-section">
-    <%= form_with url: customers_path, method: :get, local: true do |f| %>
-      <div class="filter-group">
-        <%= f.label :type, "Tipo de cliente" %>
-        <%= f.select :type, 
-          options_for_select([
-            ['Todos', ''],
-            ['Mostrador', 'walk_in'],
-            ['Regular', 'regular'],
-            ['Mayorista', 'wholesale']
-          ], params[:type]), 
-          {}, 
-          class: "filter-select" %>
+    <!-- Filtros -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+      <%= form_with url: customers_path, method: :get, local: true, class: "flex flex-col sm:flex-row gap-4 items-end" do |f| %>
+        
+        <div class="flex-1">
+          <%= f.label :type, "Tipo de cliente", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= f.select :type, 
+            options_for_select([
+              ['Todos', ''],
+              ['Mostrador', 'walk_in'],
+              ['Regular', 'regular'],
+              ['Mayorista', 'wholesale']
+            ], params[:type]), 
+            {}, 
+            class: "w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition" %>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <%= f.check_box :with_debt, { class: "w-5 h-5 text-teal-600 border-gray-300 rounded focus:ring-teal-500" }, "true", "false" %>
+          <%= f.label :with_debt, "Solo con adeudo", class: "text-sm font-medium text-gray-700" %>
+        </div>
+
+        <div class="flex gap-2">
+          <%= f.submit "Filtrar", class: "px-6 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-semibold rounded-lg hover:from-teal-700 hover:to-cyan-700 transition shadow" %>
+          <%= link_to "Limpiar", customers_path, class: "px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition" %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Tabla de clientes -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-teal-600 to-cyan-600 text-white">
+            <tr>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Nombre</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Teléfono</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Email</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Tipo</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Límite Crédito</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Deuda Actual</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Crédito Disponible</th>
+              <th class="px-6 py-4 text-left text-sm font-bold uppercase">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% @customers.each do |customer| %>
+              <tr class="hover:bg-teal-50 transition">
+                <td class="px-6 py-4">
+                  <%= link_to customer_path(customer), class: "font-semibold text-teal-600 hover:text-teal-800" do %>
+                    <%= customer.name %>
+                  <% end %>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">
+                  <%= customer.phone || "-" %>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-600">
+                  <%= customer.email || "-" %>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-3 py-1 text-xs font-semibold rounded-full
+                    <%= case customer.customer_type
+                        when 'walk_in' then 'bg-blue-100 text-blue-700'
+                        when 'regular' then 'bg-green-100 text-green-700'
+                        when 'wholesale' then 'bg-orange-100 text-orange-700'
+                        end %>">
+                    <%= I18n.t("enums.customer.customer_type.#{customer.customer_type}") %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm font-semibold text-gray-700">
+                  <%= number_to_currency(customer.credit_limit || 0) %>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-sm font-bold <%= customer.current_debt > 0 ? 'text-red-600' : 'text-green-600' %>">
+                    <%= number_to_currency(customer.current_debt) %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm font-semibold text-teal-600">
+                  <%= number_to_currency(customer.available_credit) %>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex gap-2">
+                    <%= link_to customer_path(customer), class: "px-3 py-1 bg-teal-500 text-white text-sm font-semibold rounded hover:bg-teal-600 transition" do %>
+                      Ver
+                    <% end %>
+                    <%= link_to edit_customer_path(customer), class: "px-3 py-1 bg-yellow-500 text-white text-sm font-semibold rounded hover:bg-yellow-600 transition" do %>
+                      Editar
+                    <% end %>
+                    <%= link_to customer_path(customer),
+                      data: { turbo_method: :delete, turbo_confirm: "¿Eliminar a #{customer.name}?" },
+                      class: "px-3 py-1 bg-red-500 text-white text-sm font-semibold rounded hover:bg-red-600 transition" do %>
+                      Eliminar
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
       </div>
 
-      <div class="filter-group">
-        <%= f.label :with_debt, "Con adeudo" %>
-        <%= f.check_box :with_debt, {}, "true", "false" %>
-      </div>
+      <!-- Empty state -->
+      <% if @customers.empty? %>
+        <div class="py-16 text-center">
+          <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          <p class="text-gray-500 text-lg font-medium">No se encontraron clientes</p>
+          <p class="text-gray-400 mt-2">Intenta ajustar los filtros o crear un nuevo cliente</p>
+        </div>
+      <% end %>
+    </div>
 
-      <%= f.submit "Filtrar", class: "btn-filter" %>
-      <%= link_to "Limpiar", customers_path, class: "btn-clear" %>
-    <% end %>
-  </div>
-
-  <!-- Tabla de clientes -->
-  <div class="customers-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Teléfono</th>
-          <th>Email</th>
-          <th>Tipo</th>
-          <th>Límite Crédito</th>
-          <th>Deuda Actual</th>
-          <th>Crédito Disponible</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @customers.each do |customer| %>
-          <tr>
-            <td><%= link_to customer.name, customer_path(customer) %></td>
-            <td><%= customer.phone %></td>
-            <td><%= customer.email %></td>
-            <td>
-              <span class="badge badge-<%= customer.customer_type %>">
-                <%= I18n.t("enums.customer.customer_type.#{customer.customer_type}") %>
-              </span>
-            </td>
-            <td><%= number_to_currency(customer.credit_limit || 0) %></td>
-            <td class="<%= customer.current_debt > 0 ? 'text-danger' : '' %>">
-              <%= number_to_currency(customer.current_debt) %>
-            </td>
-            <td><%= number_to_currency(customer.available_credit) %></td>
-            <td class="actions-cell">
-              <%= link_to "Ver", customer_path(customer), class: "btn-view" %>
-              <%= link_to "Editar", edit_customer_path(customer), class: "btn-edit" %>
-              <%= link_to "Eliminar", customer_path(customer),
-                data: { turbo_method: :delete, turbo_confirm: "¿Eliminar a #{customer.name}?" },
-                class: "btn-delete" %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
   </div>
 </div>
-
-<style>
-  .customers-container {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
-
-  .header-section h1 {
-    margin: 0;
-    color: #2c3e50;
-  }
-
-  .filters-section {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-  }
-
-  .filters-section form {
-    display: flex;
-    gap: 1rem;
-    align-items: end;
-  }
-
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .filter-select {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-
-  .customers-table {
-    overflow-x: auto;
-  }
-
-  .customers-table table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  .customers-table th {
-    background: #3498db;
-    color: white;
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-  }
-
-  .customers-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #ecf0f1;
-  }
-
-  .customers-table tr:hover {
-    background: #f8f9fa;
-  }
-
-  .badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
-
-  .badge-walk_in { background: #e3f2fd; color: #1976d2; }
-  .badge-regular { background: #e8f5e9; color: #388e3c; }
-  .badge-wholesale { background: #fff3e0; color: #f57c00; }
-
-  .text-danger {
-    color: #e74c3c;
-    font-weight: 600;
-  }
-
-  .actions-cell {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-new, .btn-filter, .btn-clear {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .btn-new {
-    background: linear-gradient(135deg, #27ae60, #229954);
-    color: white;
-  }
-
-  .btn-filter {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    color: white;
-  }
-
-  .btn-clear {
-    background: #95a5a6;
-    color: white;
-  }
-
-  .btn-view, .btn-edit, .btn-delete {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.9rem;
-  }
-
-  .btn-view { background: #3498db; color: white; }
-  .btn-edit { background: #f39c12; color: white; }
-  .btn-delete { background: #e74c3c; color: white; }
-</style>
