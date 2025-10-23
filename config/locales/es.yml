@@ -11,6 +11,25 @@ es:
   enums:
     customer:
       customer_type:
-        walk_in: "Cliente de mostrador"
-        regular: "Cliente frecuente"
-        wholesale: "Cliente mayorista"
+        walk_in: "Mostrador"
+        regular: "Regular"
+        wholesale: "Mayorista"
+    
+    sale:
+      payment_status:
+        paid: "Pagado"
+        partial: "Pago parcial"
+        pending: "Pendiente"
+      
+      payment_method:
+        cash: "Efectivo"
+        card: "Tarjeta"
+        credit: "Crédito"
+        mixed: "Mixto"
+    
+    payment:
+      payment_method:
+        cash: "Efectivo"
+        card: "Tarjeta"
+        transfer: "Transferencia"
+        check: "Cheque"

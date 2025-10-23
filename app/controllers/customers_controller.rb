@@ -8,8 +8,20 @@ class CustomersController < ApplicationController
   end
   
   def show
-    #@sales = @customer.sales.order(sale_date: :desc).limit(10)
-    #@payments = @customer.payments.order(payment_date: :desc).limit(10)
+    # Ventas pendientes de pago (las más importantes)
+    @pending_sales = @customer.pending_sales.includes(:warehouse).limit(10)
+    
+    # Todas las ventas recientes
+    @all_sales = @customer.sales.order(sale_date: :desc).includes(:warehouse).limit(20)
+    
+    # Pagos recientes
+    @recent_payments = @customer.payments.recent.includes(:sale).limit(10)
+    
+    # Estadísticas
+    @total_sales = @customer.sales.count
+    @total_sales_amount = @customer.total_sales_amount
+    @total_credit_sales = @customer.total_credit_sales
+    @total_payments = @customer.total_paid_amount
   end
   
   def new
@@ -41,7 +53,7 @@ class CustomersController < ApplicationController
     @customer.destroy
     redirect_to customers_path, notice: "Cliente eliminado correctamente."
   rescue ActiveRecord::DeleteRestrictionError
-    redirect_to @customer, alert: "No se puede eliminar el cliente porque tiene ventas registradas."
+    redirect_to @customer, alert: "No se puede eliminar el cliente porque tiene ventas o pagos registrados."
   end
   
   private
