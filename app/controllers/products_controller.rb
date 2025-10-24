@@ -1,15 +1,21 @@
 class ProductsController < ApplicationController
   def index
+    # Autorizar el acceso al índice de productos
+    authorize Product
+    
     @categories = Category.order(:name)
+    
+    # Usar policy_scope para obtener los productos según el rol
+    @products = policy_scope(Product)
     
     # Filtrar por estado: activos (default), inactivos, o todos
     case params[:status]
     when 'inactive'
-      @products = Product.inactive
+      @products = @products.inactive
     when 'all'
-      @products = Product.all
+      @products = @products.all
     else
-      @products = Product.active  # Por defecto mostrar solo activos
+      @products = @products.active  # Por defecto mostrar solo activos
     end
     
     # Búsqueda con pg_search
@@ -28,7 +34,9 @@ class ProductsController < ApplicationController
   end
   
   def show
-    product
+    @product = Product.find(params[:id])
+    authorize @product
+    
     respond_to do |format|
       format.html # busca la vista show.html.erb por defecto
       format.json { render json: @product.as_json(only: [:id, :name, :price]) }
@@ -37,11 +45,15 @@ class ProductsController < ApplicationController
 
   def new
     @product = Product.new
+    authorize @product
+    
     @product.barcodes.build # para que aparezca un campo vacío de código de barras en el formulario
   end
 
   def create
     @product = Product.new(product_params)
+    authorize @product
+    
     if @product.save
       # Elegir almacén: el seleccionado en el form (top-level) o el primero
       warehouse = params[:initial_warehouse_id].present? ? Warehouse.find_by(id: params[:initial_warehouse_id]) : Warehouse.first
@@ -53,11 +65,24 @@ class ProductsController < ApplicationController
   end
 
   def edit
-    product.barcodes.build
+    @product = Product.find(params[:id])
+    authorize @product
+    
+    @product.barcodes.build
   end
 
   def update
-    if product.update(product_params)
+    @product = Product.find(params[:id])
+    authorize @product
+    
+    # Si se está intentando cambiar el precio, verificar permiso especial
+    if price_changing? && !policy(@product).update_prices?
+      flash[:alert] = "No tienes permiso para modificar precios. Solo Gerentes pueden hacerlo."
+      render :edit, status: :unprocessable_content
+      return
+    end
+    
+    if @product.update(product_params)
       redirect_to products_path, notice: "Tu producto se ha actualizado correctamente"
     else
       render :edit, status: :unprocessable_content
@@ -65,13 +90,16 @@ class ProductsController < ApplicationController
   end
 
   def destroy
-    if product.can_be_deleted?
+    @product = Product.find(params[:id])
+    authorize @product
+    
+    if @product.can_be_deleted?
       # Si no tiene historial, eliminar permanentemente
-      product.destroy
+      @product.destroy
       redirect_to products_path, notice: "Producto eliminado permanentemente.", status: :see_other
     else
       # Si tiene historial, solo desactivar
-      product.deactivate!
+      @product.deactivate!
       redirect_to products_path, 
                   notice: "Producto desactivado exitosamente. No se puede eliminar porque tiene historial de inventario o compras.", 
                   status: :see_other
@@ -79,11 +107,17 @@ class ProductsController < ApplicationController
   end
 
   def activate
-    product.activate!
+    @product = Product.find(params[:id])
+    authorize @product, :update? # Activar requiere el mismo permiso que editar
+    
+    @product.activate!
     redirect_to products_path, notice: "Producto reactivado exitosamente.", status: :see_other
   end
 
   def search
+    # Esta acción es para el POS, todos los usuarios autenticados pueden buscar productos
+    # No requiere autorización explícita ya que es solo lectura y necesaria para ventas
+    
     query = params[:q]
     warehouse_id = params[:warehouse_id]
     
@@ -130,9 +164,11 @@ class ProductsController < ApplicationController
     
     params.require(:product).permit(base_params)
   end
-
-  def product
-    @product = Product.find(params[:id])
+  
+  # Verificar si se está intentando cambiar el precio
+  def price_changing?
+    return false unless params[:product][:price].present?
+    params[:product][:price].to_f != @product.price.to_f
   end
 
   def format_product_for_pos(product, warehouse_id)

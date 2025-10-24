@@ -10,4 +10,63 @@ module ApplicationHelper
       )
     end
   end
+  # Devuelve el nombre en español del rol
+  def role_name(role)
+    case role.to_s
+    when 'admin'
+      '⭐ Admin'
+    when 'manager'
+      '👔 Gerente'
+    when 'accountant'
+      '📊 Contador'
+    when 'supervisor'
+      '👨‍💼 Supervisor'
+    when 'warehouse'
+      '📦 Almacenista'
+    when 'cashier'
+      '👤 Cajero'
+    else
+      role.to_s.titleize
+    end
+  end
+  
+  # Devuelve las clases CSS de Tailwind para el badge del rol
+  def role_badge_color(role)
+    case role.to_s
+    when 'admin'
+      'bg-purple-500 text-white'
+    when 'manager'
+      'bg-blue-500 text-white'
+    when 'accountant'
+      'bg-green-500 text-white'
+    when 'supervisor'
+      'bg-yellow-500 text-white'
+    when 'warehouse'
+      'bg-orange-500 text-white'
+    when 'cashier'
+      'bg-red-500 text-white'
+    else
+      'bg-gray-500 text-white'
+    end
+  end
+  
+  # Devuelve un icono SVG para el rol
+  def role_icon(role)
+    case role.to_s
+    when 'admin'
+      '⭐'
+    when 'manager'
+      '👔'
+    when 'accountant'
+      '📊'
+    when 'supervisor'
+      '👨‍💼'
+    when 'warehouse'
+      '📦'
+    when 'cashier'
+      '👤'
+    else
+      '👥'
+    end
+  end
 end

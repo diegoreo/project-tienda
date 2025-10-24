@@ -1,7 +1,8 @@
 class SuppliersController < ApplicationController
-  before_action :supplier, only: [:show, :edit, :update, :destroy]
-
   def index
+    # Autorizar el acceso al índice de proveedores
+    authorize Supplier
+    
     @suppliers = Supplier.all
 
     # Filtro por estado
@@ -27,15 +28,19 @@ class SuppliersController < ApplicationController
   end
 
   def show
-    # supplier ya está cargado por before_action
+    @supplier = Supplier.find(params[:id])
+    authorize @supplier
   end
 
   def new
     @supplier = Supplier.new
+    authorize @supplier
   end
 
   def create
     @supplier = Supplier.new(supplier_params)
+    authorize @supplier
+    
     normalize_supplier_data(@supplier)
     
     if @supplier.save
@@ -46,14 +51,18 @@ class SuppliersController < ApplicationController
   end
 
   def edit
-    # supplier ya está cargado por before_action
+    @supplier = Supplier.find(params[:id])
+    authorize @supplier
   end
 
   def update
-    supplier.assign_attributes(supplier_params)
-    normalize_supplier_data(supplier)
+    @supplier = Supplier.find(params[:id])
+    authorize @supplier
     
-    if supplier.save
+    @supplier.assign_attributes(supplier_params)
+    normalize_supplier_data(@supplier)
+    
+    if @supplier.save
       redirect_to supplier_path(@supplier), notice: "Proveedor actualizado correctamente"
     else
       render :edit, status: :unprocessable_entity
@@ -61,10 +70,15 @@ class SuppliersController < ApplicationController
   end
 
   def destroy
-    if supplier.destroy
-      redirect_to suppliers_url, notice: "Proveedor eliminado correctamente"
+    @supplier = Supplier.find(params[:id])
+    authorize @supplier
+    
+    if @supplier.destroy
+      redirect_to suppliers_url, notice: "Proveedor eliminado correctamente", status: :see_other
     else
-      redirect_to suppliers_url, alert: "No se pudo eliminar el proveedor: #{supplier.errors.full_messages.join(', ')}"
+      redirect_to suppliers_url, 
+                  alert: "No se pudo eliminar el proveedor: #{@supplier.errors.full_messages.join(', ')}", 
+                  status: :see_other
     end
   end
 
@@ -93,9 +107,5 @@ class SuppliersController < ApplicationController
     supplier.rfc = supplier.rfc.strip.upcase if supplier.rfc.present?
     supplier.name = supplier.name.strip if supplier.name.present?
     supplier.company_name = supplier.company_name.strip if supplier.company_name.present?
-  end
-
-  def supplier
-    @supplier ||= Supplier.find(params[:id])
   end
 end

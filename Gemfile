@@ -68,5 +68,11 @@ group :test do
   gem "selenium-webdriver"
 end
 
-
+# diseño de views
 gem "tailwindcss-rails", "~> 4.3"
+
+# Authentication
+gem 'devise'
+
+# Authorization  
+gem 'pundit'
