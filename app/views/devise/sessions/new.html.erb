@@ -1,0 +1,93 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center px-4">
+  <div class="max-w-md w-full">
+    <!-- Logo y Título -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+        </svg>
+      </div>
+      <h1 class="text-4xl font-bold text-white mb-2">Tienda DRO</h1>
+      <p class="text-white text-opacity-90">Ingresa tus credenciales</p>
+    </div>
+
+    <!-- Formulario de Login -->
+    <div class="bg-white rounded-2xl shadow-2xl p-8">
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+        
+        <!-- Campo de Email -->
+        <div>
+          <%= f.label :email, "Correo Electrónico", class: "block text-sm font-semibold text-gray-700 mb-2" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+              </svg>
+            </div>
+            <%= f.email_field :email, 
+                autofocus: true, 
+                autocomplete: "email",
+                placeholder: "usuario@ejemplo.com",
+                class: "block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
+          </div>
+        </div>
+
+        <!-- Campo de Contraseña -->
+        <div>
+          <%= f.label :password, "Contraseña", class: "block text-sm font-semibold text-gray-700 mb-2" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+            </div>
+            <%= f.password_field :password, 
+                autocomplete: "current-password",
+                placeholder: "••••••••",
+                class: "block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
+          </div>
+        </div>
+
+        <!-- Recordarme -->
+        <% if devise_mapping.rememberable? %>
+          <div class="flex items-center">
+            <%= f.check_box :remember_me, class: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" %>
+            <%= f.label :remember_me, "Mantener sesión iniciada", class: "ml-2 block text-sm text-gray-700" %>
+          </div>
+        <% end %>
+
+        <!-- Botón de Submit -->
+        <div>
+          <%= f.submit "Iniciar Sesión", 
+              class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition transform hover:scale-105" %>
+        </div>
+      <% end %>
+
+      <!-- Links adicionales -->
+      <div class="mt-6 space-y-2">
+        <%= render "devise/shared/links" %>
+      </div>
+    </div>
+
+    <!-- Credenciales de prueba (solo en desarrollo) -->
+    <% if Rails.env.development? %>
+      <div class="mt-6 bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 text-white">
+        <h3 class="text-sm font-bold mb-3 flex items-center">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          Usuarios de Prueba
+        </h3>
+        <div class="space-y-1 text-xs">
+          <p><span class="font-semibold">Admin:</span> admin@tutienda.com</p>
+          <p><span class="font-semibold">Gerente:</span> gerente@tutienda.com</p>
+          <p><span class="font-semibold">Contador:</span> contador@tutienda.com</p>
+          <p><span class="font-semibold">Supervisor:</span> supervisor@tutienda.com</p>
+          <p><span class="font-semibold">Almacenista:</span> almacenista@tutienda.com</p>
+          <p><span class="font-semibold">Cajero:</span> cajero@tutienda.com</p>
+          <p class="mt-2"><span class="font-semibold">Password:</span> password123</p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -14,6 +14,7 @@ es:
         walk_in: "Mostrador"
         regular: "Regular"
         wholesale: "Mayorista"
+
     
     sale:
       payment_status:
@@ -33,3 +34,11 @@ es:
         card: "Tarjeta"
         transfer: "Transferencia"
         check: "Cheque"
+    user:
+      role:
+        cajero: "Cajero"
+        supervisor: "Supervisor"
+        almacenista: "Almacenista"
+        contador: "Contador"
+        gerente: "Gerente"
+        admin: "Administrador"
