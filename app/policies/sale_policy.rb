@@ -1,59 +1,75 @@
 class SalePolicy < ApplicationPolicy
   # Ver listado de ventas
   def index?
-    cashier? # Cajeros y superiores pueden ver ventas
+    # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
+    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
   end
 
   # Ver detalle de venta
   def show?
-    cashier? # Cajeros y superiores pueden ver detalles
+    # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
+    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
   end
 
   # Crear nueva venta
   def create?
-    cashier? # Cajero y superiores
+    # SOLO: Cajero, Supervisor, Gerente, Admin (SIN contador ni almacenista)
+    user.role.in?(['cajero', 'supervisor', 'gerente', 'admin'])
   end
 
-  # Editar venta (normalmente no se permite)
+  # Formulario de nueva venta
+  def new?
+    create?
+  end
+
+  # Editar venta existente
+  def edit?
+    # SOLO: Gerente y Admin
+    manager?
+  end
+
+  # Actualizar venta
   def update?
-    false # Las ventas no se editan una vez creadas
+    # SOLO: Gerente y Admin
+    manager?
   end
 
-  # Cancelar venta
+  # Cancelar venta (soft delete)
+  def cancel?
+    # SOLO: Supervisor, Gerente, Admin (SIN contador)
+    user.role.in?(['supervisor', 'gerente', 'admin'])
+  end
+
+  # Eliminar venta (hard delete)
   def destroy?
-    # Solo ventas del mismo día y solo supervisor o superior
-    return false unless supervisor?
-    return true if admin? || manager?
-    
-    # Supervisor solo puede cancelar del día actual
-    record.created_at.to_date == Date.current
-  end
-  
-  # Aplicar descuentos mayores
-  def apply_discount?
-    supervisor? # Supervisor o superior
-  end
-  
-  # Ver ventas a crédito
-  def view_credit_sales?
-    cashier? # Cajeros y superiores pueden ver ventas a crédito
-  end
-  
-  # Ver todas las ventas (no solo del turno)
-  def view_all_sales?
-    cashier? # Cajeros y superiores pueden ver todas las ventas
-  end
-  
-  # Generar reportes de ventas
-  def generate_reports?
-    accountant? # Contador, Gerente o Admin
+    # SOLO: Gerente y Admin
+    manager?
   end
 
-  class Scope < Scope
+  # Ver página de pagos de una venta
+  def payments?
+    # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
+    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
+  end
+
+  # Ver costos, márgenes y totales financieros
+  def view_costs?
+    # Contador, Supervisor, Gerente, Admin (SIN cajero ni almacenista)
+    accountant? # Este helper sí funciona bien para view_costs
+  end
+
+  class Scope < ApplicationPolicy::Scope
     def resolve
-      # Todos los usuarios autenticados pueden ver todas las ventas
-      # Los cajeros necesitan consultar ventas anteriores y de otros turnos
-      scope.all
+      case user.role
+      when 'cajero', 'supervisor', 'contador', 'gerente', 'admin'
+        # Todos estos roles ven todas las ventas
+        scope.all
+      when 'almacenista'
+        # Almacenista NO tiene acceso a ventas
+        scope.none
+      else
+        scope.none
+      end
     end
   end
 end

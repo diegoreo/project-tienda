@@ -1,50 +1,32 @@
 class InventoryPolicy < ApplicationPolicy
-  # Ver inventario
+  # Ver listado de inventarios
   def index?
-    true # Todos pueden ver inventario
+    cashier? # TODOS pueden ver inventarios (incluyendo cajero)
   end
 
+  # Ver detalle de inventario
   def show?
-    true
+    cashier? # TODOS pueden ver detalles
   end
 
-  # Crear movimientos de inventario
-  def create?
-    warehouse? # Almacenista o superior
+  # Ver movimientos de inventario
+  def view_movements?
+    cashier? # TODOS pueden ver movimientos
   end
 
-  # Editar inventario
-  def update?
-    warehouse? # Almacenista o superior
+  # Ver costos de inventario (precio unitario, valor total)
+  def view_costs?
+    supervisor? # Supervisor+ puede ver costos (ajuste solicitado)
   end
 
-  # Eliminar registro de inventario
-  def destroy?
-    manager? # Solo Gerente o Admin
-  end
-  
-  # Hacer ajustes de inventario
-  def adjust?
-    warehouse? # Almacenista o superior
-  end
-  
-  # Aprobar ajustes de inventario
-  def approve_adjustment?
-    supervisor? # Supervisor o superior
-  end
-  
-  # Ver reportes de inventario
-  def view_reports?
-    supervisor? # Supervisor o superior
-  end
-  
-  # Ver valorización de inventario
-  def view_valuation?
-    accountant? # Contador, Gerente o Admin
+  # Exportar CSV
+  def export?
+    cashier? # TODOS pueden exportar
   end
 
-  class Scope < Scope
+  class Scope < ApplicationPolicy::Scope
     def resolve
+      # TODOS los roles pueden ver inventarios
       scope.all
     end
   end
