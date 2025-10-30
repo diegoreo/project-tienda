@@ -1,9 +1,11 @@
 require 'csv'
 
 class InventoriesController < ApplicationController
+  # Sin callbacks - todo explícito
 
   def index
-    @inventories = Inventory.includes(:product, :warehouse).all
+    authorize Inventory
+    @inventories = policy_scope(Inventory).includes(:product, :warehouse)
     
     # Filtro por búsqueda (nombre de producto o código de barras)
     if params[:query].present?
@@ -67,18 +69,33 @@ class InventoriesController < ApplicationController
     @low_stock_count = @inventories.where('quantity <= ?', 10).count
     @total_warehouses = @warehouses.count
     
+    # Variable para controlar visualización de costos
+    @show_costs = policy(Inventory).view_costs?
+    
     # Calcular valor total del inventario (antes de la paginación)
-    @total_inventory_value = @inventories.joins(:product).sum('inventories.quantity * products.price')
+    # Solo si tiene permiso para ver costos
+    if @show_costs
+      @total_inventory_value = @inventories.joins(:product).sum('inventories.quantity * products.price')
+    else
+      @total_inventory_value = nil
+    end
     
     # Responder a diferentes formatos
     respond_to do |format|
       format.html
-      format.csv { send_data generate_csv(@inventories), filename: "inventario-#{Date.today}.csv" }
+      format.csv do
+        authorize Inventory, :export?
+        send_data generate_csv(@inventories), filename: "inventario-#{Date.today}.csv"
+      end
     end
   end
 
   def show
     @inventory = Inventory.find(params[:id])
+    authorize @inventory
+    
+    # Variable para controlar visualización de costos
+    @show_costs = policy(@inventory).view_costs?
   end
 
   private
@@ -87,18 +104,30 @@ class InventoriesController < ApplicationController
     require 'csv'
     
     CSV.generate(headers: true) do |csv|
-      # Encabezados
-      csv << [
-        'ID',
-        'Producto',
-        'Categoría',
-        'Almacén',
-        'Cantidad',
-        'Unidad',
-        'Precio Unitario',
-        'Valor Total',
-        'Estado'
-      ]
+      # Encabezados (adaptar según permisos)
+      if @show_costs
+        csv << [
+          'ID',
+          'Producto',
+          'Categoría',
+          'Almacén',
+          'Cantidad',
+          'Unidad',
+          'Precio Unitario',
+          'Valor Total',
+          'Estado'
+        ]
+      else
+        csv << [
+          'ID',
+          'Producto',
+          'Categoría',
+          'Almacén',
+          'Cantidad',
+          'Unidad',
+          'Estado'
+        ]
+      end
       
       # Datos
       inventories.each do |inventory|
@@ -110,19 +139,30 @@ class InventoriesController < ApplicationController
                    'Bajo'
                  end
         
-        csv << [
-          inventory.id,
-          inventory.product.name,
-          inventory.product.category&.name || 'Sin categoría',
-          inventory.warehouse.name,
-          inventory.quantity.to_i,
-          inventory.product.sale_unit.abbreviation,
-          inventory.product.price.to_f,
-          (inventory.quantity * inventory.product.price).to_f,
-          status
-        ]
+        if @show_costs
+          csv << [
+            inventory.id,
+            inventory.product.name,
+            inventory.product.category&.name || 'Sin categoría',
+            inventory.warehouse.name,
+            inventory.quantity.to_i,
+            inventory.product.sale_unit.abbreviation,
+            inventory.product.price.to_f,
+            (inventory.quantity * inventory.product.price).to_f,
+            status
+          ]
+        else
+          csv << [
+            inventory.id,
+            inventory.product.name,
+            inventory.product.category&.name || 'Sin categoría',
+            inventory.warehouse.name,
+            inventory.quantity.to_i,
+            inventory.product.sale_unit.abbreviation,
+            status
+          ]
+        end
       end
     end
   end
-
 end

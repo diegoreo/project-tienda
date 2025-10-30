@@ -1,9 +1,9 @@
 class PurchasesController < ApplicationController
-  before_action :set_purchase, only: %i[show edit update destroy]
 
   # GET /purchases
   def index
-    @purchases = Purchase.includes(:supplier, :warehouse).all
+    authorize Purchase
+    @purchases = policy_scope(Purchase).includes(:supplier, :warehouse)
   
     # Filtro por rango de fechas
     if params[:date_from].present?
@@ -65,16 +65,26 @@ class PurchasesController < ApplicationController
 
   # GET /purchases/:id
   def show
+    @purchase = Purchase.find(params[:id])
+    authorize @purchase
+    
+    # Variable para controlar visualización de costos
+    @show_costs = policy(@purchase).view_costs?
   end
 
   # GET /purchases/new
   def new
     @purchase = Purchase.new
+    authorize @purchase
+    
     @purchase.purchase_items.build
   end
 
   # GET /purchases/:id/edit
   def edit
+    @purchase = Purchase.find(params[:id])
+    authorize @purchase
+    
     unless @purchase.editable?
       days = @purchase.days_since_processed
       redirect_to @purchase, 
@@ -88,6 +98,7 @@ class PurchasesController < ApplicationController
   # POST /purchases
   def create
     @purchase = Purchase.new(purchase_params)
+    authorize @purchase
     
     # Calcular quantity_sale_units antes de guardar
     @purchase.purchase_items.each do |item|
@@ -105,6 +116,9 @@ class PurchasesController < ApplicationController
 
   # PATCH/PUT /purchases/:id
   def update
+    @purchase = Purchase.find(params[:id])
+    authorize @purchase
+    
     unless @purchase.editable?
       redirect_to @purchase, alert: "Compra no editable."
       return
@@ -149,6 +163,9 @@ class PurchasesController < ApplicationController
 
   # DELETE /purchases/:id
   def destroy
+    @purchase = Purchase.find(params[:id])
+    authorize @purchase
+    
     # Revertir inventario si la compra fue procesada
     if @purchase.processed_at.present?
       revert_purchase_inventory
@@ -161,10 +178,6 @@ class PurchasesController < ApplicationController
   end
 
   private
-
-  def set_purchase
-    @purchase = Purchase.find(params[:id])
-  end
 
   def purchase_params
     params.require(:purchase).permit(

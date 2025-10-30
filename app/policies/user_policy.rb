@@ -1,47 +1,49 @@
 class UserPolicy < ApplicationPolicy
+  # Solo admin puede ver el listado de usuarios
   def index?
-    manager? # Solo Gerente o Admin pueden ver usuarios
+    user.role == 'admin'
   end
-
+  
+  # Solo admin puede ver detalles de usuarios
   def show?
-    # Puedes ver tu propio perfil o si eres gerente/admin
-    owner? || manager?
+    user.role == 'admin'
   end
-
+  
+  # Solo admin puede crear usuarios
+  def new?
+    user.role == 'admin'
+  end
+  
   def create?
-    admin? # Solo Admin puede crear usuarios
+    user.role == 'admin'
   end
-
+  
+  # Solo admin puede editar usuarios
+  def edit?
+    user.role == 'admin'
+  end
+  
   def update?
-    # Puedes editar tu perfil o si eres admin
-    owner? || admin?
+    user.role == 'admin'
   end
-
+  
+  # Solo admin puede eliminar/desactivar usuarios
   def destroy?
-    admin? # Solo Admin puede eliminar usuarios
+    user.role == 'admin'
   end
   
-  # Cambiar rol de usuario
-  def change_role?
-    admin? # Solo Admin
+  # Solo admin puede activar/desactivar usuarios
+  def toggle_active?
+    user.role == 'admin'
   end
   
-  # Ver todos los usuarios
-  def view_all?
-    manager?
-  end
-  
-  # Resetear contraseña de otro usuario
-  def reset_password?
-    admin?
-  end
-
+  # Scope para admin (ve todos los usuarios)
   class Scope < Scope
     def resolve
-      if user.admin? || user.manager?
+      if user.role == 'admin'
         scope.all
       else
-        scope.where(id: user.id) # Solo ve su propio usuario
+        scope.none
       end
     end
   end

@@ -1,18 +1,33 @@
 class InventoryAdjustmentsController < ApplicationController
   include InventoriesHelper
+  # Sin callbacks - todo explícito
+
   def index
+    authorize InventoryAdjustment
     @adjustments = inventory.inventory_adjustments
+    
+    # Variable para controlar visualización de costos
+    @show_costs = policy(InventoryAdjustment).view_costs?
   end
 
   def show
     @adjustment = inventory.inventory_adjustments.find(params[:id])
+    authorize @adjustment
+    
+    # Variable para controlar visualización de costos
+    @show_costs = policy(@adjustment).view_costs?
   end
 
   def new
     @adjustment = inventory.inventory_adjustments.new
+    authorize @adjustment
   end
 
   def create
+    # Crear instancia temporal para autorización
+    @adjustment = inventory.inventory_adjustments.new
+    authorize @adjustment
+    
     @adjustment = InventoryAdjuster.apply!(
       inventory: inventory,
       quantity: adjustment_params[:quantity],
@@ -29,8 +44,8 @@ class InventoryAdjustmentsController < ApplicationController
   end
 
   private
+  
   def adjustment_params
     params.require(:inventory_adjustment).permit(:quantity, :adjustment_type, :reason, :performed_by, :note)
   end
-
 end

@@ -1,8 +1,12 @@
 class SalesController < ApplicationController
-  before_action :set_sale, only: %i[show edit update destroy cancel]
+  before_action :set_sale, only: %i[show edit update destroy cancel payments]
   
   def index
-    @sales = Sale.includes(:customer, :warehouse, :sale_items).order(sale_date: :desc, created_at: :desc)
+    authorize Sale
+    @sales = policy_scope(Sale).includes(:customer, :warehouse, :sale_items).order(sale_date: :desc, created_at: :desc)
+    
+    # Control de visualización de costos
+    @show_costs = policy(Sale).view_costs?
     
     # Filtro por folio
     @sales = @sales.where(id: params[:folio]) if params[:folio].present?
@@ -33,11 +37,18 @@ class SalesController < ApplicationController
   end
   
   def show
+    authorize @sale
+    
+    # Control de visualización de costos
+    @show_costs = policy(@sale).view_costs?
+    
     # Cargar pagos asociados a esta venta (si existen)
     @payments = @sale.payments.order(payment_date: :desc) if @sale.payments.any?
   end
   
   def new
+    authorize Sale
+    
     # Si viene de una venta exitosa, restaurar configuración
     if params[:success] == 'true'
       @sale = Sale.new(
@@ -66,6 +77,8 @@ class SalesController < ApplicationController
   def create
     @sale = Sale.new(sale_params)
     @sale.sale_date = Date.current
+    
+    authorize @sale
     
     # Calcular subtotales de cada item
     @sale.sale_items.each do |item|
@@ -96,6 +109,8 @@ class SalesController < ApplicationController
   end
   
   def edit
+    authorize @sale
+    
     unless @sale.can_be_cancelled?
       redirect_to @sale, alert: "Esta venta ya fue cancelada y no puede editarse."
       return
@@ -105,11 +120,15 @@ class SalesController < ApplicationController
   end
   
   def update
+    authorize @sale
+    
     # Por seguridad, no permitir editar ventas procesadas
     redirect_to @sale, alert: "No se pueden editar ventas ya procesadas."
   end
   
   def destroy
+    authorize @sale
+    
     if @sale.can_be_cancelled?
       @sale.cancel_sale!
       redirect_to sales_path, notice: "Venta cancelada correctamente."
@@ -119,6 +138,8 @@ class SalesController < ApplicationController
   end
   
   def cancel
+    authorize @sale
+    
     if @sale.can_be_cancelled?
       # 🔥 cancel_sale! ahora revierte:
       # - Inventario
@@ -132,7 +153,11 @@ class SalesController < ApplicationController
   
   # 🆕 Acción para mostrar detalle de pagos de una venta
   def payments
-    @sale = Sale.find(params[:id])
+    authorize @sale
+    
+    # Control de visualización de costos
+    @show_costs = policy(@sale).view_costs?
+    
     @payments = @sale.payments.order(payment_date: :desc)
     
     unless @sale.has_pending_amount?
