@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Animación para mensajes flash */
+/* Animación de entrada para mensajes flash */
 @keyframes slide-in {
   from {
     transform: translateX(100%);
@@ -14,4 +14,20 @@
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+/* Animación de salida para mensajes flash */
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate-slide-out {
+  animation: slide-out 0.3s ease-out;
 }
