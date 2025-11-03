@@ -85,6 +85,16 @@
           <span>Clientes</span>
         <% end %>
 
+        <!-- 🔥 USUARIOS - Solo admin 🔥 -->
+        <% if policy(User).index? %>
+          <%= link_to users_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <span>Usuarios</span>
+          <% end %>
+        <% end %>
+
         <!-- Botón Nueva Venta destacado - Solo cajeros y superiores -->
         <% if policy(Sale).create? %>
           <%= link_to new_sale_path, class: "ml-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md text-sm font-bold shadow-lg transform hover:scale-105 transition flex items-center space-x-1" do %>
@@ -211,6 +221,13 @@
       <% end %>
       <%= link_to customers_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
         👥 Clientes
+      <% end %>
+
+      <!-- 🔥 USUARIOS - Solo admin (Mobile) 🔥 -->
+      <% if policy(User).index? %>
+        <%= link_to users_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 mt-2" do %>
+          👤 Usuarios
+        <% end %>
       <% end %>
 
       <!-- Botón Logout (Mobile) -->

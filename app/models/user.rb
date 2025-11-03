@@ -1,8 +1,10 @@
 class User < ApplicationRecord
-  # Devise modules - IMPORTANTE: incluye :trackable
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable,
-         :trackable
+  # Devise modules - SOLO lo esencial para login
+  # QUITAMOS: :registerable, :recoverable (para que no puedan recuperar/cambiar password)
+  devise :database_authenticatable,
+         :rememberable, :validatable,
+         :trackable,
+         authentication_keys: [:login]
   
   # Enums para roles (6 roles del sistema POS)
   enum :role, {
@@ -28,6 +30,19 @@ class User < ApplicationRecord
   scope :supervisores, -> { where(role: :supervisor) }
   scope :cajeros, -> { where(role: :cajero) }
   scope :almacenistas, -> { where(role: :almacenista) }
+
+  # Atributo virtual para login
+  attr_accessor :login
+
+  # Método para encontrar usuario por email O name
+  def self.find_for_database_authentication(warden_conditions)
+    conditions = warden_conditions.dup
+    if (login = conditions.delete(:login))
+      where(conditions.to_h).where(["lower(name) = :value OR lower(email) = :value", { value: login.downcase }]).first
+    elsif conditions.has_key?(:name) || conditions.has_key?(:email)
+      where(conditions.to_h).first
+    end
+  end
   
   # Métodos de conveniencia para verificar roles
   def admin?
