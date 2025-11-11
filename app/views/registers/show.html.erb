@@ -1,0 +1,236 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to registers_path, class: "text-gray-700 hover:text-blue-600" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          Cajas
+        <% end %>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span class="ml-1 text-gray-500 md:ml-2"><%= @register.display_name %></span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header con acciones -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900"><%= @register.display_name %></h1>
+      <p class="text-gray-600 mt-1"><%= @register.warehouse.name %></p>
+    </div>
+    
+    <div class="flex space-x-3">
+      <% if policy(@register).update? %>
+        <%= link_to edit_register_path(@register), class: "bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          <span>Editar</span>
+        <% end %>
+      <% end %>
+      
+      <% if policy(@register).toggle_active? %>
+        <%= button_to toggle_active_register_path(@register), method: :patch, class: "#{@register.active? ? 'bg-gray-500 hover:bg-gray-600' : 'bg-green-500 hover:bg-green-600'} text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center space-x-2" do %>
+          <% if @register.active? %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            <span>Desactivar</span>
+          <% else %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Activar</span>
+          <% end %>
+        <% end %>
+      <% end %>
+      
+      <%= link_to registers_path, class: "bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition" do %>
+        Volver
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Información de la caja -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    
+    <!-- Información General -->
+    <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Información General</h2>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm font-medium text-gray-500">Código</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @register.code %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-gray-500">Nombre</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @register.name %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-gray-500">Almacén</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @register.warehouse.name %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-gray-500">Ubicación</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @register.location || "-" %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-gray-500">Fondo Inicial</p>
+          <p class="text-lg font-semibold text-green-600">$<%= number_with_precision(@register.initial_balance, precision: 2) %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-gray-500">Estado</p>
+          <% if @register.active? %>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              Activa
+            </span>
+          <% else %>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              Inactiva
+            </span>
+          <% end %>
+        </div>
+      </div>
+      
+      <% if @register.description.present? %>
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <p class="text-sm font-medium text-gray-500">Descripción</p>
+          <p class="text-gray-900 mt-1"><%= @register.description %></p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Estadísticas</h2>
+      
+      <div class="space-y-4">
+        <div class="bg-blue-50 rounded-lg p-4">
+          <p class="text-sm font-medium text-blue-600">Total Sesiones</p>
+          <p class="text-3xl font-bold text-blue-900"><%= @stats[:total_sessions] %></p>
+        </div>
+        
+        <div class="bg-green-50 rounded-lg p-4">
+          <p class="text-sm font-medium text-green-600">Sesiones Cerradas</p>
+          <p class="text-3xl font-bold text-green-900"><%= @stats[:closed_sessions] %></p>
+        </div>
+        
+        <div class="bg-purple-50 rounded-lg p-4">
+          <p class="text-sm font-medium text-purple-600">Total Vendido</p>
+          <p class="text-3xl font-bold text-purple-900">$<%= number_with_precision(@stats[:total_sales], precision: 2) %></p>
+        </div>
+        
+        <% if @stats[:last_session_date] %>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-sm font-medium text-gray-600">Última Sesión</p>
+            <p class="text-sm font-semibold text-gray-900"><%= @stats[:last_session_date].strftime("%d/%m/%Y %H:%M") %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sesión Actual -->
+  <% if @current_session %>
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg shadow-md mb-6">
+      <div class="flex items-center mb-3">
+        <svg class="w-6 h-6 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <h3 class="text-lg font-bold text-yellow-900">Sesión Abierta</h3>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <p class="text-sm font-medium text-yellow-700">Abierta por</p>
+          <p class="text-yellow-900 font-semibold"><%= @current_session.opened_by.name %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-yellow-700">Hora de apertura</p>
+          <p class="text-yellow-900 font-semibold"><%= @current_session.opened_at.strftime("%d/%m/%Y %H:%M") %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm font-medium text-yellow-700">Fondo inicial</p>
+          <p class="text-yellow-900 font-semibold">$<%= number_with_precision(@current_session.opening_balance, precision: 2) %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Historial de Sesiones -->
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">Últimas 10 Sesiones</h2>
+    
+    <% if @recent_sessions.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Apertura</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Abierta por</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cerrada por</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Ventas</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @recent_sessions.each do |session| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= session.opened_at.strftime("%d/%m/%Y %H:%M") %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= session.opened_by.name %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <%= session.closed_by&.name || "-" %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  $<%= number_with_precision(session.total_sales, precision: 2) %>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <% if session.open? %>
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Abierta
+                    </span>
+                  <% else %>
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                      Cerrada
+                    </span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="text-center py-8">
+        <p class="text-gray-500">No hay sesiones registradas para esta caja</p>
+      </div>
+    <% end %>
+  </div>
+</div>

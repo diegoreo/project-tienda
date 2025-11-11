@@ -48,6 +48,14 @@ class SalesController < ApplicationController
   
   def new
     authorize Sale
+
+     # VALIDACIÓN: Verificar sesión abierta ANTES de mostrar formulario
+     @current_session = current_user_open_session
+    
+     unless @current_session
+       redirect_to register_sessions_path, alert: "⚠️ Debe abrir un turno de caja antes de realizar ventas. Por favor, abra un turno primero."
+       return
+     end
     
     # Si viene de una venta exitosa, restaurar configuración
     if params[:success] == 'true'
@@ -66,8 +74,8 @@ class SalesController < ApplicationController
       public_customer = Customer.find_by(name: "Público General")
       @sale.customer_id = public_customer.id if public_customer
       
-      # Establecer almacén por defecto
-      @sale.warehouse_id = Warehouse.first&.id
+      # Establecer almacén por defecto (usar el de la sesión actual)
+      @sale.warehouse_id = @current_session.register.warehouse_id
     end
     
     # Crear primer item con valores por defecto
@@ -77,8 +85,21 @@ class SalesController < ApplicationController
   def create
     @sale = Sale.new(sale_params)
     @sale.sale_date = Date.current
+    @sale.user = current_user
     
     authorize @sale
+
+    # VALIDACIÓN: Verificar sesión abierta ANTES de procesar venta
+    @current_session = current_user_open_session
+    
+    unless @current_session
+      flash[:alert] = "⚠️ Debe aperturar caja antes de realizar ventas."
+      redirect_to register_sessions_path
+      return
+    end
+
+    # Asignar sesión activa del usuario
+    @sale.register_session = @current_session
     
     # Calcular subtotales de cada item
     @sale.sale_items.each do |item|
@@ -86,12 +107,7 @@ class SalesController < ApplicationController
     end
     
     if @sale.save
-      # 🔥 process_sale! ahora maneja TODO:
-      # - Calcula el total
-      # - Establece pending_amount según payment_method
-      # - Establece payment_status según payment_method
-      # - Actualiza inventario
-      # - Actualiza deuda del cliente si es crédito
+      #process_sale! ya actualiza los contadores internamente
       @sale.process_sale!
       
       # Redirigir a new con parámetros de éxito
@@ -130,7 +146,8 @@ class SalesController < ApplicationController
     authorize @sale
     
     if @sale.can_be_cancelled?
-      @sale.cancel_sale!
+      # Pasar usuario que cancela y razón
+      @sale.cancel_sale!(current_user, "Cancelada desde listado")
       redirect_to sales_path, notice: "Venta cancelada correctamente."
     else
       redirect_to @sale, alert: "Esta venta ya está cancelada."
@@ -141,17 +158,19 @@ class SalesController < ApplicationController
     authorize @sale
     
     if @sale.can_be_cancelled?
+      # Pasar usuario que cancela y razón (opcional)
       # 🔥 cancel_sale! ahora revierte:
       # - Inventario
       # - Deuda del cliente (usando pending_amount)
-      @sale.cancel_sale!
+      cancellation_reason = params[:cancellation_reason] || "Cancelada manualmente"
+      @sale.cancel_sale!(current_user, cancellation_reason)
       redirect_to @sale, notice: "Venta cancelada y inventario restaurado."
     else
       redirect_to @sale, alert: "Esta venta ya está cancelada."
     end
   end
   
-  # 🆕 Acción para mostrar detalle de pagos de una venta
+  # Acción para mostrar detalle de pagos de una venta
   def payments
     authorize @sale
     
@@ -178,5 +197,29 @@ class SalesController < ApplicationController
         :id, :product_id, :quantity, :unit_price, :discount, :subtotal, :_destroy
       ]
     )
+  end
+
+  # MÉTODO NUEVO: Obtener sesión abierta del usuario actual
+  def current_user_open_session
+    if current_user.admin? || current_user.gerente?
+      # Admin y gerente pueden usar cualquier sesión abierta
+      # Priorizar sesiones del día actual
+      RegisterSession.open_sessions
+                     .where('opened_at >= ?', Date.current.beginning_of_day)
+                     .order(opened_at: :desc)
+                     .first
+    else
+      # Cajeros y supervisores solo sus propias sesiones abiertas
+      RegisterSession.open_sessions
+                     .where(opened_by: current_user)
+                     .order(opened_at: :desc)
+                     .first
+    end
+  end
+
+  # MÉTODO DEPRECADO: Ya no se usa, reemplazado por current_user_open_session
+  # Lo dejamos por compatibilidad pero ya no se llama
+  def find_active_register_session
+    current_user_open_session
   end
 end

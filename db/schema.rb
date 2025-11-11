@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_23_011250) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_05_205446) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -155,6 +155,52 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_23_011250) do
     t.index ["warehouse_id"], name: "index_purchases_on_warehouse_id"
   end
 
+  create_table "register_sessions", force: :cascade do |t|
+    t.bigint "register_id", null: false
+    t.bigint "opened_by_id", null: false
+    t.bigint "closed_by_id"
+    t.datetime "opened_at", null: false
+    t.decimal "opening_balance", precision: 10, scale: 2, null: false
+    t.text "opening_notes"
+    t.datetime "closed_at"
+    t.decimal "closing_balance", precision: 10, scale: 2
+    t.decimal "expected_balance", precision: 10, scale: 2
+    t.decimal "difference", precision: 10, scale: 2
+    t.text "closing_notes"
+    t.decimal "total_sales", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total_cash_sales", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total_card_sales", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total_credit_sales", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "sales_count", default: 0, null: false
+    t.integer "cancelled_sales_count", default: 0, null: false
+    t.decimal "cancelled_sales_total", precision: 10, scale: 2, default: "0.0", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["closed_by_id"], name: "index_register_sessions_on_closed_by_id"
+    t.index ["opened_at"], name: "index_register_sessions_on_opened_at"
+    t.index ["opened_by_id"], name: "index_register_sessions_on_opened_by_id"
+    t.index ["register_id", "closed_at"], name: "index_register_sessions_on_register_id_and_closed_at"
+    t.index ["register_id"], name: "index_register_sessions_on_register_id"
+    t.index ["status"], name: "index_register_sessions_on_status"
+  end
+
+  create_table "registers", force: :cascade do |t|
+    t.string "code", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.decimal "initial_balance", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "location"
+    t.bigint "warehouse_id", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_registers_on_active"
+    t.index ["code"], name: "index_registers_on_code", unique: true
+    t.index ["warehouse_id", "active"], name: "index_registers_on_warehouse_id_and_active"
+    t.index ["warehouse_id"], name: "index_registers_on_warehouse_id"
+  end
+
   create_table "sale_items", force: :cascade do |t|
     t.bigint "sale_id", null: false
     t.bigint "product_id", null: false
@@ -181,10 +227,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_23_011250) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "pending_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.bigint "register_session_id"
+    t.datetime "cancelled_at"
+    t.bigint "cancelled_by_id"
+    t.text "cancellation_reason"
+    t.index ["cancelled_at"], name: "index_sales_on_cancelled_at"
+    t.index ["cancelled_by_id"], name: "index_sales_on_cancelled_by_id"
     t.index ["customer_id", "payment_status"], name: "index_sales_on_customer_id_and_payment_status", where: "(pending_amount > (0)::numeric)"
     t.index ["customer_id"], name: "index_sales_on_customer_id"
     t.index ["payment_status"], name: "index_sales_on_payment_status"
+    t.index ["register_session_id", "status"], name: "index_sales_on_register_session_id_and_status"
+    t.index ["register_session_id"], name: "index_sales_on_register_session_id"
     t.index ["sale_date"], name: "index_sales_on_sale_date"
+    t.index ["status", "sale_date"], name: "index_sales_on_status_and_sale_date"
     t.index ["status"], name: "index_sales_on_status"
     t.index ["user_id"], name: "index_sales_on_user_id"
     t.index ["warehouse_id"], name: "index_sales_on_warehouse_id"
@@ -263,8 +318,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_23_011250) do
   add_foreign_key "purchase_items", "purchases"
   add_foreign_key "purchases", "suppliers"
   add_foreign_key "purchases", "warehouses"
+  add_foreign_key "register_sessions", "registers"
+  add_foreign_key "register_sessions", "users", column: "closed_by_id"
+  add_foreign_key "register_sessions", "users", column: "opened_by_id"
+  add_foreign_key "registers", "warehouses"
   add_foreign_key "sale_items", "products"
   add_foreign_key "sale_items", "sales"
   add_foreign_key "sales", "customers"
+  add_foreign_key "sales", "register_sessions"
+  add_foreign_key "sales", "users", column: "cancelled_by_id"
   add_foreign_key "sales", "warehouses"
 end

@@ -2,6 +2,8 @@ class Sale < ApplicationRecord
   belongs_to :customer, optional: true
   belongs_to :user, optional: true # quien hizo la venta
   belongs_to :warehouse
+  belongs_to :register_session, optional: true  
+  belongs_to :cancelled_by, class_name: 'User', optional: true  
   has_many :sale_items, dependent: :destroy
   has_many :products, through: :sale_items
   has_many :payments, dependent: :destroy
@@ -34,13 +36,18 @@ class Sale < ApplicationRecord
   validates :customer, presence: true, if: -> { payment_method == 'credit' }
   validate :customer_has_credit, if: -> { payment_method == 'credit' && customer.present? }
   validate :pending_amount_not_exceed_total
+  validate :register_session_must_be_open, if: -> { register_session.present? && new_record? }
   
   # Scopes
   scope :completed, -> { where(status: :completed) }
+  scope :cancelled, -> { where(status: :cancelled) }
+  scope :active_sales, -> { where(status: :completed) }
   scope :today, -> { where(sale_date: Date.current) }
   scope :by_payment_method, ->(method) { where(payment_method: method) }
   scope :with_pending_payment, -> { where(payment_status: [:pending, :partial]).where("pending_amount > 0") }
-  
+  scope :by_register_session, ->(session_id) { where(register_session_id: session_id) }
+  scope :cancelled_by_user, ->(user_id) { where(cancelled_by_id: user_id) }
+
   # ========== MÉTODOS NUEVOS PARA PAGOS ==========
   
   # Monto ya pagado
@@ -80,7 +87,7 @@ class Sale < ApplicationRecord
   end
   
   def process_sale!
-    return if status == 'cancelled'
+    return if cancelled?
     
     transaction do
       # Calcular total
@@ -123,14 +130,18 @@ class Sale < ApplicationRecord
       if payment_method == 'credit' && customer.present?
         update_customer_debt!
       end
+
+      # Actualizar contadores de sesión si existe
+      update_register_session_on_creation if register_session.present?
     end
   end
   
+  # ========== MÉTODOS DE CANCELACIÓN ==========
   def can_be_cancelled?
-    status == 'completed'
+    completed?
   end
   
-  def cancel_sale!
+  def cancel_sale!(cancelled_by_user, reason = nil)
     return unless can_be_cancelled?
     
     transaction do
@@ -159,8 +170,44 @@ class Sale < ApplicationRecord
         revert_customer_debt!
       end
       
-      update!(status: :cancelled)
+      # Actualizar campos de cancelación
+      update!(
+        status: :cancelled,
+        cancelled_at: Time.current,
+        cancelled_by: cancelled_by_user,
+        cancellation_reason: reason
+      )
+      
+      # Actualizar contadores de la sesión (SIN callback)
+      update_register_session_on_cancellation if register_session.present?
     end
+  end
+  
+  # ========== MÉTODOS DE SESIÓN ==========
+  # Actualizar contadores de sesión al cancelar
+  def update_register_session_on_cancellation
+    register_session.decrement_sale_counters(self)
+    register_session.increment_cancelled_counters(self)
+  end
+  
+  # Actualizar contadores de sesión al crear (llamar desde controlador)
+  def update_register_session_on_creation
+    return unless register_session.present? && completed?
+    register_session.increment_sale_counters(self)
+  end
+
+  # ========== MÉTODOS DE AUDITORÍA ==========
+  def sale_info
+    {
+      sold_by: user&.name,
+      cancelled_by: cancelled_by&.name,
+      cancelled_at: cancelled_at,
+      cancellation_reason: cancellation_reason
+    }
+  end
+
+  def self_cancelled?
+    cancelled? && user_id == cancelled_by_id
   end
   
   private
@@ -176,6 +223,12 @@ class Sale < ApplicationRecord
   def pending_amount_not_exceed_total
     if pending_amount && total && pending_amount > total
       errors.add(:pending_amount, "no puede ser mayor al total de la venta")
+    end
+  end
+
+  def register_session_must_be_open
+    if register_session && !register_session.open?
+      errors.add(:base, "No se puede registrar una venta en una sesión cerrada")
     end
   end
 end

@@ -1,4 +1,10 @@
 class User < ApplicationRecord
+
+  # Relaciones con register_sessions
+  has_many :opened_sessions, class_name: 'RegisterSession', foreign_key: 'opened_by_id'
+  has_many :closed_sessions, class_name: 'RegisterSession', foreign_key: 'closed_by_id'
+  has_many :cancelled_sales, class_name: 'Sale', foreign_key: 'cancelled_by_id'
+  
   # Devise modules - SOLO lo esencial para login
   # QUITAMOS: :registerable, :recoverable (para que no puedan recuperar/cambiar password)
   devise :database_authenticatable,

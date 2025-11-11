@@ -1,6 +1,6 @@
 <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50" data-controller="mobile-menu">
   <div class="container mx-auto px-4">
-    <div class="flex items-center justify-between h-16">
+    <div class="flex items-center justify-between h-16 py-2">
       <!-- Logo -->
       <%= link_to products_path, class: "flex items-center space-x-2 hover:opacity-80 transition" do %>
         <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
@@ -12,7 +12,29 @@
 
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center space-x-1">
-        <!-- Productos - Todos pueden ver -->
+        
+        <!-- 🚀 ACCIONES RÁPIDAS (botones destacados) -->
+        <% if policy(Sale).create? %>
+          <%= link_to new_sale_path, class: "px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md text-sm font-bold shadow-lg transform hover:scale-105 transition flex items-center space-x-1" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Nueva Venta</span>
+          <% end %>
+        <% end %>
+
+        <% if policy(RegisterSession).create? %>
+          <%= link_to new_register_session_path, class: "ml-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 rounded-md text-sm font-bold shadow-lg transform hover:scale-105 transition flex items-center space-x-1" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Abrir Turno</span>
+          <% end %>
+        <% end %>
+
+        <div class="ml-4 h-8 w-px bg-blue-400"></div>
+
+        <!-- 📦 PRODUCTOS -->
         <div class="relative group">
           <%= link_to products_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,10 +43,13 @@
             <span>Productos</span>
           <% end %>
           
-          <!-- Submenu de Productos -->
-          <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <%= link_to products_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+              📦 Todos los Productos
+            <% end %>
+            <div class="border-t border-gray-200"></div>
             <% if policy(Product).create? %>
-              <%= link_to new_product_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+              <%= link_to new_product_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50" do %>
                 ➕ Nuevo Producto
               <% end %>
             <% end %>
@@ -41,7 +66,7 @@
           </div>
         </div>
 
-        <!-- Inventario - Solo almacenista y superiores -->
+        <!-- 📊 INVENTARIO -->
         <% if policy(Inventory).index? %>
           <div class="relative group">
             <%= link_to inventories_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
@@ -51,9 +76,13 @@
               <span>Inventario</span>
             <% end %>
             
-            <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <%= link_to inventories_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+                📊 Ver Inventario
+              <% end %>
+              <div class="border-t border-gray-200"></div>
               <% if policy(Warehouse).index? %>
-                <%= link_to warehouses_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+                <%= link_to warehouses_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50" do %>
                   🏪 Almacenes
                 <% end %>
               <% end %>
@@ -69,15 +98,57 @@
           </div>
         <% end %>
 
-        <!-- Ventas - Todos los autenticados -->
-        <%= link_to sales_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-          </svg>
-          <span>Ventas</span>
+        <!-- 💰 VENTAS -->
+        <div class="relative group">
+          <%= link_to sales_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span>Ventas</span>
+          <% end %>
+          
+          <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <%= link_to sales_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+              📋 Todas las Ventas
+            <% end %>
+            <% if policy(Sale).create? %>
+              <div class="border-t border-gray-200"></div>
+              <%= link_to new_sale_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-b-md" do %>
+                ➕ Nueva Venta
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- 🕐 TURNOS -->
+        <% if policy(RegisterSession).index? %>
+          <div class="relative group">
+            <%= link_to register_sessions_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Turnos</span>
+            <% end %>
+            
+            <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <%= link_to register_sessions_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+                📊 Sesiones de Caja
+              <% end %>
+              <% if policy(RegisterSession).create? %>
+                <%= link_to new_register_session_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50" do %>
+                  ➕ Abrir Turno
+                <% end %>
+              <% end %>
+              <% if policy(Register).index? %>
+                <%= link_to registers_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-b-md" do %>
+                  🏪 Cajas
+                <% end %>
+              <% end %>
+            </div>
+          </div>
         <% end %>
 
-        <!-- Clientes - Todos pueden ver -->
+        <!-- 👥 CLIENTES -->
         <%= link_to customers_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -85,46 +156,47 @@
           <span>Clientes</span>
         <% end %>
 
-        <!-- 🔥 USUARIOS - Solo admin 🔥 -->
-        <% if policy(User).index? %>
-          <%= link_to users_path, class: "px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            <span>Usuarios</span>
-          <% end %>
-        <% end %>
-
-        <!-- Botón Nueva Venta destacado - Solo cajeros y superiores -->
-        <% if policy(Sale).create? %>
-          <%= link_to new_sale_path, class: "ml-4 px-4 py-2 bg-green-500 hover:bg-green-600 rounded-md text-sm font-bold shadow-lg transform hover:scale-105 transition flex items-center space-x-1" do %>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            <span>Nueva Venta</span>
-          <% end %>
+        <!-- ⚙️ CONFIGURACIÓN (solo admin/gerente) -->
+        <% if current_user.admin? || current_user.gerente? %>
+          <div class="relative group">
+            <button type="button" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition flex items-center space-x-1">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span>Config</span>
+            </button>
+            
+            <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <% if policy(User).index? %>
+                <%= link_to users_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-t-md" do %>
+                  👤 Usuarios
+                <% end %>
+              <% end %>
+              <% if policy(Register).index? %>
+                <%= link_to registers_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-b-md" do %>
+                  🏪 Gestión de Cajas
+                <% end %>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </nav>
 
       <!-- Usuario y Logout (Desktop) -->
       <div class="hidden md:flex items-center space-x-3">
-        <!-- Info del Usuario -->
-        <div class="flex items-center space-x-2 bg-blue-700 rounded-lg px-3 py-1.5">
-          <!-- Avatar -->
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow">
+        <div class="flex items-center space-x-2 bg-blue-700 rounded-lg px-3 py-1.5 h-12">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow flex-shrink-0">
             <%= current_user.email.first.upcase %>
           </div>
-          
-          <!-- Email y Rol -->
-          <div class="flex flex-col">
-            <span class="text-xs font-semibold"><%= current_user.email.split('@').first %></span>
-            <span class="text-xs <%= role_badge_color(current_user.role) %> px-1.5 py-0.5 rounded font-medium">
+          <div class="flex flex-col justify-center min-w-0">
+            <span class="text-xs font-semibold truncate"><%= current_user.email.split('@').first %></span>
+            <span class="text-[10px] <%= role_badge_color(current_user.role) %> px-1.5 py-0.5 rounded font-medium truncate">
               <%= role_name(current_user.role) %>
             </span>
           </div>
         </div>
         
-        <!-- Botón de Logout -->
         <%= button_to destroy_user_session_path, 
             method: :delete,
             class: "flex items-center space-x-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg transition shadow text-sm font-semibold",
@@ -168,20 +240,31 @@
         </div>
       </div>
 
-      <!-- Nueva Venta (destacado en móvil) -->
+      <!-- 🚀 ACCIONES RÁPIDAS (Mobile) -->
       <% if policy(Sale).create? %>
         <%= link_to new_sale_path, class: "block px-3 py-3 rounded-md text-base font-bold bg-green-500 hover:bg-green-600 mb-2" do %>
-          ➕ Nueva Venta
+          💰 Nueva Venta
         <% end %>
       <% end %>
+
+      <% if policy(RegisterSession).create? %>
+        <%= link_to new_register_session_path, class: "block px-3 py-3 rounded-md text-base font-bold bg-yellow-500 hover:bg-yellow-600 mb-2" do %>
+          🕐 Abrir Turno
+        <% end %>
+      <% end %>
+
+      <div class="border-t border-blue-600 my-2"></div>
 
       <!-- Productos -->
       <%= link_to products_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
         📦 Productos
       <% end %>
+      <%= link_to products_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+        📦 Todos
+      <% end %>
       <% if policy(Product).create? %>
         <%= link_to new_product_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
-          ➕ Nuevo Producto
+          ➕ Nuevo
         <% end %>
       <% end %>
       <% if policy(Category).index? %>
@@ -195,10 +278,14 @@
         <% end %>
       <% end %>
 
-      <!-- Inventario - Solo si tiene permiso -->
+      <!-- Inventario -->
       <% if policy(Inventory).index? %>
-        <%= link_to inventories_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 mt-2" do %>
+        <div class="border-t border-blue-600 my-2"></div>
+        <%= link_to inventories_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
           📊 Inventario
+        <% end %>
+        <%= link_to inventories_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+          📊 Ver
         <% end %>
         <% if policy(Warehouse).index? %>
           <%= link_to warehouses_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
@@ -215,25 +302,70 @@
         <% end %>
       <% end %>
 
-      <!-- Ventas y Clientes -->
-      <%= link_to sales_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 mt-2" do %>
+      <!-- Ventas -->
+      <div class="border-t border-blue-600 my-2"></div>
+      <%= link_to sales_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
         💰 Ventas
       <% end %>
+      <%= link_to sales_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+        📋 Todas
+      <% end %>
+      <% if policy(Sale).create? %>
+        <%= link_to new_sale_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+          ➕ Nueva
+        <% end %>
+      <% end %>
+
+      <!-- Turnos -->
+      <% if policy(RegisterSession).index? %>
+        <div class="border-t border-blue-600 my-2"></div>
+        <%= link_to register_sessions_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
+          🕐 Turnos
+        <% end %>
+        <%= link_to register_sessions_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+          📊 Sesiones
+        <% end %>
+        <% if policy(RegisterSession).create? %>
+          <%= link_to new_register_session_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            ➕ Abrir
+          <% end %>
+        <% end %>
+        <% if policy(Register).index? %>
+          <%= link_to registers_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            🏪 Cajas
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <!-- Clientes -->
+      <div class="border-t border-blue-600 my-2"></div>
       <%= link_to customers_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600" do %>
         👥 Clientes
       <% end %>
 
-      <!-- 🔥 USUARIOS - Solo admin (Mobile) 🔥 -->
-      <% if policy(User).index? %>
-        <%= link_to users_path, class: "block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-600 mt-2" do %>
-          👤 Usuarios
+      <!-- Configuración (Mobile) -->
+      <% if current_user.admin? || current_user.gerente? %>
+        <div class="border-t border-blue-600 my-2"></div>
+        <div class="block px-3 py-2 rounded-md text-base font-medium text-blue-200">
+          ⚙️ Configuración
+        </div>
+        <% if policy(User).index? %>
+          <%= link_to users_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            👤 Usuarios
+          <% end %>
+        <% end %>
+        <% if policy(Register).index? %>
+          <%= link_to registers_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            🏪 Cajas
+          <% end %>
         <% end %>
       <% end %>
 
-      <!-- Botón Logout (Mobile) -->
+      <!-- Logout (Mobile) -->
+      <div class="border-t border-blue-600 my-2"></div>
       <%= button_to destroy_user_session_path, 
           method: :delete,
-          class: "w-full mt-4 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-md text-base font-bold flex items-center justify-center space-x-2",
+          class: "w-full px-3 py-2 bg-red-600 hover:bg-red-700 rounded-md text-base font-bold flex items-center justify-center space-x-2",
           data: { turbo: false } do %>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>

@@ -1,0 +1,377 @@
+<div class="container mx-auto px-4 py-8" data-controller="register-closure">
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to register_sessions_path, class: "text-gray-700 hover:text-blue-600" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          Turnos
+        <% end %>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <%= link_to "Sesión ##{@register_session.id}", register_session_path(@register_session), class: "ml-1 text-gray-700 hover:text-blue-600 md:ml-2" %>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span class="ml-1 text-gray-500 md:ml-2">Cerrar Turno</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Cerrar Turno de Caja</h1>
+    <p class="text-gray-600 mt-2">Cuenta el efectivo y registra el cierre del turno</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Columna Izquierda: Formulario de Cierre -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-md p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+          <svg class="w-7 h-7 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          Conteo de Efectivo
+        </h2>
+
+        <%= form_with url: process_close_register_session_path(@register_session), method: :patch, local: true, class: "space-y-6" do |form| %>
+          
+          <!-- Información del Turno -->
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm font-medium text-blue-700">Caja</p>
+                <p class="text-lg font-bold text-blue-900"><%= @register_session.register.display_name %></p>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-blue-700">Abierta por</p>
+                <p class="text-lg font-bold text-blue-900"><%= @register_session.opened_by.name %></p>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-blue-700">Hora de apertura</p>
+                <p class="text-lg font-bold text-blue-900"><%= @register_session.opened_at.strftime("%d/%m/%Y %H:%M") %></p>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-blue-700">Cerrando como</p>
+                <p class="text-lg font-bold text-blue-900"><%= current_user.name %></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resumen del Turno -->
+          <div class="bg-gray-50 rounded-lg p-6 border-2 border-gray-200">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">📊 Resumen del Turno</h3>
+            
+            <!-- INFORMACIÓN BÁSICA (todos pueden ver) -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-white rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Fondo Inicial</p>
+                <p class="text-2xl font-bold text-gray-900">$<%= number_with_precision(@closure_summary[:opening_balance], precision: 2) %></p>
+              </div>
+              
+              <div class="bg-white rounded-lg p-4 shadow-sm">
+                <p class="text-sm font-medium text-gray-600">Ventas Completadas</p>
+                <p class="text-2xl font-bold text-green-600"><%= @closure_summary[:sales_count] %></p>
+              </div>
+            </div>
+
+            <!-- DESGLOSE FINANCIERO - Solo supervisores y superiores -->
+            <% if policy(@register_session).view_cash_differences? %>
+              <div class="mt-4 grid grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg p-4 shadow-sm col-span-2">
+                  <p class="text-sm font-medium text-gray-600">Ventas Totales</p>
+                  <p class="text-2xl font-bold text-green-600">$<%= number_with_precision(@closure_summary[:total_sales], precision: 2) %></p>
+                </div>
+              </div>
+
+              <div class="mt-4 space-y-2">
+                <div class="flex justify-between items-center bg-white rounded px-4 py-2">
+                  <span class="text-sm text-gray-600">💵 Ventas en Efectivo:</span>
+                  <span class="text-sm font-bold text-green-600">$<%= number_with_precision(@closure_summary[:total_cash_sales], precision: 2) %></span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-white rounded px-4 py-2">
+                  <span class="text-sm text-gray-600">💳 Ventas con Tarjeta:</span>
+                  <span class="text-sm font-bold text-blue-600">$<%= number_with_precision(@closure_summary[:total_card_sales], precision: 2) %></span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-white rounded px-4 py-2">
+                  <span class="text-sm text-gray-600">🕒 Ventas a Crédito:</span>
+                  <span class="text-sm font-bold text-purple-600">$<%= number_with_precision(@closure_summary[:total_credit_sales], precision: 2) %></span>
+                </div>
+              </div>
+            <% else %>
+              <!-- Vista simplificada para cajeros -->
+              <div class="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                <p class="text-sm text-blue-800">
+                  ℹ️ El desglose detallado de ventas estará disponible en el reporte final después del cierre.
+                </p>
+              </div>
+            <% end %>
+
+
+            <!-- Información de cancelaciones (todos pueden ver cantidad) -->
+            <div class="mt-4 space-y-2">
+              <div class="flex justify-between items-center bg-white rounded px-4 py-2">
+                <span class="text-sm text-gray-600">📈 Ventas Completadas:</span>
+                <span class="text-sm font-bold text-gray-900"><%= @closure_summary[:sales_count] %></span>
+              </div>
+              
+              <div class="flex justify-between items-center bg-red-50 rounded px-4 py-2">
+                <span class="text-sm text-red-700">❌ Ventas Canceladas:</span>
+                <span class="text-sm font-bold text-red-700">
+                  <%= @closure_summary[:cancelled_sales_count] %>
+                  <% if policy(@register_session).view_cash_differences? %>
+                    ($<%= number_with_precision(@closure_summary[:cancelled_sales_total], precision: 2) %>)
+                  <% end %>
+                </span>
+              </div>
+            </div>
+
+            <!-- Efectivo Esperado - SOLO supervisores y superiores -->
+            <% if policy(@register_session).view_cash_differences? %>
+              <div class="mt-6 pt-6 border-t-2 border-gray-300">
+                <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4 border-2 border-yellow-400">
+                  <p class="text-sm font-medium text-yellow-800">💰 Efectivo Esperado en Caja</p>
+                  <p class="text-4xl font-black text-yellow-900 mt-2">
+                    $<span data-register-closure-target="expectedAmount"><%= number_with_precision(@closure_summary[:expected_balance], precision: 2) %></span>
+                  </p>
+                  <p class="text-xs text-yellow-700 mt-1">
+                    Fondo inicial + Ventas en efectivo
+                  </p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          
+          <!-- Campo de Efectivo Contado -->
+          <div>
+            <%= form.label :closing_balance, "Efectivo Contado en Caja *", class: "block text-lg font-bold text-gray-700 mb-3" %>
+            <div class="relative">
+                <span class="absolute left-6 top-5 text-gray-500 font-bold text-2xl">$</span>
+                <%= form.number_field :closing_balance, 
+                    step: 0.01,
+                    min: 0,
+                    name: "register_session[closing_balance]",
+                    class: "w-full pl-14 pr-6 py-5 text-3xl font-bold border-4 border-gray-300 rounded-xl focus:ring-4 focus:ring-red-500 focus:border-transparent transition",
+                    placeholder: "0.00",
+                    required: true,
+                    autofocus: true,
+                    data: { 
+                      register_closure_target: "closingBalance",
+                      action: "input->register-closure#calculateDifference"
+                    } %>
+            </div>
+            <p class="mt-3 text-sm text-gray-600 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+              ⚠️ <strong>Importante:</strong> Cuenta todo el efectivo que hay físicamente en la caja. Incluye billetes y monedas.
+            </p>
+          </div>          
+         
+          <!-- Calculadora de diferencia en tiempo real - SOLO supervisores y superiores -->
+          <% if policy(@register_session).view_cash_differences? %>
+            <div data-register-closure-target="differenceCalculator" class="hidden">
+              <div class="bg-gray-50 rounded-lg p-6 border-2 border-gray-300">
+                <h3 class="text-lg font-bold text-gray-900 mb-3">🧮 Diferencia Calculada</h3>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <p class="text-sm text-gray-600">Esperado:</p>
+                    <p class="text-xl font-bold text-gray-900">$<span data-register-closure-target="expectedAmount"><%= number_with_precision(@closure_summary[:expected_balance], precision: 2) %></span></p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-600">Contado:</p>
+                    <p class="text-xl font-bold text-gray-900">$<span data-register-closure-target="countedAmount">0.00</span></p>
+                  </div>
+                </div>
+                
+                <div data-register-closure-target="differenceDisplay" class="rounded-lg p-4 text-center">
+                  <p class="text-sm font-medium mb-1">Diferencia:</p>
+                  <p data-register-closure-target="differenceValue" class="text-3xl font-black"></p>
+                  <p data-register-closure-target="differenceStatus" class="text-sm mt-1"></p>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <!-- Notas de Cierre -->
+          <div>
+            <%= form.label :closing_notes, "Notas de Cierre (Opcional)", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            <%= form.text_area :closing_notes, 
+                name: "register_session[closing_notes]",
+                rows: 4,
+                class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition",
+                placeholder: "Ej: Faltante por cambio, billetes falsos detectados, observaciones del turno..." %>
+            <p class="mt-2 text-xs text-gray-500">
+              Registra cualquier observación importante sobre el cierre
+            </p>
+          </div>
+          <!-- Advertencia Final -->
+          <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">⚠️ Advertencia Importante</h3>
+                <div class="mt-2 text-sm text-red-700">
+                  <ul class="list-disc list-inside space-y-1">
+                    <li>Una vez cerrado el turno, NO podrás registrar más ventas en esta sesión</li>
+                    <li>Verifica bien el efectivo antes de confirmar</li>
+                    <li>El sistema generará un reporte automático del cierre</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Botones -->
+          <div class="flex justify-end space-x-3 pt-4">
+            <%= link_to "Cancelar", register_session_path(@register_session), 
+                class: "px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition" %>
+            
+            <%= form.submit "🔒 Cerrar Turno",
+                class: "px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg transition transform hover:scale-105",
+                data: { confirm: "⚠️ ¿Estás seguro de cerrar el turno?\n\nEsta acción NO se puede deshacer." } %>
+          </div>
+
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Consejos y Calculadora -->
+    <div>
+      <div class="bg-blue-50 rounded-lg shadow-md p-6 sticky top-6">
+        <h3 class="text-lg font-bold text-blue-900 mb-4">💡 Consejos para el Cierre</h3>
+        
+        <ul class="space-y-3 text-sm text-blue-800">
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Cuenta primero los billetes grandes, luego los pequeños y finalmente las monedas</span>
+          </li>
+          
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Cuenta el efectivo dos veces para evitar errores</span>
+          </li>
+          
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Verifica que no haya billetes falsos o en mal estado</span>
+          </li>
+          
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Si hay diferencias, anota la razón en las notas de cierre</span>
+          </li>
+          
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Recuerda que el efectivo de tarjetas NO está en la caja física</span>
+          </li>
+          
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Guarda el reporte de cierre para tu seguridad</span>
+          </li>
+        </ul>
+
+        <!-- Calculadora Rápida -->
+        <div class="mt-6 pt-6 border-t border-blue-200">
+          <h4 class="text-sm font-bold text-blue-900 mb-3">🧮 Calculadora Rápida</h4>
+          <div class="bg-white rounded-lg p-4 space-y-2">
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <label class="text-gray-600">Billetes de $1000:</label>
+                <input type="number" 
+                       data-register-closure-target="calc1000"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div>
+                <label class="text-gray-600">Billetes de $500:</label>
+                <input type="number" 
+                       data-register-closure-target="calc500"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div>
+                <label class="text-gray-600">Billetes de $200:</label>
+                <input type="number" 
+                       data-register-closure-target="calc200"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div>
+                <label class="text-gray-600">Billetes de $100:</label>
+                <input type="number" 
+                       data-register-closure-target="calc100"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div>
+                <label class="text-gray-600">Billetes de $50:</label>
+                <input type="number" 
+                       data-register-closure-target="calc50"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div>
+                <label class="text-gray-600">Billetes de $20:</label>
+                <input type="number" 
+                       data-register-closure-target="calc20"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+              <div class="col-span-2">
+                <label class="text-gray-600">Monedas:</label>
+                <input type="number" step="0.01" 
+                       data-register-closure-target="calcCoins"
+                       data-action="input->register-closure#updateQuickCalculator"
+                       class="w-full px-2 py-1 border rounded" min="0" value="0">
+              </div>
+            </div>
+            <div class="pt-3 border-t border-gray-200">
+              <p class="text-xs text-gray-600">Total calculado:</p>
+              <p data-register-closure-target="calcTotal" class="text-2xl font-bold text-green-600">$0.00</p>
+              <button type="button" 
+                      data-action="click->register-closure#useCalculatedTotal"
+                      class="mt-2 w-full px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition">
+                Usar este monto
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

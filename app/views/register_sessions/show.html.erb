@@ -1,0 +1,385 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to register_sessions_path, class: "text-gray-700 hover:text-blue-600" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          Turnos
+        <% end %>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span class="ml-1 text-gray-500 md:ml-2">Sesión #<%= @register_session.id %></span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header con estado -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <div class="flex items-center space-x-3">
+        <h1 class="text-3xl font-bold text-gray-900">
+          Sesión #<%= @register_session.id %> - <%= @register_session.register.display_name %>
+        </h1>
+        <% if @register_session.open? %>
+          <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">
+            🟢 Abierta
+          </span>
+        <% else %>
+          <span class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+            🔒 Cerrada
+          </span>
+        <% end %>
+      </div>
+      <p class="text-gray-600 mt-1"><%= @register_session.register.warehouse.name %></p>
+    </div>
+    
+    <div class="flex space-x-3">
+      <!-- SI ESTÁ ABIERTA: Botón de cerrar -->
+      <% if @register_session.open? && policy(@register_session).close? %>
+        <%= link_to close_register_session_path(@register_session), class: "bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          <span>Cerrar Turno</span>
+        <% end %>
+      
+      <!-- SI ESTÁ CERRADA: Botones de reportes -->
+      <% elsif @register_session.closed? %>
+        <%= link_to closure_report_register_session_path(@register_session), 
+            class: "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Ver Reporte</span>
+        <% end %>
+        
+        <% if policy(@register_session).closure_report_detailed? %>
+          <%= link_to closure_report_detailed_register_session_path(@register_session), 
+              class: "bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Reporte Detallado</span>
+          <% end %>
+        <% end %>
+      <% end %>
+      
+      <!-- Botón Volver -->
+      <%= link_to register_sessions_path, class: "bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg transition" do %>
+        Volver
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Grid Principal -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    
+    <!-- Columna Izquierda: Información de Apertura/Cierre -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Información de Apertura -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+          </svg>
+          Información de Apertura
+        </h2>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm font-medium text-gray-500">Abierta por</p>
+            <p class="text-lg font-semibold text-gray-900"><%= @register_session.opened_by.name %></p>
+            <p class="text-xs text-gray-500"><%= @register_session.opened_by.role_name %></p>
+          </div>
+          
+          <div>
+            <p class="text-sm font-medium text-gray-500">Fecha y hora</p>
+            <p class="text-lg font-semibold text-gray-900"><%= @register_session.opened_at.strftime("%d/%m/%Y") %></p>
+            <p class="text-sm text-gray-600"><%= @register_session.opened_at.strftime("%H:%M:%S") %></p>
+          </div>
+          
+          <div>
+            <p class="text-sm font-medium text-gray-500">Fondo inicial</p>
+            <p class="text-2xl font-bold text-green-600">$<%= number_with_precision(@register_session.opening_balance, precision: 2) %></p>
+          </div>
+          
+          <% if @register_session.open? %>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Duración</p>
+              <p class="text-lg font-semibold text-blue-600" 
+                data-controller="session-timer"
+                data-session-timer-opened-at-value="<%= @register_session.opened_at.iso8601 %>"
+                data-session-timer-target="duration">
+                Calculando...
+              </p>
+            </div>
+          <% end %>
+        </div>
+        
+        <% if @register_session.opening_notes.present? %>
+          <div class="mt-4 pt-4 border-t border-gray-200">
+            <p class="text-sm font-medium text-gray-500">Notas de apertura</p>
+            <p class="text-gray-900 mt-1"><%= @register_session.opening_notes %></p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Información de Cierre (si está cerrada) -->
+      <% if @register_session.closed? %>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+            <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            Información de Cierre
+          </h2>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Cerrada por</p>
+              <p class="text-lg font-semibold text-gray-900"><%= @register_session.closed_by&.name || "-" %></p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Fecha y hora</p>
+              <p class="text-lg font-semibold text-gray-900"><%= @register_session.closed_at&.strftime("%d/%m/%Y %H:%M") || "-" %></p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Efectivo esperado</p>
+              <p class="text-2xl font-bold text-blue-600">$<%= number_with_precision(@register_session.expected_balance, precision: 2) %></p>
+            </div>
+            
+            <div>
+              <p class="text-sm font-medium text-gray-500">Efectivo contado</p>
+              <p class="text-2xl font-bold text-green-600">$<%= number_with_precision(@register_session.closing_balance, precision: 2) %></p>
+            </div>
+            
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Diferencia</p>
+              <% if @register_session.difference %>
+                <% if @register_session.difference.zero? %>
+                  <p class="text-2xl font-bold text-green-600">$0.00 ✓ Cuadrado</p>
+                <% elsif @register_session.difference.positive? %>
+                  <p class="text-2xl font-bold text-blue-600">+$<%= number_with_precision(@register_session.difference, precision: 2) %> (Sobrante)</p>
+                <% else %>
+                  <p class="text-2xl font-bold text-red-600">-$<%= number_with_precision(@register_session.difference.abs, precision: 2) %> ⚠️ (Faltante)</p>
+                <% end %>
+              <% end %>
+            </div>
+            
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Duración del turno</p>
+              <p class="text-lg font-semibold text-gray-900"><%= @session_stats[:duration] ? "#{@session_stats[:duration]} horas" : "-" %></p>
+            </div>
+          </div>
+          
+          <% if @register_session.closing_notes.present? %>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+              <p class="text-sm font-medium text-gray-500">Notas de cierre</p>
+              <p class="text-gray-900 mt-1"><%= @register_session.closing_notes %></p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Ventas del Turno -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Ventas de este Turno</h2>
+        
+        <% if @sales.any? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Folio</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% @sales.each do |sale| %>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#<%= sale.id %></td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600"><%= sale.customer&.name || "Sin cliente" %></td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                      <% case sale.payment_method %>
+                      <% when 'cash' %>
+                        <span class="text-green-600">💵 Efectivo</span>
+                      <% when 'card' %>
+                        <span class="text-blue-600">💳 Tarjeta</span>
+                      <% when 'credit' %>
+                        <span class="text-purple-600">🕒 Crédito</span>
+                      <% when 'mixed' %>
+                        <span class="text-orange-600">💰 Mixto</span>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">$<%= number_with_precision(sale.total, precision: 2) %></td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <% if sale.completed? %>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Completada</span>
+                      <% else %>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Cancelada</span>
+                      <% end %>
+                    </td>
+                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm">
+                      <%= link_to "Ver", sale_path(sale), class: "text-blue-600 hover:text-blue-900" %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+            <p class="mt-2 text-gray-500">No hay ventas en este turno todavía</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Ventas Canceladas -->
+      <% if @cancelled_sales.any? %>
+        <div class="bg-red-50 rounded-lg shadow-md p-6 border-l-4 border-red-500">
+          <h2 class="text-xl font-bold text-red-900 mb-4">⚠️ Ventas Canceladas</h2>
+          
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-red-200">
+              <thead class="bg-red-100">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Folio</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Monto</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Cancelada por</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Razón</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-red-100">
+                <% @cancelled_sales.each do |sale| %>
+                  <tr>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#<%= sale.id %></td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">$<%= number_with_precision(sale.total, precision: 2) %></td>
+                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600"><%= sale.cancelled_by&.name %></td>
+                    <td class="px-4 py-3 text-sm text-gray-600"><%= sale.cancellation_reason || "-" %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Columna Derecha: Estadísticas -->
+    <div class="space-y-6">
+      
+      <!-- Resumen Financiero -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">💰 Resumen Financiero</h2>
+        
+        <div class="space-y-4">
+          <div class="bg-green-50 rounded-lg p-4">
+            <p class="text-sm font-medium text-green-600">Total Ventas</p>
+            <p class="text-3xl font-bold text-green-900">$<%= number_with_precision(@register_session.total_sales, precision: 2) %></p>
+          </div>
+          
+          <div class="space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">💵 Efectivo:</span>
+              <span class="text-sm font-semibold text-gray-900">$<%= number_with_precision(@register_session.total_cash_sales, precision: 2) %></span>
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">💳 Tarjeta:</span>
+              <span class="text-sm font-semibold text-gray-900">$<%= number_with_precision(@register_session.total_card_sales, precision: 2) %></span>
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">🕒 Crédito:</span>
+              <span class="text-sm font-semibold text-gray-900">$<%= number_with_precision(@register_session.total_credit_sales, precision: 2) %></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas de Ventas -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">📊 Estadísticas</h2>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Ventas completadas:</span>
+            <span class="text-lg font-bold text-green-600"><%= @register_session.sales_count %></span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Ventas canceladas:</span>
+            <span class="text-lg font-bold text-red-600"><%= @register_session.cancelled_sales_count %></span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Monto cancelado:</span>
+            <span class="text-sm font-semibold text-red-600">$<%= number_with_precision(@register_session.cancelled_sales_total, precision: 2) %></span>
+          </div>
+          
+          <div class="pt-3 border-t border-gray-200">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm text-gray-600">Tasa de cancelación:</span>
+              <span class="text-sm font-bold <%= @session_stats[:cancellation_rate] > 10 ? 'text-red-600' : 'text-green-600' %>">
+                <%= @session_stats[:cancellation_rate] %>%
+              </span>
+            </div>
+            <% if @session_stats[:cancellation_rate] > 20 %>
+              <p class="text-xs text-red-600 mt-1">⚠️ Tasa crítica - Revisar</p>
+            <% elsif @session_stats[:cancellation_rate] > 10 %>
+              <p class="text-xs text-yellow-600 mt-1">⚠️ Tasa alta</p>
+            <% else %>
+              <p class="text-xs text-green-600 mt-1">✓ Tasa normal</p>
+            <% end %>
+          </div>
+          
+          <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+            <span class="text-sm text-gray-600">Ticket promedio:</span>
+            <span class="text-lg font-bold text-blue-600">$<%= number_with_precision(@session_stats[:average_ticket], precision: 2) %></span>
+          </div>
+          
+          <% if @register_session.closed? %>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">Ventas por hora:</span>
+              <span class="text-lg font-bold text-purple-600"><%= @session_stats[:sales_per_hour] %></span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Alertas -->
+      <% if @register_session.open? %>
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+          <div class="flex">
+            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <div class="ml-3">
+              <p class="text-sm text-yellow-700 font-medium">
+                Recuerda cerrar el turno al finalizar tu jornada
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
