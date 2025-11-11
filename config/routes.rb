@@ -42,6 +42,25 @@ Rails.application.routes.draw do
     end
   end
 
+  # Cajas (Registers)
+  resources :registers do
+    member do
+      patch :toggle_active
+    end
+  end
+  
+  # Sesiones de caja (Register Sessions)
+  resources :register_sessions, except: [:edit, :update] do
+    member do
+      get :close                          # Formulario para cerrar turno
+      patch :process_close                # Procesar cierre
+      get :closure_report                 # Reporte básico (cajeros)
+      get :closure_report_detailed        # Reporte completo (supervisores+)
+      patch :toggle_active                # Activar/desactivar (si existe)
+    end
+  end
+
+
   get "up" => "rails/health#show", as: :rails_health_check
   
   root "products#index"

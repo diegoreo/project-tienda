@@ -76,3 +76,6 @@ gem 'devise'
 
 # Authorization  
 gem 'pundit'
+
+# Paginación rápida y eficiente
+gem 'pagy', '~> 6.2'

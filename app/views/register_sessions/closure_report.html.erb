@@ -1,0 +1,186 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg shadow-lg p-6 mb-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold">✅ Turno Cerrado Exitosamente</h1>
+          <p class="text-green-100 mt-2">Sesión #<%= @register_session.id %> - <%= @register_session.register.display_name %></p>
+        </div>
+        <svg class="w-16 h-16 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-between items-center mb-6 no-print">
+      <div class="flex space-x-3">
+        <button onclick="window.print()" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          <span>Imprimir</span>
+        </button>
+        
+        <% if policy(@register_session).closure_report_detailed? %>
+          <%= link_to closure_report_detailed_register_session_path(@register_session),
+              class: "bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Ver Detallado</span>
+          <% end %>
+        <% end %>
+      </div>
+      
+      <%= link_to "← Volver", register_sessions_path, 
+          class: "bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition" %>
+    </div>
+
+    <!-- Información del Turno -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Información del Turno
+      </h2>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-sm text-gray-600">Fecha de apertura:</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @report_data[:opened_at].strftime("%d/%m/%Y %H:%M") %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm text-gray-600">Fecha de cierre:</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @report_data[:closed_at].strftime("%d/%m/%Y %H:%M") %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm text-gray-600">Abierto por:</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @report_data[:opened_by].name %></p>
+        </div>
+        
+        <div>
+          <p class="text-sm text-gray-600">Duración:</p>
+          <p class="text-lg font-semibold text-gray-900"><%= @report_data[:duration] ? "#{@report_data[:duration]} horas" : "-" %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen de Ventas -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+        </svg>
+        Sus Ventas
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border-2 border-green-300">
+          <p class="text-sm text-green-700 mb-1">Total Vendido</p>
+          <p class="text-4xl font-black text-green-800">$<%= number_with_precision(@report_data[:total_sales], precision: 2) %></p>
+          <p class="text-xs text-green-600 mt-2"><%= @report_data[:sales_count] %> ventas completadas</p>
+        </div>
+        
+        <div class="space-y-3">
+          <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+            <span class="text-sm text-gray-700 flex items-center">
+              <span class="text-xl mr-2">💵</span>
+              Efectivo:
+            </span>
+            <span class="text-lg font-bold text-green-700">$<%= number_with_precision(@report_data[:total_cash_sales], precision: 2) %></span>
+          </div>
+          
+          <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+            <span class="text-sm text-gray-700 flex items-center">
+              <span class="text-xl mr-2">💳</span>
+              Tarjeta:
+            </span>
+            <span class="text-lg font-bold text-blue-700">$<%= number_with_precision(@report_data[:total_card_sales], precision: 2) %></span>
+          </div>
+          
+          <div class="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+            <span class="text-sm text-gray-700 flex items-center">
+              <span class="text-xl mr-2">🕒</span>
+              Crédito:
+            </span>
+            <span class="text-lg font-bold text-purple-700">$<%= number_with_precision(@report_data[:total_credit_sales], precision: 2) %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          Rendimiento
+        </h3>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Ticket promedio:</span>
+            <span class="text-xl font-bold text-blue-600">$<%= number_with_precision(@report_data[:average_ticket], precision: 2) %></span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Ventas por hora:</span>
+            <span class="text-xl font-bold text-purple-600"><%= @report_data[:sales_per_hour] %></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+          <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Cancelaciones
+        </h3>
+        
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Cantidad:</span>
+            <span class="text-xl font-bold text-red-600"><%= @report_data[:cancelled_sales_count] %></span>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Monto total:</span>
+            <span class="text-xl font-bold text-red-600">$<%= number_with_precision(@report_data[:cancelled_sales_total], precision: 2) %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje Final -->
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
+      <div class="flex items-start">
+        <svg class="w-6 h-6 text-blue-600 mr-3 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+          <h3 class="text-lg font-bold text-blue-900 mb-2">Turno cerrado correctamente</h3>
+          <p class="text-sm text-blue-800">
+            Su supervisor revisará el cierre de caja. Gracias por su trabajo.
+          </p>
+          <% if @register_session.closing_notes.present? %>
+            <div class="mt-3 pt-3 border-t border-blue-200">
+              <p class="text-xs text-blue-700 font-semibold mb-1">Notas de cierre:</p>
+              <p class="text-sm text-blue-900"><%= @register_session.closing_notes %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

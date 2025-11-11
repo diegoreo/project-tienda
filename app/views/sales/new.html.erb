@@ -1,39 +1,22 @@
 <div class="min-h-screen bg-gray-50">
   <div class="container mx-auto px-3 py-3">
     
-    <!-- Success Alert (Fixed position) -->
+    <!-- Success Alert (Fixed position) - CON STIMULUS -->
     <% if @success_message %>
-      <div class="fixed top-4 right-4 z-50 animate-slide-in">
-        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3">
+      <div class="fixed top-4 right-4 z-50"
+           data-controller="success-alert"
+           data-success-alert-duration-value="3000">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 cursor-pointer"
+             data-action="click->success-alert#dismiss">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <span class="font-semibold"><%= @success_message %></span>
+          <svg class="w-4 h-4 ml-2 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </div>
       </div>
-      
-      <script>
-        setTimeout(() => {
-          const alert = document.querySelector('.animate-slide-in');
-          if (alert) {
-            alert.classList.add('animate-slide-out');
-            setTimeout(() => alert.remove(), 300);
-          }
-        }, 3000);
-      </script>
-      
-      <style>
-        @keyframes slide-in {
-          from { transform: translateX(400px); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slide-out {
-          from { transform: translateX(0); opacity: 1; }
-          to { transform: translateX(400px); opacity: 0; }
-        }
-        .animate-slide-in { animation: slide-in 0.3s ease-out; }
-        .animate-slide-out { animation: slide-out 0.3s ease-out; }
-      </style>
     <% end %>
 
     <!-- Header compacto -->
@@ -48,6 +31,35 @@
         <%= Time.current.strftime("%d/%m/%Y %H:%M") %>
       </div>
     </div>
+
+    <!-- 🔥 ALERTA DE SESIÓN ACTIVA -->
+    <% if @current_session %>
+      <div class="bg-green-50 border-l-4 border-green-500 p-3 rounded-lg shadow-sm mb-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="bg-green-500 rounded-full p-2">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-green-800">
+                ✅ Turno activo: <span class="text-green-900"><%= @current_session.register.display_name %></span>
+              </p>
+              <p class="text-xs text-green-700">
+                Abierto por <strong><%= @current_session.opened_by.name %></strong> hace <%= time_ago_in_words(@current_session.opened_at) %>
+              </p>
+            </div>
+          </div>
+          <%= link_to register_session_path(@current_session), class: "text-sm text-green-700 hover:text-green-900 font-semibold underline flex items-center gap-1" do %>
+            <span>Ver turno</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
 
     <%= render 'form', sale: @sale %>
     

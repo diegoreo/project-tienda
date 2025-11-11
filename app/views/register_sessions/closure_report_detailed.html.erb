@@ -1,0 +1,348 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb -->
+  <nav class="flex mb-6 no-print" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+      <li class="inline-flex items-center">
+        <%= link_to register_sessions_path, class: "text-gray-700 hover:text-blue-600" do %>
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          Turnos
+        <% end %>
+      </li>
+      <li>
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <%= link_to "Sesión ##{@register_session.id}", register_session_path(@register_session), class: "ml-1 text-gray-700 hover:text-blue-600 md:ml-2" %>
+        </div>
+      </li>
+      <li aria-current="page">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+          </svg>
+          <span class="ml-1 text-gray-500 md:ml-2">Reporte de Cierre</span>
+        </div>
+      </li>
+    </ol>
+  </nav>
+
+  <!-- Header con acciones -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">📊 Reporte de Cierre de Caja</h1>
+      <p class="text-gray-600 mt-2">Sesión #<%= @register_session.id %> - <%= @register_session.register.display_name %></p>
+    </div>
+    
+    <div class="flex space-x-3 no-print">
+      <button onclick="window.print()" 
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        <span>Imprimir</span>
+      </button>
+    
+      <%= link_to "Volver", register_session_path(@register_session), 
+          class: "bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg transition" %>
+    </div>
+  </div>
+
+  <!-- Información del Turno -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    
+    <!-- Datos de Apertura -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+        </svg>
+        Datos de Apertura
+      </h2>
+      
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Abierta por:</span>
+          <span class="text-sm font-semibold text-gray-900"><%= @report_data[:opened_by].name %></span>
+        </div>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Fecha y hora:</span>
+          <span class="text-sm font-semibold text-gray-900"><%= @report_data[:opened_at].strftime("%d/%m/%Y %H:%M") %></span>
+        </div>
+        
+        <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+          <span class="text-sm text-gray-600">Fondo inicial:</span>
+          <span class="text-lg font-bold text-green-600">$<%= number_with_precision(@report_data[:opening_balance], precision: 2) %></span>
+        </div>
+        
+        <% if @register_session.opening_notes.present? %>
+          <div class="pt-3 border-t border-gray-200">
+            <p class="text-xs text-gray-600 mb-1">Notas de apertura:</p>
+            <p class="text-sm text-gray-900"><%= @register_session.opening_notes %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Datos de Cierre -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <svg class="w-6 h-6 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        Datos de Cierre
+      </h2>
+      
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Cerrada por:</span>
+          <span class="text-sm font-semibold text-gray-900"><%= @report_data[:closed_by]&.name || "-" %></span>
+        </div>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Fecha y hora:</span>
+          <span class="text-sm font-semibold text-gray-900"><%= @report_data[:closed_at]&.strftime("%d/%m/%Y %H:%M") || "-" %></span>
+        </div>
+        
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Duración del turno:</span>
+          <span class="text-sm font-semibold text-gray-900"><%= @report_data[:duration] ? "#{@report_data[:duration]} horas" : "-" %></span>
+        </div>
+        
+        <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+          <span class="text-sm text-gray-600">Efectivo contado:</span>
+          <span class="text-lg font-bold text-blue-600">$<%= number_with_precision(@report_data[:closing_balance], precision: 2) %></span>
+        </div>
+        
+        <% if @register_session.closing_notes.present? %>
+          <div class="pt-3 border-t border-gray-200">
+            <p class="text-xs text-gray-600 mb-1">Notas de cierre:</p>
+            <p class="text-sm text-gray-900"><%= @register_session.closing_notes %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen Financiero -->
+  <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-lg p-8 mb-6 border-2 border-blue-200">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">💰 Resumen Financiero</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div class="bg-white rounded-lg p-6 shadow">
+        <p class="text-sm text-gray-600 mb-2">Total Ventas</p>
+        <p class="text-3xl font-bold text-green-600">$<%= number_with_precision(@report_data[:total_sales], precision: 2) %></p>
+        <p class="text-xs text-gray-500 mt-2"><%= @report_data[:sales_count] %> ventas</p>
+      </div>
+      
+      <div class="bg-white rounded-lg p-6 shadow">
+        <p class="text-sm text-gray-600 mb-2">💵 Efectivo</p>
+        <p class="text-3xl font-bold text-green-700">$<%= number_with_precision(@report_data[:total_cash_sales], precision: 2) %></p>
+      </div>
+      
+      <div class="bg-white rounded-lg p-6 shadow">
+        <p class="text-sm text-gray-600 mb-2">💳 Tarjeta</p>
+        <p class="text-3xl font-bold text-blue-600">$<%= number_with_precision(@report_data[:total_card_sales], precision: 2) %></p>
+      </div>
+      
+      <div class="bg-white rounded-lg p-6 shadow">
+        <p class="text-sm text-gray-600 mb-2">🕒 Crédito</p>
+        <p class="text-3xl font-bold text-purple-600">$<%= number_with_precision(@report_data[:total_credit_sales], precision: 2) %></p>
+      </div>
+    </div>
+
+    <!-- Cuadre de Efectivo -->
+    <div class="bg-white rounded-lg p-6 shadow-lg">
+      <h3 class="text-lg font-bold text-gray-900 mb-4 text-center">📊 Cuadre de Efectivo</h3>
+      
+      <div class="space-y-3">
+        <div class="flex justify-between items-center text-lg">
+          <span class="text-gray-700">Fondo inicial:</span>
+          <span class="font-semibold">$<%= number_with_precision(@report_data[:opening_balance], precision: 2) %></span>
+        </div>
+        
+        <div class="flex justify-between items-center text-lg">
+          <span class="text-gray-700">+ Ventas en efectivo:</span>
+          <span class="font-semibold text-green-600">$<%= number_with_precision(@report_data[:total_cash_sales], precision: 2) %></span>
+        </div>
+        
+        <div class="flex justify-between items-center text-lg pt-3 border-t-2 border-gray-300">
+          <span class="text-gray-900 font-bold">= Efectivo esperado:</span>
+          <span class="text-2xl font-bold text-blue-600">$<%= number_with_precision(@report_data[:expected_balance], precision: 2) %></span>
+        </div>
+        
+        <div class="flex justify-between items-center text-lg">
+          <span class="text-gray-900 font-bold">Efectivo contado:</span>
+          <span class="text-2xl font-bold text-green-600">$<%= number_with_precision(@report_data[:closing_balance], precision: 2) %></span>
+        </div>
+        
+        <div class="flex justify-between items-center text-xl pt-3 border-t-2 border-gray-400">
+          <span class="text-gray-900 font-bold">Diferencia:</span>
+          <% if @report_data[:difference] %>
+            <% if @report_data[:difference].zero? %>
+              <span class="text-2xl font-black text-green-600">$0.00 ✓</span>
+            <% elsif @report_data[:difference].positive? %>
+              <span class="text-2xl font-black text-blue-600">+$<%= number_with_precision(@report_data[:difference], precision: 2) %></span>
+            <% else %>
+              <span class="text-2xl font-black text-red-600">-$<%= number_with_precision(@report_data[:difference].abs, precision: 2) %></span>
+            <% end %>
+          <% end %>
+        </div>
+        
+        <!-- Mensaje según diferencia -->
+        <% if @report_data[:difference] %>
+          <div class="pt-3 mt-3 border-t border-gray-200">
+            <% if @report_data[:difference].zero? %>
+              <div class="bg-green-100 border-l-4 border-green-500 p-3 rounded">
+                <p class="text-sm font-semibold text-green-800">✅ ¡Perfecto! El efectivo cuadra exactamente.</p>
+              </div>
+            <% elsif @report_data[:difference].positive? %>
+              <div class="bg-blue-100 border-l-4 border-blue-500 p-3 rounded">
+                <p class="text-sm font-semibold text-blue-800">ℹ️ Sobrante de $<%= number_with_precision(@report_data[:difference], precision: 2) %></p>
+                <p class="text-xs text-blue-700 mt-1">Hay más efectivo del esperado. Verificar origen.</p>
+              </div>
+            <% else %>
+              <div class="bg-red-100 border-l-4 border-red-500 p-3 rounded">
+                <p class="text-sm font-semibold text-red-800">⚠️ Faltante de $<%= number_with_precision(@report_data[:difference].abs, precision: 2) %></p>
+                <p class="text-xs text-red-700 mt-1">Falta efectivo. Revisar notas de cierre y ventas.</p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">📈 Rendimiento</h3>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Ticket promedio:</span>
+          <span class="text-lg font-bold text-blue-600">$<%= number_with_precision(@report_data[:average_ticket], precision: 2) %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Ventas por hora:</span>
+          <span class="text-lg font-bold text-purple-600"><%= @report_data[:sales_per_hour] %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">❌ Cancelaciones</h3>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Cantidad:</span>
+          <span class="text-lg font-bold text-red-600"><%= @report_data[:cancelled_sales_count] %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Monto:</span>
+          <span class="text-lg font-bold text-red-600">$<%= number_with_precision(@report_data[:cancelled_sales_total], precision: 2) %></span>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+          <span class="text-sm text-gray-600">Tasa:</span>
+          <span class="text-lg font-bold <%= @report_data[:cancellation_rate] > 10 ? 'text-red-600' : 'text-green-600' %>">
+            <%= @report_data[:cancellation_rate] %>%
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">⏱️ Tiempo</h3>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Duración:</span>
+          <span class="text-lg font-bold text-gray-900"><%= @report_data[:duration] %> hrs</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Apertura:</span>
+          <span class="text-sm text-gray-900"><%= @report_data[:opened_at].strftime("%H:%M") %></span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-600">Cierre:</span>
+          <span class="text-sm text-gray-900"><%= @report_data[:closed_at].strftime("%H:%M") %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detalle de Ventas -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-xl font-bold text-gray-900 mb-4">🛒 Detalle de Ventas</h2>
+    
+    <% if @sales.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Folio</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Método</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hora</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @sales.each do |sale| %>
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#<%= sale.id %></td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600"><%= sale.customer&.name || "Sin cliente" %></td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                  <% case sale.payment_method %>
+                  <% when 'cash' %>
+                    <span class="text-green-600">💵 Efectivo</span>
+                  <% when 'card' %>
+                    <span class="text-blue-600">💳 Tarjeta</span>
+                  <% when 'credit' %>
+                    <span class="text-purple-600">🕒 Crédito</span>
+                  <% when 'mixed' %>
+                    <span class="text-orange-600">💰 Mixto</span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">$<%= number_with_precision(sale.total, precision: 2) %></td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600"><%= sale.created_at.strftime("%H:%M") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-center text-gray-500 py-8">No hubo ventas en este turno</p>
+    <% end %>
+  </div>
+
+  <!-- Ventas Canceladas -->
+  <% if @cancelled_sales.any? %>
+    <div class="bg-red-50 rounded-lg shadow-md p-6 border-l-4 border-red-500">
+      <h2 class="text-xl font-bold text-red-900 mb-4">❌ Ventas Canceladas</h2>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-red-200">
+          <thead class="bg-red-100">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Folio</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Monto</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Cancelada por</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-red-700 uppercase">Razón</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-red-100">
+            <% @cancelled_sales.each do |sale| %>
+              <tr>
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#<%= sale.id %></td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">$<%= number_with_precision(sale.total, precision: 2) %></td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600"><%= sale.cancelled_by&.name %></td>
+                <td class="px-4 py-3 text-sm text-gray-600"><%= sale.cancellation_reason || "-" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+</div>

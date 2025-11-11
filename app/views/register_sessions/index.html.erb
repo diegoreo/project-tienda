@@ -1,0 +1,265 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Sesiones de Caja</h1>
+      <p class="text-gray-600 mt-1">Gestión de turnos y aperturas de caja</p>
+    </div>
+    
+    <% if policy(RegisterSession).create? %>
+      <%= link_to new_register_session_path, class: "bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition flex items-center space-x-2" do %>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Abrir Turno</span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Estadísticas del Día -->
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
+          <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Total Hoy</p>
+          <p class="text-2xl font-bold text-gray-900"><%= @today_stats[:total_sessions] %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-yellow-100 rounded-lg p-3">
+          <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Abiertas</p>
+          <p class="text-2xl font-bold text-yellow-600"><%= @today_stats[:open_sessions] %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-gray-100 rounded-lg p-3">
+          <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Cerradas</p>
+          <p class="text-2xl font-bold text-gray-600"><%= @today_stats[:closed_sessions] %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Ventas</p>
+          <p class="text-2xl font-bold text-green-600">$<%= number_with_precision(@today_stats[:total_sales], precision: 2) %></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
+          <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Efectivo</p>
+          <p class="text-2xl font-bold text-purple-600">$<%= number_with_precision(@today_stats[:total_cash_sales], precision: 2) %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <%= form_with url: register_sessions_path, method: :get, class: "grid grid-cols-1 md:grid-cols-4 gap-4" do |f| %>
+      <!-- Filtro por Caja -->
+      <div>
+        <%= f.label :register_id, "Caja", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= f.select :register_id, 
+            options_from_collection_for_select(Register.order(:code), :id, :display_name, params[:register_id]),
+            { include_blank: "Todas las cajas" },
+            class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" %>
+      </div>
+
+      <!-- Filtro por Estado -->
+      <div>
+        <%= f.label :status, "Estado", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= f.select :status, 
+            options_for_select([["Todas", ""], ["Abiertas", "open"], ["Cerradas", "closed"]], params[:status]),
+            {},
+            class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" %>
+      </div>
+
+      <!-- Filtro por Fecha -->
+      <div>
+        <%= f.label :date, "Fecha", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= f.date_field :date, 
+            value: params[:date],
+            class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" %>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex items-end space-x-2">
+        <%= f.submit "Filtrar", class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition" %>
+        <%= link_to "Limpiar", register_sessions_path, class: "bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition" %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Tabla de Sesiones -->
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <% if @register_sessions.any? %>
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caja</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abierta por</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apertura</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cierre</th>
+            <% if policy(RegisterSession).view_cash_differences? %>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Ventas</th>
+            <% else %>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <% end %>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @register_sessions.each do |session| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm font-medium text-gray-900">#<%= session.id %></span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm text-gray-900"><%= session.register.display_name %></span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm text-gray-600"><%= session.opened_by.name %></span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="text-sm text-gray-900"><%= session.opened_at.strftime("%d/%m/%Y %H:%M") %></span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if session.closed_at %>
+                  <span class="text-sm text-gray-900"><%= session.closed_at.strftime("%d/%m/%Y %H:%M") %></span>
+                <% else %>
+                  <span class="text-sm text-gray-400">-</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if policy(session).view_cash_differences? %>
+                  <span class="text-sm font-medium text-green-600">$<%= number_with_precision(session.total_sales, precision: 2) %></span>
+                <% else %>
+                  <span class="text-sm text-gray-400">---</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <% if session.open? %>
+                  <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    Abierta
+                  </span>
+                <% else %>
+                  <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                    Cerrada
+                  </span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <div class="flex justify-end space-x-2">
+                  <!-- Botón Ver - Solo si tiene permiso -->
+                  <% if policy(session).show? %>
+                    <%= link_to register_session_path(session), 
+                        class: "text-blue-600 hover:text-blue-900",
+                        title: "Ver detalles" do %>
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                    <% end %>
+                  <% end %>
+                  
+                  <!-- SI ESTÁ ABIERTA: Botón cerrar -->
+                  <% if session.open? && policy(session).close? %>
+                    <%= link_to close_register_session_path(session), 
+                        class: "text-red-600 hover:text-red-900",
+                        title: "Cerrar turno" do %>
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                      </svg>
+                    <% end %>
+                  <% end %>
+                  
+                  <!-- 🔥 SI ESTÁ CERRADA: Botones de reportes -->
+                  <% if session.closed? %>
+                    <%= link_to closure_report_register_session_path(session), 
+                        class: "text-green-600 hover:text-green-900",
+                        title: "Ver reporte básico" do %>
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                    <% end %>
+                    
+                    <% if policy(session).closure_report_detailed? %>
+                      <%= link_to closure_report_detailed_register_session_path(session), 
+                          class: "text-purple-600 hover:text-purple-900",
+                          title: "Ver reporte detallado" do %>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                      <% end %>
+                    <% end %>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+
+      <!-- Paginación -->
+      <%# Paginación - Deshabilitada por ahora %>
+      <%# <div class="px-6 py-4 border-t border-gray-200"> %>
+        <%#= paginate @register_sessions %>
+      <%# </div> %>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No hay sesiones</h3>
+        <p class="mt-1 text-sm text-gray-500">Comienza abriendo un turno en una caja.</p>
+        <% if policy(RegisterSession).create? %>
+          <div class="mt-6">
+            <%= link_to new_register_session_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700" do %>
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Abrir Turno
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

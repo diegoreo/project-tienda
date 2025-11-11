@@ -1,0 +1,114 @@
+<div class="bg-white rounded-lg shadow-md p-6">
+  <%= form_with(model: register, local: true, class: "space-y-6") do |form| %>
+    
+    <!-- Mostrar errores -->
+    <% if register.errors.any? %>
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-red-800">
+              <%= pluralize(register.errors.count, "error") %> impidieron guardar esta caja:
+            </h3>
+            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+              <% register.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Código -->
+      <div>
+        <%= form.label :code, "Código *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :code, 
+            class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            placeholder: "CAJA-001",
+            required: true %>
+        <p class="mt-1 text-xs text-gray-500">Identificador único de la caja</p>
+      </div>
+
+      <!-- Nombre -->
+      <div>
+        <%= form.label :name, "Nombre *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :name, 
+            class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            placeholder: "Caja Principal",
+            required: true %>
+        <p class="mt-1 text-xs text-gray-500">Nombre descriptivo de la caja</p>
+      </div>
+
+      <!-- Almacén -->
+      <div>
+        <%= form.label :warehouse_id, "Almacén *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.select :warehouse_id,
+            options_from_collection_for_select(@warehouses, :id, :name, register.warehouse_id),
+            { prompt: "Selecciona un almacén" },
+            class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            required: true %>
+        <p class="mt-1 text-xs text-gray-500">Almacén del que tomará inventario</p>
+      </div>
+
+      <!-- Ubicación -->
+      <div>
+        <%= form.label :location, "Ubicación", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.text_field :location, 
+            class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+            placeholder: "Mostrador 1, Piso 2" %>
+        <p class="mt-1 text-xs text-gray-500">Ubicación física de la caja</p>
+      </div>
+
+      <!-- Fondo Inicial -->
+      <div>
+        <%= form.label :initial_balance, "Fondo Inicial *", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <div class="relative">
+          <span class="absolute left-4 top-3.5 text-gray-500 font-medium">$</span>
+          <%= form.number_field :initial_balance, 
+              step: 0.01,
+              min: 0,
+              class: "w-full pl-8 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+              placeholder: "500.00",
+              required: true %>
+        </div>
+        <p class="mt-1 text-xs text-gray-500">Monto con el que debe abrir cada turno</p>
+      </div>
+
+      <!-- Estado -->
+      <div class="flex items-center h-full pt-8">
+        <label class="flex items-center cursor-pointer">
+          <%= form.check_box :active, class: "w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" %>
+          <span class="ml-2 text-sm font-medium text-gray-700">Caja activa</span>
+        </label>
+        <p class="ml-2 text-xs text-gray-500">(Disponible para abrir turnos)</p>
+      </div>
+
+    </div>
+
+    <!-- Descripción -->
+    <div>
+      <%= form.label :description, "Descripción", class: "block text-sm font-medium text-gray-700 mb-2" %>
+      <%= form.text_area :description, 
+          rows: 3,
+          class: "w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition",
+          placeholder: "Información adicional sobre esta caja..." %>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-end space-x-3 pt-4">
+      <%= link_to "Cancelar", registers_path, 
+          class: "px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50 transition" %>
+      
+      <%= form.submit register.new_record? ? "Crear Caja" : "Actualizar Caja",
+          class: "px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition" %>
+    </div>
+
+  <% end %>
+</div>

@@ -1,4 +1,6 @@
 class Warehouse < ApplicationRecord
+  has_many :registers, dependent: :restrict_with_error  
+  has_many :register_sessions, through: :registers  
   has_many :purchases, dependent: :restrict_with_exception
   has_many :inventories, dependent: :restrict_with_exception
   has_many :inventory_movements, through: :inventories
