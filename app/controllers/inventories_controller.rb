@@ -5,11 +5,11 @@ class InventoriesController < ApplicationController
 
   def index
     authorize Inventory
-    @inventories = policy_scope(Inventory).includes(:product, :warehouse)
+    inventories = policy_scope(Inventory).includes(:product, :warehouse)
     
     # Filtro por búsqueda (nombre de producto o código de barras)
     if params[:query].present?
-      @inventories = @inventories.joins(:product)
+      inventories = inventories.joins(:product)
         .left_joins(product: :barcodes)
         .where(
           "products.name ILIKE :query OR barcodes.code ILIKE :query",
@@ -20,24 +20,24 @@ class InventoriesController < ApplicationController
     
     # Filtro por almacén
     if params[:warehouse_id].present?
-      @inventories = @inventories.where(warehouse_id: params[:warehouse_id])
+      inventories = inventories.where(warehouse_id: params[:warehouse_id])
     end
     
     # Filtro por estado de stock
     case params[:stock_status]
     when 'low'
-      @inventories = @inventories.where('quantity <= ?', 10)
+      inventories = inventories.where('quantity <= ?', 10)
     when 'medium'
-      @inventories = @inventories.where('quantity > ? AND quantity <= ?', 10, 50)
+      inventories = inventories.where('quantity > ? AND quantity <= ?', 10, 50)
     when 'optimal'
-      @inventories = @inventories.where('quantity > ?', 50)
+      inventories = inventories.where('quantity > ?', 50)
     # 'all' o nil - mostrar todos (sin filtro)
     end
     
     # Filtro por categoría
     if params[:category_id].present?
-      @inventories = @inventories.joins(:product).where(products: { category_id: params[:category_id] })
-    end
+      inventories = inventories.joins(:product).where(products: { category_id: params[:category_id] })
+    end  
     
     # Ordenamiento clickeable
     sort_column = params[:sort] || 'quantity'
@@ -48,16 +48,16 @@ class InventoriesController < ApplicationController
     
     case sort_column
     when 'product_name'
-      @inventories = @inventories.joins(:product).order("products.name #{sort_direction}")
+      inventories = inventories.joins(:product).order("products.name #{sort_direction}")
     when 'warehouse_name'
-      @inventories = @inventories.joins(:warehouse).order("warehouses.name #{sort_direction}")
+      inventories = inventories.joins(:warehouse).order("warehouses.name #{sort_direction}")
     when 'quantity'
-      @inventories = @inventories.order("quantity #{sort_direction}")
+      inventories = inventories.order("quantity #{sort_direction}")
     when 'value'
       # Usar Arel.sql() para cálculos dinámicos
-      @inventories = @inventories.joins(:product).order(Arel.sql("inventories.quantity * products.price #{sort_direction}"))
+      inventories = inventories.joins(:product).order(Arel.sql("inventories.quantity * products.price #{sort_direction}"))
     else
-      @inventories = @inventories.order("quantity #{sort_direction}")
+      inventories = inventories.order("quantity #{sort_direction}")
     end
     
     # Cargar warehouses y categories para los filtros
@@ -65,8 +65,8 @@ class InventoriesController < ApplicationController
     @categories = Category.order(:name)
     
     # Estadísticas para el header
-    @total_inventories = @inventories.count
-    @low_stock_count = @inventories.where('quantity <= ?', 10).count
+    @total_inventories = inventories.count
+    @low_stock_count = inventories.where('quantity <= ?', 10).count
     @total_warehouses = @warehouses.count
     
     # Variable para controlar visualización de costos
@@ -75,16 +75,22 @@ class InventoriesController < ApplicationController
     # Calcular valor total del inventario (antes de la paginación)
     # Solo si tiene permiso para ver costos
     if @show_costs
-      @total_inventory_value = @inventories.joins(:product).sum('inventories.quantity * products.price')
+      @total_inventory_value = inventories.joins(:product).sum('inventories.quantity * products.price')
     else
       @total_inventory_value = nil
     end
     
     # Responder a diferentes formatos
     respond_to do |format|
-      format.html
+      format.html do
+        # SOLO EN HTML: PAGINAR (30 por página)
+        @pagy, @inventories = pagy(inventories, items: 30)
+      end
+      
       format.csv do
+        # EN CSV: NO PAGINAR (exportar todo lo filtrado)
         authorize Inventory, :export?
+        @inventories = inventories  # Todo lo filtrado
         send_data generate_csv(@inventories), filename: "inventario-#{Date.today}.csv"
       end
     end

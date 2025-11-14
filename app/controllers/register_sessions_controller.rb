@@ -5,17 +5,18 @@ class RegisterSessionsController < ApplicationController
   # GET /register_sessions
   def index
     authorize RegisterSession
-    @register_sessions = policy_scope(RegisterSession)
-                          .includes(:register, :opened_by, :closed_by)
-                          .order(opened_at: :desc)
-                          #.page(params[:page]).per(20) cuando tengamos paginacion decomentar y quitar la linea de abajo
-                          .limit(50)
+    sessions = policy_scope(RegisterSession)
+                .includes(:register, :opened_by, :closed_by)
+                .order(opened_at: :desc)
     
     # Filtros
-    @register_sessions = @register_sessions.by_register(params[:register_id]) if params[:register_id].present?
-    @register_sessions = @register_sessions.open_sessions if params[:status] == 'open'
-    @register_sessions = @register_sessions.closed_sessions if params[:status] == 'closed'
-    @register_sessions = @register_sessions.by_date(params[:date]) if params[:date].present?
+    sessions = sessions.by_register(params[:register_id]) if params[:register_id].present?
+    sessions = sessions.open_sessions if params[:status] == 'open'
+    sessions = sessions.closed_sessions if params[:status] == 'closed'
+    sessions = sessions.by_date(params[:date]) if params[:date].present?
+
+    # PAGINACIÓN (20 turnos por página)
+    @pagy, @register_sessions = pagy(sessions, items: 20)
     
     # Estadísticas del día
     @today_stats = calculate_today_stats

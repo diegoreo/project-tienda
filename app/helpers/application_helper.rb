@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include Pagy::Frontend
   def field_error_messages(record, field)
     return unless record.errors[field].any?
 
