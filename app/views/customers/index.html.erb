@@ -126,6 +126,12 @@
           <p class="text-gray-400 mt-2">Intenta ajustar los filtros o crear un nuevo cliente</p>
         </div>
       <% end %>
+
+      <!-- PAGINACIÓN -->
+      <% if @customers.any? %>
+        <%= render 'shared/pagy_nav', pagy: @pagy %>
+      <% end %>
+
     </div>
 
   </div>

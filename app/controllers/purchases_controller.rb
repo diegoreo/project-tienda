@@ -3,64 +3,70 @@ class PurchasesController < ApplicationController
   # GET /purchases
   def index
     authorize Purchase
-    @purchases = policy_scope(Purchase).includes(:supplier, :warehouse)
+    purchases = policy_scope(Purchase).includes(:supplier, :warehouse)
   
     # Filtro por rango de fechas
     if params[:date_from].present?
-      @purchases = @purchases.where("purchase_date >= ?", params[:date_from])
+      purchases = purchases.where("purchase_date >= ?", params[:date_from])
     end
   
     if params[:date_to].present?
-      @purchases = @purchases.where("purchase_date <= ?", params[:date_to])
+      purchases = purchases.where("purchase_date <= ?", params[:date_to])
     end
   
     # Filtro por almacén
     if params[:warehouse_id].present?
-      @purchases = @purchases.where(warehouse_id: params[:warehouse_id])
+      purchases = purchases.where(warehouse_id: params[:warehouse_id])
     end
   
     # Filtro por proveedor
     if params[:supplier_id].present?
-      @purchases = @purchases.where(supplier_id: params[:supplier_id])
+      purchases = purchases.where(supplier_id: params[:supplier_id])
     end
   
     # Filtro por monto mínimo
     if params[:min_total].present?
-      @purchases = @purchases.where("total >= ?", params[:min_total])
+      purchases = purchases.where("total >= ?", params[:min_total])
     end
   
     # Filtro por monto máximo
     if params[:max_total].present?
-      @purchases = @purchases.where("total <= ?", params[:max_total])
+      purchases = purchases.where("total <= ?", params[:max_total])
     end
   
     # Filtro por estado de procesamiento
     if params[:processed].present?
       if params[:processed] == "true"
-        @purchases = @purchases.where.not(processed_at: nil)
+        purchases = purchases.where.not(processed_at: nil)
       elsif params[:processed] == "false"
-        @purchases = @purchases.where(processed_at: nil)
+        purchases = purchases.where(processed_at: nil)
       end
     end
   
     # Búsqueda por ID
     if params[:search_id].present?
-      @purchases = @purchases.where(id: params[:search_id])
+      purchases = purchases.where(id: params[:search_id])
     end
   
     # Ordenamiento
     case params[:sort]
     when "date_desc"
-      @purchases = @purchases.order(purchase_date: :desc)
+      purchases = purchases.order(purchase_date: :desc)
     when "date_asc"
-      @purchases = @purchases.order(purchase_date: :asc)
+      purchases = purchases.order(purchase_date: :asc)
     when "total_desc"
-      @purchases = @purchases.order(total: :desc)
+      purchases = purchases.order(total: :desc)
     when "total_asc"
-      @purchases = @purchases.order(total: :asc)
+      purchases = purchases.order(total: :asc)
     else
-      @purchases = @purchases.order(purchase_date: :desc) # Default
+      purchases = purchases.order(purchase_date: :desc) # Default
     end
+    
+    #CALCULAR TOTAL ANTES DE PAGINAR (respeta filtros)
+    @total_filtered = purchases.sum(:total)
+
+    # PAGINACIÓN (25 compras por página)
+    @pagy, @purchases = pagy(purchases, items: 25)
   end
 
   # GET /purchases/:id

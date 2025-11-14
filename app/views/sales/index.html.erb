@@ -7,7 +7,7 @@
         <div>
           <h1 class="text-2xl font-bold text-gray-800">Historial de Ventas</h1>
           <p class="text-sm text-gray-600 mt-1">
-            <%= pluralize(@sales.count, 'venta') %> encontrada<%= 's' if @sales.count != 1 %>
+            <%= pluralize(@pagy.count, 'venta') %> encontrada<%= 's' if @pagy.count != 1 %>
           </p>
         </div>
         <%= link_to new_sale_path, 
@@ -290,6 +290,11 @@
         </div>
       <% end %>
     </div>
+    
+    <!-- PAGINACIÓN -->
+    <% if @sales.any? %>
+      <%= render 'shared/pagy_nav', pagy: @pagy %>
+    <% end %>
 
   </div>
 </div>

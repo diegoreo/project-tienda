@@ -3,37 +3,42 @@ class SalesController < ApplicationController
   
   def index
     authorize Sale
-    @sales = policy_scope(Sale).includes(:customer, :warehouse, :sale_items).order(sale_date: :desc, created_at: :desc)
+    
+    # Construir query (sin @, solo variable local)
+    sales = policy_scope(Sale).includes(:customer, :warehouse, :sale_items).order(sale_date: :desc, created_at: :desc)
     
     # Control de visualización de costos
     @show_costs = policy(Sale).view_costs?
     
     # Filtro por folio
-    @sales = @sales.where(id: params[:folio]) if params[:folio].present?
+    sales = sales.where(id: params[:folio]) if params[:folio].present?
     
     # Filtro por rango de fechas
-    @sales = @sales.where('sale_date >= ?', params[:date_from]) if params[:date_from].present?
-    @sales = @sales.where('sale_date <= ?', params[:date_to]) if params[:date_to].present?
+    sales = sales.where('sale_date >= ?', params[:date_from]) if params[:date_from].present?
+    sales = sales.where('sale_date <= ?', params[:date_to]) if params[:date_to].present?
     
     # Filtro por cliente
-    @sales = @sales.where(customer_id: params[:customer_id]) if params[:customer_id].present?
+    sales = sales.where(customer_id: params[:customer_id]) if params[:customer_id].present?
     
     # Filtro por almacén
-    @sales = @sales.where(warehouse_id: params[:warehouse_id]) if params[:warehouse_id].present?
+    sales = sales.where(warehouse_id: params[:warehouse_id]) if params[:warehouse_id].present?
     
     # Filtro por método de pago
-    @sales = @sales.where(payment_method: params[:payment_method]) if params[:payment_method].present?
+    sales = sales.where(payment_method: params[:payment_method]) if params[:payment_method].present?
     
     # Filtro por estado de pago
-    @sales = @sales.where(payment_status: params[:payment_status]) if params[:payment_status].present?
+    sales = sales.where(payment_status: params[:payment_status]) if params[:payment_status].present?
     
     # Filtro por estado (completada/cancelada)
-    @sales = @sales.where(status: params[:status]) if params[:status].present?
+    sales = sales.where(status: params[:status]) if params[:status].present?
     
-    # 🆕 Filtro para ventas con deuda pendiente
+    # Filtro para ventas con deuda pendiente
     if params[:with_pending_amount] == 'true'
-      @sales = @sales.where("pending_amount > 0")
+      sales = sales.where("pending_amount > 0")
     end
+    
+    # PAGINACIÓN (25 ventas por página)
+    @pagy, @sales = pagy(sales, items: 25)
   end
   
   def show

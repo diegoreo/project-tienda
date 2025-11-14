@@ -6,31 +6,44 @@ class ProductsController < ApplicationController
     @categories = Category.order(:name)
     
     # Usar policy_scope para obtener los productos según el rol
-    @products = policy_scope(Product)
-    
-    # Filtrar por estado: activos (default), inactivos, o todos
-    case params[:status]
-    when 'inactive'
-      @products = @products.inactive
-    when 'all'
-      @products = @products.all
-    else
-      @products = @products.active  # Por defecto mostrar solo activos
-    end
-    
+    products = policy_scope(Product)
+    Rails.logger.debug "🔵 Paso 1 - Total productos: #{products.count}"
+
     # Búsqueda con pg_search
     if params[:query].present?
-      @products = @products.search_by_name_description_and_barcode(params[:query])
+      products = products.search_by_name_description_and_barcode(params[:query])
+      Rails.logger.debug "🔵 Paso 2 - Después de buscar '#{params[:query]}': #{products.count}"
     end
     
     # Filtrado por categoría
     if params[:category_id].present?
-      @products = @products.where(category_id: params[:category_id])
+      products = products.where(category_id: params[:category_id])
+      Rails.logger.debug "🔵 Paso 3 - Después de filtrar categoría: #{products.count}"
+    end
+
+    # CALCULAR CONTADORES (después de búsqueda/categoría, antes de estado)
+    @active_count = products.active.count
+    @inactive_count = products.inactive.count
+    Rails.logger.debug "🔵 Paso 4 - Activos: #{@active_count}, Inactivos: #{@inactive_count}"
+    
+    
+    # Filtrar por estado: activos (default), inactivos, o todos
+    case params[:status]
+    when 'inactive'
+      products = products.inactive
+    when 'all'
+      products = products.all
+    else
+      products = products.active  # Por defecto mostrar solo activos
     end
     
     # Orden y preload de asociaciones
-    @products = @products.includes(:purchase_unit, :sale_unit, :category)
+    products = products.includes(:purchase_unit, :sale_unit, :category)
       .order(created_at: :desc)
+
+    # PAGINACIÓN (20 productos por página)
+    @pagy, @products = pagy(products, items: 20)
+    Rails.logger.debug "🔵 Paso 7 - Productos en página: #{@products.count}"
   end
   
   def show

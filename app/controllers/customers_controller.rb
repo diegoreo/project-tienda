@@ -3,9 +3,14 @@ class CustomersController < ApplicationController
     # Autorizar el acceso al índice de clientes
     authorize Customer
     
-    @customers = Customer.order(name: :asc)
-    @customers = @customers.by_type(params[:type]) if params[:type].present?
-    @customers = @customers.with_debt if params[:with_debt] == 'true'
+    customers = Customer.order(name: :asc)
+
+    # Aplicar filtros
+    customers = customers.by_type(params[:type]) if params[:type].present?
+    customers = customers.with_debt if params[:with_debt] == 'true'
+
+    # PAGINACIÓN (25 clientes por página)
+    @pagy, @customers = pagy(customers, items: 25)
   end
   
   def show
