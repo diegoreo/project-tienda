@@ -18,6 +18,10 @@ default: &default
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Variables de entorno con valores por defecto seguros
+  username: <%= ENV.fetch('DATABASE_USERNAME', 'diegoreyesolivares') %>
+  password: <%= ENV.fetch('DATABASE_PASSWORD', '') %>
+  host: <%= ENV.fetch('DATABASE_HOST', 'localhost') %>
 
 
 development:
@@ -82,8 +86,10 @@ production:
   primary: &primary_production
     <<: *default
     database: tienda_production
-    username: tienda
-    password: <%= ENV["TIENDA_DATABASE_PASSWORD"] %>
+    # USAR VARIABLES DE ENTORNO EN PRODUCCIÓN
+    username: <%= ENV.fetch('PRODUCTION_DATABASE_USERNAME', 'tienda') %>
+    password: <%= ENV.fetch('PRODUCTION_DATABASE_PASSWORD') %>
+    host: <%= ENV.fetch('PRODUCTION_DATABASE_HOST', 'localhost') %>
   cache:
     <<: *primary_production
     database: tienda_production_cache

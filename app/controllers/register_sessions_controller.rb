@@ -71,9 +71,11 @@ class RegisterSessionsController < ApplicationController
     authorize @register_session
     
     if @register_session.save
-      redirect_to @register_session, notice: "Turno abierto exitosamente. Puede comenzar a vender."
+      # Redirigir directo a ventas
+      redirect_to new_sale_path, notice: "✅ Turno abierto exitosamente. Puede comenzar a vender."
     else
       @available_registers = Register.active.select { |r| r.available_for_opening? }
+      flash.now[:alert] = "No se pudo abrir el turno: #{@register_session.errors.full_messages.join(', ')}"
       render :new, status: :unprocessable_entity
     end
   end
@@ -128,11 +130,17 @@ class RegisterSessionsController < ApplicationController
       if @register_session.close_session!(closing_balance, current_user, closing_notes)
         redirect_to closure_report_register_session_path(@register_session), notice: "✅ Turno cerrado exitosamente."
       else
+        # Log solo errores importantes
+        Rails.logger.error "[RegisterSession] Error al cerrar sesión #{@register_session.id}: #{@register_session.errors.full_messages.join(', ')}"
+      
         @closure_summary = calculate_closure_summary
-        flash.now[:alert] = "No se pudo cerrar el turno. Verifique los datos."
+        flash.now[:alert] = "No se pudo cerrar el turno: #{@register_session.errors.full_messages.join(', ')}"
         render :close, status: :unprocessable_entity
       end
     rescue => e
+      Rails.logger.error "[RegisterSession] Excepción al cerrar sesión #{@register_session.id}: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.first(5).join("\n")
+      
       @closure_summary = calculate_closure_summary
       flash.now[:alert] = "Error al cerrar el turno: #{e.message}"
       render :close, status: :unprocessable_entity

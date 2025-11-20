@@ -71,14 +71,27 @@ class RegisterSessionPolicy < ApplicationPolicy
     user.supervisor? || user.gerente? || user.admin?
   end
 
-  # Ver reporte básico (cajeros)
+  # REPORTE BÁSICO - TODOS menos almacenista
   def closure_report?
-    show?
+    return false unless record.closed?
+    
+    # Almacenista NO puede ver reportes
+    return false if user.almacenista?
+    
+    if user.admin? || user.gerente? || user.contador? || user.supervisor?
+      true
+    elsif user.cajero?
+      # Cajero solo ve sus propios reportes
+      record.opened_by == user
+    else
+      false
+    end
   end
   
-  # Ver reporte completo con diferencias (supervisores+)
+  # REPORTE DETALLADO - Solo Admin y Gerente
   def closure_report_detailed?
-    user.supervisor? || user.contador? || user.gerente? || user.admin?
+    return false unless record.closed?
+    user.gerente? || user.admin?
   end
   
   # Ver diferencias de efectivo

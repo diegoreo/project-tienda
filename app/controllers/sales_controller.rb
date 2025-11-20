@@ -76,8 +76,10 @@ class SalesController < ApplicationController
       @sale = Sale.new(sale_date: Date.current)
       
       # Establecer cliente por defecto
-      public_customer = Customer.find_by(name: "Público General")
-      @sale.customer_id = public_customer.id if public_customer
+      default_customer = Customer.where("LOWER(TRIM(name)) LIKE ?", "%general%")
+                          .order(created_at: :asc)
+                          .first
+      @sale.customer_id = default_customer&.id if default_customer
       
       # Establecer almacén por defecto (usar el de la sesión actual)
       @sale.warehouse_id = @current_session.register.warehouse_id
