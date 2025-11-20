@@ -146,11 +146,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_205446) do
     t.bigint "supplier_id", null: false
     t.bigint "warehouse_id", null: false
     t.date "purchase_date"
-    t.decimal "total", precision: 12, scale: 2, default: "0.0"
+    t.decimal "total", precision: 12, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "processed_at"
     t.index ["processed_at"], name: "index_purchases_on_processed_at"
+    t.index ["purchase_date"], name: "index_purchases_on_purchase_date"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
     t.index ["warehouse_id"], name: "index_purchases_on_warehouse_id"
   end

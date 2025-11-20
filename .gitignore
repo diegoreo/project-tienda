@@ -35,3 +35,8 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Variables de entorno (NUNCA subir a GitHub)
+.env
+.env.local
+.env*.local
