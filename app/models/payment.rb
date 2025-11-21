@@ -12,11 +12,16 @@ class Payment < ApplicationRecord
   belongs_to :sale, optional: true
   
   # Validaciones
-  validates :amount, presence: true, numericality: { greater_than: 0 }
+  validates :amount, presence: true, numericality: { 
+    greater_than: 0,
+    message: "debe ser mayor a $0"
+  }
   validates :payment_date, presence: true
   validates :payment_method, presence: true
   validate :amount_not_exceed_customer_debt
   validate :amount_not_exceed_sale_pending, if: :sale_id?
+  # Venta debe tener saldo pendiente
+  validate :sale_must_have_pending_amount, if: :sale_id?
   
   # Callbacks - NO USAR callbacks según tu estándar, 
   # pero para actualizar deuda es necesario
@@ -32,14 +37,36 @@ class Payment < ApplicationRecord
   private
   
   def amount_not_exceed_customer_debt
-    if customer && amount && amount > customer.current_debt
-      errors.add(:amount, "no puede ser mayor a la deuda actual (#{customer.current_debt})")
+    return unless customer && amount
+    
+    if amount > customer.current_debt
+      errors.add(:amount, 
+        "⚠️ El abono de $#{amount.round(2)} excede la deuda actual de $#{customer.current_debt.round(2)}. " \
+        "El abono máximo permitido es $#{customer.current_debt.round(2)}."
+      )
     end
   end
   
   def amount_not_exceed_sale_pending
-    if sale && amount && amount > sale.pending_amount
-      errors.add(:amount, "no puede ser mayor al saldo pendiente de la venta (#{sale.pending_amount})")
+    return unless sale && amount
+    
+    if amount > sale.pending_amount
+      errors.add(:amount, 
+        "⚠️ El abono de $#{amount.round(2)} excede el saldo pendiente de $#{sale.pending_amount.round(2)}. " \
+        "El abono máximo permitido es $#{sale.pending_amount.round(2)}."
+      )
+    end
+  end
+
+  # Venta debe tener saldo pendiente para hacer abono, si esta pagada completamente no se puede hacer abono
+  def sale_must_have_pending_amount
+    return unless sale
+    
+    if sale.pending_amount.nil? || sale.pending_amount.zero?
+      errors.add(:base, 
+        "⚠️ La venta ##{sale.id} ya está completamente pagada. " \
+        "No se pueden registrar más abonos a esta venta."
+      )
     end
   end
   

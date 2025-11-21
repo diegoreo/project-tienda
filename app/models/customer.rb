@@ -13,6 +13,8 @@ class Customer < ApplicationRecord
   validates :rfc, format: { with: /\A[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\z/i }, allow_blank: true
   validates :credit_limit, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :current_debt, numericality: { greater_than_or_equal_to: 0 }
+  # Deuda no puede exceder límite
+  validate :debt_cannot_exceed_limit
   
   # Relaciones
   has_many :sales, dependent: :restrict_with_exception
@@ -70,4 +72,19 @@ class Customer < ApplicationRecord
   def reduce_debt!(amount)
     decrement!(:current_debt, amount)
   end
+  
+  private
+  # 🔥 NUEVA VALIDACIÓN PERSONALIZADA
+  def debt_cannot_exceed_limit
+    # Solo validar si ambos valores están presentes
+    return unless credit_limit.present? && current_debt.present?
+    
+    # Validar que la deuda no exceda el límite
+    if current_debt > credit_limit
+      errors.add(:current_debt, 
+        "de $#{current_debt.round(2)} excede el límite de crédito de $#{credit_limit.round(2)}"
+      )
+    end
+  end
+
 end
