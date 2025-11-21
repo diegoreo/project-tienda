@@ -3,16 +3,31 @@
 ################################################################################
 # Script de Backup Automático para PostgreSQL
 # Sistema POS - Tienda
-# Usuario: diegoreyesolivares
 ################################################################################
 
-# Configuración
-DB_NAME="tienda_development"
-DB_USER="diegoreyesolivares"
-DB_HOST="localhost"
-DB_PORT="5432"
-BACKUP_DIR="$HOME/backups/postgres"
-RETENTION_DAYS=30
+# Detectar ubicación del proyecto
+PROJECT_DIR="$HOME/tienda"
+
+# Cargar variables de entorno desde .env si existe
+if [ -f "$PROJECT_DIR/.env" ]; then
+    # Exportar solo variables de BACKUP_*
+    while IFS='=' read -r key value; do
+        # Ignorar comentarios y líneas vacías
+        if [[ ! "$key" =~ ^#.*$ ]] && [[ -n "$key" ]] && [[ "$key" =~ ^BACKUP_ ]]; then
+            # Remover comillas del valor si existen
+            value=$(echo "$value" | sed 's/^["'\'']\|["'\'']$//g')
+            export "$key=$value"
+        fi
+    done < "$PROJECT_DIR/.env"
+fi
+
+# Configuración con valores por defecto
+DB_NAME="${BACKUP_DB_NAME:-tienda_development}"
+DB_USER="${BACKUP_DB_USER:-diegoreyesolivares}"
+DB_HOST="${BACKUP_DB_HOST:-localhost}"
+DB_PORT="${BACKUP_DB_PORT:-5432}"
+BACKUP_DIR="${BACKUP_DIR:-$HOME/backups/postgres}"
+RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
 
 # Colores
 RED='\033[0;31m'
