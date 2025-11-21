@@ -37,6 +37,8 @@ class Sale < ApplicationRecord
   validate :customer_has_credit, if: -> { payment_method == 'credit' && customer.present? }
   validate :pending_amount_not_exceed_total
   validate :register_session_must_be_open, if: -> { register_session.present? && new_record? }
+  # Debe tener al menos un producto
+  validate :must_have_items, on: :create
   
   # Scopes
   scope :completed, -> { where(status: :completed) }
@@ -212,11 +214,20 @@ class Sale < ApplicationRecord
   
   private
   
+  # Mensaje de error más detallado
   def customer_has_credit
     return unless customer
     
     unless customer.can_buy_on_credit?(total)
-      errors.add(:base, "El cliente no tiene crédito suficiente. Disponible: #{customer.available_credit}")
+      faltante = (customer.current_debt + total) - customer.credit_limit
+      errors.add(:base, 
+        "⚠️ Crédito insuficiente. " \
+        "Venta: $#{total.round(2)} | " \
+        "Debe actualmente: $#{customer.current_debt.round(2)} | " \
+        "Límite de crédito: $#{customer.credit_limit.round(2)} | " \
+        "Crédito disponible: $#{customer.available_credit.round(2)} | " \
+        "Excede por: $#{faltante.round(2)}"
+      )
     end
   end
   
@@ -229,6 +240,16 @@ class Sale < ApplicationRecord
   def register_session_must_be_open
     if register_session && !register_session.open?
       errors.add(:base, "No se puede registrar una venta en una sesión cerrada")
+    end
+  end
+
+  # Al menos un producto
+  def must_have_items
+    # Contar items que no están marcados para destrucción
+    active_items = sale_items.reject(&:marked_for_destruction?)
+    
+    if active_items.empty?
+      errors.add(:base, "⚠️ La venta debe tener al menos un producto")
     end
   end
 end
