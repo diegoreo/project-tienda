@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_05_205446) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_21_232014) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -88,6 +88,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_205446) do
     t.index ["movement_type"], name: "index_inventory_movements_on_movement_type"
     t.index ["source_type", "source_id"], name: "index_inventory_movements_on_source"
     t.check_constraint "quantity > 0::numeric", name: "chk_inventory_movements_quantity_positive"
+  end
+
+  create_table "payment_applications", force: :cascade do |t|
+    t.bigint "payment_id", null: false
+    t.bigint "sale_id", null: false
+    t.decimal "amount_applied", precision: 10, scale: 2, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["payment_id", "sale_id"], name: "index_payment_applications_on_payment_id_and_sale_id", unique: true
+    t.index ["payment_id"], name: "index_payment_applications_on_payment_id"
+    t.index ["sale_id"], name: "index_payment_applications_on_sale_id"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -310,6 +322,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_205446) do
   add_foreign_key "inventories", "warehouses"
   add_foreign_key "inventory_adjustments", "inventories"
   add_foreign_key "inventory_movements", "inventories"
+  add_foreign_key "payment_applications", "payments"
+  add_foreign_key "payment_applications", "sales"
   add_foreign_key "payments", "customers"
   add_foreign_key "payments", "sales"
   add_foreign_key "products", "categories"
