@@ -74,7 +74,7 @@ class Customer < ApplicationRecord
   end
   
   private
-  # 🔥 NUEVA VALIDACIÓN PERSONALIZADA
+  
   def debt_cannot_exceed_limit
     # Solo validar si ambos valores están presentes
     return unless credit_limit.present? && current_debt.present?
