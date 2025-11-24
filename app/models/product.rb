@@ -25,8 +25,16 @@ class Product < ApplicationRecord
   # Validaciones de presencia (obligatorios)
   validates :name, :price, :stock_quantity, :purchase_unit, :sale_unit, :unit_conversion, presence: true
   # Validación de unicidad del nombre
-  validates :name, uniqueness: true
-  # price y unit_conversion deben ser mayores o iguales a 0.
+  validates :name, uniqueness: { 
+    case_sensitive: false,
+    message: "ya existe otro producto con este nombre"
+  }
+  # price debe ser mayor a 0 
+  validates :price, numericality: { 
+    greater_than: 0,
+    message: "debe ser mayor a $0"
+  }
+  
   # stock_quantity solo debe ser un número válido, pero puede ser positivo o negativo.
   validates :price, :unit_conversion, numericality: { greater_than_or_equal_to: 0 }
   validates :stock_quantity, numericality: true
