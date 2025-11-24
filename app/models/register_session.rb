@@ -20,6 +20,23 @@ class RegisterSession < ApplicationRecord
   
   # Validación personalizada: solo una sesión abierta por caja
   validate :only_one_open_session_per_register, on: :create
+  # validaciones cierre debe ser 0  o mayor y no negativo
+  validates :closing_balance, numericality: { 
+    greater_than_or_equal_to: 0,
+    message: "debe ser mayor o igual a $0"
+  }, if: :closed?
+
+  validates :closed_by_id, presence: { 
+    message: "debe estar presente al cerrar la sesión"
+  }, if: :closed?
+
+  validates :closed_at, presence: { 
+    message: "debe estar presente al cerrar la sesión"
+  }, if: :closed?
+
+  # Validaciones personalizadas de cierre
+  validate :cannot_close_already_closed_session, if: :closed_at_changed?
+  validate :closed_at_must_be_after_opened_at, if: :closed?
   
   # ========== SCOPES ==========
   scope :open_sessions, -> { where(status: :open) }
@@ -264,6 +281,22 @@ class RegisterSession < ApplicationRecord
   def only_one_open_session_per_register
     if register && register.current_session.present?
       errors.add(:base, "Ya existe una sesión abierta para esta caja")
+    end
+  end
+
+  # No permitir cerrar sesión ya cerrada
+  def cannot_close_already_closed_session
+    if closed_at_was.present? && closed_at_changed?
+      errors.add(:base, "Esta sesión ya está cerrada y no puede cerrarse nuevamente")
+    end
+  end
+
+  # closed_at debe ser posterior a opened_at
+  def closed_at_must_be_after_opened_at
+    return unless closed_at.present? && opened_at.present?
+    
+    if closed_at <= opened_at
+      errors.add(:closed_at, "debe ser posterior a la fecha de apertura")
     end
   end
 end
