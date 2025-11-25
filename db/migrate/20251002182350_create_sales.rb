@@ -10,10 +10,10 @@ class CreateSales < ActiveRecord::Migration[8.0]
       t.integer :payment_method, default: 0, null: false
       t.integer :status, default: 0, null: false
       t.text :notes
-      
+
       t.timestamps
     end
-    
+
     add_index :sales, :sale_date
     add_index :sales, :payment_status
     add_index :sales, :status

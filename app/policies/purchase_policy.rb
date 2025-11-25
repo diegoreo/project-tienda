@@ -18,11 +18,11 @@ class PurchasePolicy < ApplicationPolicy
   # Editar compra existente
   def update?
     return false unless warehouse? # Mínimo almacenista
-    
+
     # El modelo ya tiene la lógica de editabilidad basada en:
     # - Si no está procesada: siempre editable
     # - Si está procesada: editable dentro de EDITABLE_DAYS (15 días)
-    # 
+    #
     # Agregamos lógica adicional de permisos:
     if record.editable?
       # Si es editable según el modelo, verificar permisos por rol
@@ -57,16 +57,16 @@ class PurchasePolicy < ApplicationPolicy
 
   class Scope < ApplicationPolicy::Scope
     def resolve
-      if user.admin? || user.role == 'gerente'
+      if user.admin? || user.role == "gerente"
         # Admin y gerente ven todo
         scope.all
-      elsif user.role == 'contador'
+      elsif user.role == "contador"
         # Contador ve todas las compras (para reportes)
         scope.all
-      elsif user.role == 'supervisor'
+      elsif user.role == "supervisor"
         # Supervisor ve todas las compras de su área
         scope.all
-      elsif user.role == 'almacenista'
+      elsif user.role == "almacenista"
         # Almacenista ve todas las compras
         scope.all
       else

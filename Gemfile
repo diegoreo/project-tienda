@@ -34,8 +34,8 @@ gem "bootsnap", require: false
 # Postgresql fulltextsearch
 gem "pg_search", "~> 2.3"
 
-#csv para hacer documento de texto
-gem 'csv'
+# csv para hacer documento de texto
+gem "csv"
 
 # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
 gem "kamal", require: false
@@ -56,7 +56,7 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
-  gem 'dotenv-rails'  # Variables de entorno
+  gem "dotenv-rails"  # Variables de entorno
 end
 
 
@@ -75,10 +75,10 @@ end
 gem "tailwindcss-rails", "~> 4.3"
 
 # Authentication
-gem 'devise'
+gem "devise"
 
-# Authorization  
-gem 'pundit'
+# Authorization
+gem "pundit"
 
 # Paginación rápida y eficiente
-gem 'pagy', '~> 6.2'
+gem "pagy", "~> 6.2"

@@ -1,10 +1,10 @@
 class BackfillInventoriesFromProductsStock < ActiveRecord::Migration[8.0]
   def up
     # Usamos el primer warehouse o creamos uno por defecto
-    wh_id = execute("SELECT id FROM warehouses LIMIT 1").values.dig(0,0)
+    wh_id = execute("SELECT id FROM warehouses LIMIT 1").values.dig(0, 0)
     unless wh_id
       execute("INSERT INTO warehouses (name, location, created_at, updated_at) VALUES ('General', NULL, NOW(), NOW())")
-      wh_id = execute("SELECT id FROM warehouses WHERE name = 'General' LIMIT 1").values.dig(0,0)
+      wh_id = execute("SELECT id FROM warehouses WHERE name = 'General' LIMIT 1").values.dig(0, 0)
     end
 
     # Crea un inventory por producto con stock en unidad de venta
@@ -13,7 +13,7 @@ class BackfillInventoriesFromProductsStock < ActiveRecord::Migration[8.0]
     # minimum_quantity = 10% del stock o 1
     execute <<-SQL.squish
       INSERT INTO inventories (product_id, warehouse_id, quantity, minimum_quantity, created_at, updated_at)
-      SELECT 
+      SELECT#{' '}
         id,
         #{wh_id},
         COALESCE(stock_quantity * COALESCE(unit_conversion,1), 0),

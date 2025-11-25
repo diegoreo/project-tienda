@@ -1,14 +1,10 @@
 require "test_helper"
 class CategoriesControllerTest < ActionDispatch::IntegrationTest
-
-
-
   test "render a list of categories" do
     get categories_path
 
     assert_response :success
-    assert_select ".category-card",8
-  
+    assert_select ".category-card", 8
   end
 
   test "render a new category form" do
@@ -38,7 +34,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_response :unprocessable_content 
+    assert_response :unprocessable_content
   end
 
   test "render an edit category form" do
@@ -66,7 +62,7 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_response :unprocessable_content 
+    assert_response :unprocessable_content
   end
 
   test "can delete cateories" do
@@ -75,6 +71,5 @@ class CategoriesControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to categories_path
     assert_equal flash[:notice], "La categoria se elimino correctamente"
-
   end
 end

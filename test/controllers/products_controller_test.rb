@@ -9,7 +9,7 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".product", 5
-    assert_select ".category",8
+    assert_select ".category", 8
   end
 
   test "render a list of products filtered by category" do
@@ -22,7 +22,7 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
 
     test "render a detailed product page" do
       get product_path(products(:coca_cola))
-  
+
       assert_response :success
       assert_select ".name", "CocaCola 600ml"
       assert_select ".description", "Descripción: Refresco sabor cola en botella de 600ml"
@@ -70,7 +70,7 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
         }
       }
 
-      assert_response :unprocessable_content 
+      assert_response :unprocessable_content
     end
 
     test "render an edit product form" do
@@ -98,7 +98,7 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
         }
       }
 
-      assert_response :unprocessable_content 
+      assert_response :unprocessable_content
     end
 
     test "can delete products" do
@@ -108,5 +108,4 @@ class ProductsControllerTest < ActionDispatch::IntegrationTest
       assert_redirected_to products_path
       assert_equal flash[:notice], "El producto se elimino correctamente"
     end
-    
 end

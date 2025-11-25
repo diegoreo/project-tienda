@@ -1,6 +1,6 @@
 class Warehouse < ApplicationRecord
-  has_many :registers, dependent: :restrict_with_error  
-  has_many :register_sessions, through: :registers  
+  has_many :registers, dependent: :restrict_with_error
+  has_many :register_sessions, through: :registers
   has_many :purchases, dependent: :restrict_with_exception
   has_many :inventories, dependent: :restrict_with_exception
   has_many :inventory_movements, through: :inventories
@@ -13,5 +13,4 @@ class Warehouse < ApplicationRecord
 
   # Validación de unicidad
   validates :name, uniqueness: { case_sensitive: false, message: "ya existe otro almacén con este nombre" }
-
 end

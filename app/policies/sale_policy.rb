@@ -2,19 +2,19 @@ class SalePolicy < ApplicationPolicy
   # Ver listado de ventas
   def index?
     # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
-    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
+    user.role.in?([ "cajero", "contador", "supervisor", "gerente", "admin" ])
   end
 
   # Ver detalle de venta
   def show?
     # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
-    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
+    user.role.in?([ "cajero", "contador", "supervisor", "gerente", "admin" ])
   end
 
   # Crear nueva venta
   def create?
     # SOLO: Cajero, Supervisor, Gerente, Admin (SIN contador ni almacenista)
-    user.role.in?(['cajero', 'supervisor', 'gerente', 'admin'])
+    user.role.in?([ "cajero", "supervisor", "gerente", "admin" ])
   end
 
   # Formulario de nueva venta
@@ -37,7 +37,7 @@ class SalePolicy < ApplicationPolicy
   # Cancelar venta (soft delete)
   def cancel?
     # SOLO: Supervisor, Gerente, Admin (SIN contador)
-    user.role.in?(['supervisor', 'gerente', 'admin'])
+    user.role.in?([ "supervisor", "gerente", "admin" ])
   end
 
   # Eliminar venta (hard delete)
@@ -49,7 +49,7 @@ class SalePolicy < ApplicationPolicy
   # Ver página de pagos de una venta
   def payments?
     # Cajero, Contador, Supervisor, Gerente, Admin (SIN almacenista)
-    user.role.in?(['cajero', 'contador', 'supervisor', 'gerente', 'admin'])
+    user.role.in?([ "cajero", "contador", "supervisor", "gerente", "admin" ])
   end
 
   # Ver costos, márgenes y totales financieros
@@ -61,10 +61,10 @@ class SalePolicy < ApplicationPolicy
   class Scope < ApplicationPolicy::Scope
     def resolve
       case user.role
-      when 'cajero', 'supervisor', 'contador', 'gerente', 'admin'
+      when "cajero", "supervisor", "contador", "gerente", "admin"
         # Todos estos roles ven todas las ventas
         scope.all
-      when 'almacenista'
+      when "almacenista"
         # Almacenista NO tiene acceso a ventas
         scope.none
       else

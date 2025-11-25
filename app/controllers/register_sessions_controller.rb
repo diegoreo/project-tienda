@@ -1,27 +1,27 @@
 class RegisterSessionsController < ApplicationController
-  before_action :set_register_session, only: [:show, :close, :process_close, :closure_report, :closure_report_detailed]
-  before_action :authorize_register_session, only: [:show, :close, :process_close, :closure_report, :closure_report_detailed]
-  
+  before_action :set_register_session, only: [ :show, :close, :process_close, :closure_report, :closure_report_detailed ]
+  before_action :authorize_register_session, only: [ :show, :close, :process_close, :closure_report, :closure_report_detailed ]
+
   # GET /register_sessions
   def index
     authorize RegisterSession
     sessions = policy_scope(RegisterSession)
                 .includes(:register, :opened_by, :closed_by)
                 .order(opened_at: :desc)
-    
+
     # Filtros
     sessions = sessions.by_register(params[:register_id]) if params[:register_id].present?
-    sessions = sessions.open_sessions if params[:status] == 'open'
-    sessions = sessions.closed_sessions if params[:status] == 'closed'
+    sessions = sessions.open_sessions if params[:status] == "open"
+    sessions = sessions.closed_sessions if params[:status] == "closed"
     sessions = sessions.by_date(params[:date]) if params[:date].present?
 
     # PAGINACIÓN (20 turnos por página)
     @pagy, @register_sessions = pagy(sessions, items: 20)
-    
+
     # Estadísticas del día
     @today_stats = calculate_today_stats
   end
-  
+
   # GET /register_sessions/:id
   def show
     # Validar permisos ANTES de mostrar
@@ -29,7 +29,7 @@ class RegisterSessionsController < ApplicationController
       redirect_to register_sessions_path, alert: "No tiene permisos para ver los detalles de esta sesión."
       return
     end
-    
+
     @sales = @register_session.sales.includes(:customer, :user, :sale_items)
                                .order(created_at: :desc)
     @cancelled_sales = @register_session.sales.cancelled.includes(:cancelled_by)
@@ -46,30 +46,30 @@ class RegisterSessionsController < ApplicationController
       last_session_date: @register_session.register.register_sessions.maximum(:opened_at)
     }
   end
-  
+
   # GET /register_sessions/new
   def new
     @register_session = RegisterSession.new
     authorize @register_session
-    
+
     # Solo mostrar cajas disponibles (activas y sin sesión abierta)
     @available_registers = Register.active
                                    .select { |r| r.available_for_opening? }
-    
+
     if @available_registers.empty?
       redirect_to register_sessions_path, alert: "No hay cajas disponibles para abrir. Todas las cajas tienen sesiones abiertas o están inactivas."
     end
   end
-  
+
   # POST /register_sessions
   def create
     @register_session = RegisterSession.new(register_session_create_params)
     @register_session.opened_by = current_user
     @register_session.opened_at = Time.current
     @register_session.status = :open
-    
+
     authorize @register_session
-    
+
     if @register_session.save
       # Redirigir directo a ventas
       redirect_to new_sale_path, notice: "✅ Turno abierto exitosamente. Puede comenzar a vender."
@@ -79,32 +79,32 @@ class RegisterSessionsController < ApplicationController
       render :new, status: :unprocessable_entity
     end
   end
-  
+
   # GET /register_sessions/:id/close
   def close
     authorize @register_session, :close?
-    
+
     unless @register_session.can_be_closed?
       redirect_to @register_session, alert: "Esta sesión ya está cerrada o no puede cerrarse."
       return
     end
-    
+
     # Calcular balance esperado y actualizar
     @register_session.update_expected_balance!
-    
+
     # Resumen para el cierre
     @closure_summary = calculate_closure_summary
   end
-  
+
   # PATCH /register_sessions/:id/process_close
   def process_close
     authorize @register_session, :process_close?
-    
+
     unless @register_session.can_be_closed?
       redirect_to @register_session, alert: "Esta sesión ya está cerrada o no puede cerrarse."
       return
     end
-    
+
     # Validar que vengan los parámetros
     unless params[:register_session].present?
       @closure_summary = calculate_closure_summary
@@ -112,11 +112,11 @@ class RegisterSessionsController < ApplicationController
       render :close, status: :unprocessable_entity
       return
     end
-    
+
     # Obtener parámetros del formulario
     closing_balance = params[:register_session][:closing_balance].to_f
     closing_notes = params[:register_session][:closing_notes]
-    
+
     # Validar que el monto sea válido
     if closing_balance < 0
       @closure_summary = calculate_closure_summary
@@ -124,7 +124,7 @@ class RegisterSessionsController < ApplicationController
       render :close, status: :unprocessable_entity
       return
     end
-    
+
     # Cerrar la sesión
     begin
       if @register_session.close_session!(closing_balance, current_user, closing_notes)
@@ -132,7 +132,7 @@ class RegisterSessionsController < ApplicationController
       else
         # Log solo errores importantes
         Rails.logger.error "[RegisterSession] Error al cerrar sesión #{@register_session.id}: #{@register_session.errors.full_messages.join(', ')}"
-      
+
         @closure_summary = calculate_closure_summary
         flash.now[:alert] = "No se pudo cerrar el turno: #{@register_session.errors.full_messages.join(', ')}"
         render :close, status: :unprocessable_entity
@@ -140,39 +140,39 @@ class RegisterSessionsController < ApplicationController
     rescue => e
       Rails.logger.error "[RegisterSession] Excepción al cerrar sesión #{@register_session.id}: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.first(5).join("\n")
-      
+
       @closure_summary = calculate_closure_summary
       flash.now[:alert] = "Error al cerrar el turno: #{e.message}"
       render :close, status: :unprocessable_entity
     end
   end
-  
+
   # GET /register_sessions/:id/closure_report (Reporte Básico)
   def closure_report
     authorize @register_session, :closure_report?
-    
+
     unless @register_session.closed?
       redirect_to @register_session, alert: "No se puede ver el reporte de una sesión abierta."
       return
     end
-    
+
     @report_data = build_report_data
   end
-  
+
   # GET /register_sessions/:id/closure_report_detailed (Reporte Completo)
   def closure_report_detailed
     authorize @register_session, :closure_report_detailed?
-    
+
     unless @register_session.closed?
       redirect_to @register_session, alert: "No se puede ver el reporte de una sesión abierta."
       return
     end
-    
+
     @sales = @register_session.sales.completed.includes(:customer, :user)
     @cancelled_sales = @register_session.sales.cancelled.includes(:cancelled_by)
-    
+
     @report_data = build_report_data
-    
+
     respond_to do |format|
       format.html
       format.pdf do
@@ -182,17 +182,17 @@ class RegisterSessionsController < ApplicationController
       end
     end
   end
-  
+
   private
-  
+
   def set_register_session
     @register_session = RegisterSession.find(params[:id])
   end
-  
+
   def authorize_register_session
     authorize @register_session
   end
-  
+
   def register_session_create_params
     params.require(:register_session).permit(
       :register_id,
@@ -200,14 +200,14 @@ class RegisterSessionsController < ApplicationController
       :opening_notes
     )
   end
-  
+
   def register_session_close_params
     params.require(:register_session).permit(
       :closing_balance,
       :closing_notes
     )
   end
-  
+
   # MÉTODO ACTUALIZADO: Construir datos del reporte
   def build_report_data
     {
@@ -233,10 +233,10 @@ class RegisterSessionsController < ApplicationController
       sales_per_hour: @register_session.sales_per_hour
     }
   end
-  
+
   def calculate_closure_summary
     @register_session.update_expected_balance!
-    
+
     {
       opening_balance: @register_session.opening_balance,
       total_sales: @register_session.total_sales,
@@ -249,10 +249,10 @@ class RegisterSessionsController < ApplicationController
       expected_balance: @register_session.expected_balance
     }
   end
-  
+
   def calculate_today_stats
     today_sessions = RegisterSession.today
-    
+
     {
       total_sessions: today_sessions.count,
       open_sessions: today_sessions.open_sessions.count,
@@ -261,7 +261,7 @@ class RegisterSessionsController < ApplicationController
       total_cash_sales: today_sessions.sum(:total_cash_sales)
     }
   end
-  
+
   def calculate_session_stats(session)
     {
       duration: session.duration_in_hours,

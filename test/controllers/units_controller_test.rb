@@ -4,8 +4,7 @@ class UnitsControllerTest < ActionDispatch::IntegrationTest
     get units_path
 
     assert_response :success
-    assert_select ".unit-card",6
-  
+    assert_select ".unit-card", 6
   end
 
   test "render a new category form" do
@@ -37,7 +36,7 @@ class UnitsControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_response :unprocessable_content 
+    assert_response :unprocessable_content
   end
 
   test "render an edit unit form" do
@@ -65,7 +64,7 @@ class UnitsControllerTest < ActionDispatch::IntegrationTest
       }
     }
 
-    assert_response :unprocessable_content 
+    assert_response :unprocessable_content
   end
 
   test "can delete units" do
@@ -74,7 +73,5 @@ class UnitsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to units_path
     assert_equal flash[:notice], "La unidad de medida se elimino correctamente"
-
   end
-
 end

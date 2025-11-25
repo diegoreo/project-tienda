@@ -18,7 +18,7 @@ class PaymentPolicy < ApplicationPolicy
   def destroy?
     manager? # Solo Gerente o Admin pueden eliminar pagos
   end
-  
+
   # Ver todos los pagos (reportes)
   def view_all_payments?
     accountant? # Contador, Gerente o Admin

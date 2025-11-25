@@ -2,7 +2,7 @@ class WarehousesController < ApplicationController
   def index
     # Autorizar el acceso al índice de almacenes
     authorize Warehouse
-    
+
     @warehouses = Warehouse.all
   end
 
@@ -14,7 +14,7 @@ class WarehousesController < ApplicationController
   def create
     @warehouse = Warehouse.new(warehouse_params)
     authorize @warehouse
-    
+
     if @warehouse.save
       redirect_to warehouses_url, notice: "Tu almacén se creó correctamente!"
     else
@@ -30,7 +30,7 @@ class WarehousesController < ApplicationController
   def update
     @warehouse = Warehouse.find(params[:id])
     authorize @warehouse
-    
+
     if @warehouse.update(warehouse_params)
       redirect_to warehouses_url, notice: "Tu almacén se actualizó correctamente"
     else
@@ -41,7 +41,7 @@ class WarehousesController < ApplicationController
   def destroy
     @warehouse = Warehouse.find(params[:id])
     authorize @warehouse
-    
+
     @warehouse.destroy
     redirect_to warehouses_url, notice: "Tu almacén se eliminó correctamente", status: :see_other
   end

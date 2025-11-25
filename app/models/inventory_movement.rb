@@ -18,7 +18,7 @@ class InventoryMovement < ApplicationRecord
     other: 10,              # Otro motivo no clasificado
     purchase_cancellation: 11  # Eliminación de compra
   }
-  
+
   validates :movement_type, presence: true
   validates :reason, presence: true
   validates :quantity, numericality: { greater_than: 0 }
