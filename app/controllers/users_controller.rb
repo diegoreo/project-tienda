@@ -149,6 +149,13 @@ class UsersController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:name, :email, :role, :password, :password_confirmation, :active)
+    permitted = [ :name, :email, :password, :password_confirmation ]
+
+    # Solo admins pueden cambiar role y active
+    if current_user.admin?
+      permitted += [ :role, :active ]
+    end
+
+    params.require(:user).permit(permitted)
   end
 end
