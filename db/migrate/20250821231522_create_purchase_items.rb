@@ -18,6 +18,5 @@ class CreatePurchaseItems < ActiveRecord::Migration[8.0]
     add_check_constraint :purchase_items, "unit_cost >= 0", name: "chk_purchase_items_unit_cost_nonnegative"
     add_check_constraint :purchase_items, "conversion_factor > 0", name: "chk_purchase_items_conversion_positive"
     add_check_constraint :purchase_items, "quantity_sale_units > 0", name: "chk_purchase_items_quantity_sale_units_positive"
- 
   end
 end

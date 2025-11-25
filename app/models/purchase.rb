@@ -10,30 +10,30 @@ class Purchase < ApplicationRecord
 
   # Constante para definir días editables
   EDITABLE_DAYS = 15
-  
+
   # Verifica si la compra puede editarse
   def editable?
     return true if processed_at.nil? # No procesada aún
-    
+
     # Procesada hace menos de EDITABLE_DAYS
     processed_at > EDITABLE_DAYS.days.ago
   end
-  
+
   # Calcula días desde que fue procesada
   def days_since_processed
     return nil if processed_at.nil?
     ((Time.current - processed_at) / 1.day).to_i
   end
-  
+
   # Calcula el total sumando subtotales de items
   def calculate_total
     purchase_items.reject(&:marked_for_destruction?).sum(&:subtotal)
   end
-  
+
   # Procesa la compra: actualiza inventario y registra movimientos
   def process_inventory!
     return if processed_at.present? # Ya fue procesada
-    
+
     transaction do
       purchase_items.each do |item|
         # Buscar o crear inventario del producto en el almacén

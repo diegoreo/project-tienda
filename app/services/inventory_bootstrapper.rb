@@ -7,7 +7,7 @@ class InventoryBootstrapper
 
   def initialize(product, warehouse = nil, reason = nil)
     @product   = product
-    @warehouse = warehouse || Warehouse.first   
+    @warehouse = warehouse || Warehouse.first
     @reason    = reason
   end
 

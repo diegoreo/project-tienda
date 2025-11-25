@@ -44,11 +44,11 @@ end
 
 
 
-  # Calcula quantity_sale_units antes de validar
-  #before_validation :set_quantity_sale_units
+# Calcula quantity_sale_units antes de validar
+# before_validation :set_quantity_sale_units
 
-  #private
+# private
 
-  #def set_quantity_sale_units
-   # self.quantity_sale_units = (quantity || 0) * (conversion_factor || 0)
-  #end
+# def set_quantity_sale_units
+# self.quantity_sale_units = (quantity || 0) * (conversion_factor || 0)
+# end

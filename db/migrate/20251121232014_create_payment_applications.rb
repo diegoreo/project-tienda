@@ -10,6 +10,6 @@ class CreatePaymentApplications < ActiveRecord::Migration[8.0]
     end
 
     # Índices para consultas rápidas
-    add_index :payment_applications, [:payment_id, :sale_id], unique: true
+    add_index :payment_applications, [ :payment_id, :sale_id ], unique: true
   end
 end

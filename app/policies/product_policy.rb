@@ -23,12 +23,12 @@ class ProductPolicy < ApplicationPolicy
   def destroy?
     manager? # Solo Gerente o Admin
   end
-  
+
   # Actualizar precios
   def update_prices?
     manager? # Solo Gerente o Admin pueden cambiar precios
   end
-  
+
   # Ver costos de compra
   def view_costs?
     accountant? # Contador, Gerente o Admin

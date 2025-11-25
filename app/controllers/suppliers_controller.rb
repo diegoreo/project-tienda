@@ -2,18 +2,18 @@ class SuppliersController < ApplicationController
   def index
     # Autorizar el acceso al índice de proveedores
     authorize Supplier
-    
+
     @suppliers = Supplier.all
 
     # Filtro por estado
     @suppliers = case params[:status]
-                 when 'inactive'
+    when "inactive"
                    @suppliers.inactive
-                 when 'all'
+    when "all"
                    @suppliers
-                 else
+    else
                    @suppliers.active # Por defecto mostrar solo activos
-                 end
+    end
 
     # Búsqueda
     if params[:query].present?
@@ -40,9 +40,9 @@ class SuppliersController < ApplicationController
   def create
     @supplier = Supplier.new(supplier_params)
     authorize @supplier
-    
+
     normalize_supplier_data(@supplier)
-    
+
     if @supplier.save
       redirect_to supplier_path(@supplier), notice: "Proveedor creado correctamente"
     else
@@ -58,10 +58,10 @@ class SuppliersController < ApplicationController
   def update
     @supplier = Supplier.find(params[:id])
     authorize @supplier
-    
+
     @supplier.assign_attributes(supplier_params)
     normalize_supplier_data(@supplier)
-    
+
     if @supplier.save
       redirect_to supplier_path(@supplier), notice: "Proveedor actualizado correctamente"
     else
@@ -72,12 +72,12 @@ class SuppliersController < ApplicationController
   def destroy
     @supplier = Supplier.find(params[:id])
     authorize @supplier
-    
+
     if @supplier.destroy
       redirect_to suppliers_url, notice: "Proveedor eliminado correctamente", status: :see_other
     else
-      redirect_to suppliers_url, 
-                  alert: "No se pudo eliminar el proveedor: #{@supplier.errors.full_messages.join(', ')}", 
+      redirect_to suppliers_url,
+                  alert: "No se pudo eliminar el proveedor: #{@supplier.errors.full_messages.join(', ')}",
                   status: :see_other
     end
   end

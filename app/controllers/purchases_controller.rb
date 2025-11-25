@@ -1,39 +1,38 @@
 class PurchasesController < ApplicationController
-
   # GET /purchases
   def index
     authorize Purchase
     purchases = policy_scope(Purchase).includes(:supplier, :warehouse)
-  
+
     # Filtro por rango de fechas
     if params[:date_from].present?
       purchases = purchases.where("purchase_date >= ?", params[:date_from])
     end
-  
+
     if params[:date_to].present?
       purchases = purchases.where("purchase_date <= ?", params[:date_to])
     end
-  
+
     # Filtro por almacén
     if params[:warehouse_id].present?
       purchases = purchases.where(warehouse_id: params[:warehouse_id])
     end
-  
+
     # Filtro por proveedor
     if params[:supplier_id].present?
       purchases = purchases.where(supplier_id: params[:supplier_id])
     end
-  
+
     # Filtro por monto mínimo
     if params[:min_total].present?
       purchases = purchases.where("total >= ?", params[:min_total])
     end
-  
+
     # Filtro por monto máximo
     if params[:max_total].present?
       purchases = purchases.where("total <= ?", params[:max_total])
     end
-  
+
     # Filtro por estado de procesamiento
     if params[:processed].present?
       if params[:processed] == "true"
@@ -42,12 +41,12 @@ class PurchasesController < ApplicationController
         purchases = purchases.where(processed_at: nil)
       end
     end
-  
+
     # Búsqueda por ID
     if params[:search_id].present?
       purchases = purchases.where(id: params[:search_id])
     end
-  
+
     # Ordenamiento
     case params[:sort]
     when "date_desc"
@@ -61,8 +60,8 @@ class PurchasesController < ApplicationController
     else
       purchases = purchases.order(purchase_date: :desc) # Default
     end
-    
-    #CALCULAR TOTAL ANTES DE PAGINAR (respeta filtros)
+
+    # CALCULAR TOTAL ANTES DE PAGINAR (respeta filtros)
     @total_filtered = purchases.sum(:total)
 
     # PAGINACIÓN (25 compras por página)
@@ -73,7 +72,7 @@ class PurchasesController < ApplicationController
   def show
     @purchase = Purchase.find(params[:id])
     authorize @purchase
-    
+
     # Variable para controlar visualización de costos
     @show_costs = policy(@purchase).view_costs?
   end
@@ -82,7 +81,7 @@ class PurchasesController < ApplicationController
   def new
     @purchase = Purchase.new
     authorize @purchase
-    
+
     @purchase.purchase_items.build
   end
 
@@ -90,14 +89,14 @@ class PurchasesController < ApplicationController
   def edit
     @purchase = Purchase.find(params[:id])
     authorize @purchase
-    
+
     unless @purchase.editable?
       days = @purchase.days_since_processed
-      redirect_to @purchase, 
+      redirect_to @purchase,
         alert: "No se puede editar. Esta compra fue procesada hace #{days} días (límite: #{Purchase::EDITABLE_DAYS} días)."
       return
     end
-    
+
     @purchase.purchase_items.build if @purchase.purchase_items.empty?
   end
 
@@ -105,12 +104,12 @@ class PurchasesController < ApplicationController
   def create
     @purchase = Purchase.new(purchase_params)
     authorize @purchase
-    
+
     # Calcular quantity_sale_units antes de guardar
     @purchase.purchase_items.each do |item|
       item.quantity_sale_units = item.quantity_sale_units_calc
     end
-    
+
     if @purchase.save
       # Procesar inventario
       @purchase.process_inventory!
@@ -124,12 +123,12 @@ class PurchasesController < ApplicationController
   def update
     @purchase = Purchase.find(params[:id])
     authorize @purchase
-    
+
     unless @purchase.editable?
       redirect_to @purchase, alert: "Compra no editable."
       return
     end
-    
+
     # Guardar valores anteriores ANTES de actualizar (desde la BD)
     old_items_data = @purchase.purchase_items.reload.map do |item|
       {
@@ -140,27 +139,27 @@ class PurchasesController < ApplicationController
         old_conversion: item.conversion_factor
       }
     end
-    
+
     if @purchase.update(purchase_params)
       # Recalcular campos NUEVOS
       @purchase.purchase_items.each do |item|
         next if item.marked_for_destruction?
-        
+
         item.quantity_sale_units = item.quantity_sale_units_calc
         item.subtotal = item.calculate_subtotal
         item.cost_per_piece = item.calculate_cost_per_piece
         item.save!
       end
-      
+
       # Ajustar inventario si ya estaba procesada
       if @purchase.processed_at.present?
         adjust_inventory(old_items_data)
       end
-      
+
       # Actualizar total
       total = @purchase.purchase_items.reject(&:marked_for_destruction?).sum(&:subtotal)
       @purchase.update_column(:total, total)
-      
+
       redirect_to @purchase, notice: "Compra actualizada correctamente."
     else
       render :edit, status: :unprocessable_entity
@@ -171,12 +170,12 @@ class PurchasesController < ApplicationController
   def destroy
     @purchase = Purchase.find(params[:id])
     authorize @purchase
-    
+
     # Revertir inventario si la compra fue procesada
     if @purchase.processed_at.present?
       revert_purchase_inventory
     end
-    
+
     @purchase.destroy
     redirect_to purchases_path, notice: "Compra eliminada correctamente y el inventario fue ajustado."
   rescue StandardError => e
@@ -199,25 +198,25 @@ class PurchasesController < ApplicationController
   def adjust_inventory(old_items_data)
     @purchase.purchase_items.each do |item|
       next if item.marked_for_destruction?
-      
+
       # Buscar dato anterior
       old_data = old_items_data.find { |d| d[:id] == item.id }
-      
+
       if old_data
         # Item existente - calcular diferencia
         old_qty = old_data[:old_quantity_sale_units].to_f
         new_qty = item.quantity_sale_units.to_f
         difference = new_qty - old_qty
-        
+
         next if difference.zero?
-        
+
         adjust_inventory_for_item(item, difference)
       else
         # Item nuevo agregado en la edición
         adjust_inventory_for_item(item, item.quantity_sale_units.to_f)
       end
     end
-    
+
     # Manejar items eliminados
     old_items_data.each do |old_data|
       item = @purchase.purchase_items.find { |i| i.id == old_data[:id] }
@@ -228,16 +227,16 @@ class PurchasesController < ApplicationController
       end
     end
   end
-  
+
   def adjust_inventory_for_item(item, difference)
     inventory = Inventory.find_or_create_by!(
       product: item.product,
       warehouse: @purchase.warehouse
     )
-    
+
     inventory.quantity += difference
     inventory.save!
-    
+
     # Registrar movimiento de ajuste
     InventoryMovement.create!(
       inventory: inventory,
@@ -248,18 +247,18 @@ class PurchasesController < ApplicationController
       note: "Ajuste por edición compra ##{@purchase.id} - #{item.product.name}"
     )
   end
-  
+
   def adjust_inventory_for_item_removal(product, quantity)
     inventory = Inventory.find_by(
       product: product,
       warehouse: @purchase.warehouse
     )
-    
+
     return unless inventory
-    
+
     inventory.quantity -= quantity
     inventory.save!
-    
+
     InventoryMovement.create!(
       inventory: inventory,
       movement_type: :outgoing,
@@ -269,7 +268,7 @@ class PurchasesController < ApplicationController
       note: "Item eliminado de compra ##{@purchase.id} - #{product.name}"
     )
   end
-  
+
   def revert_purchase_inventory
     ActiveRecord::Base.transaction do
       @purchase.purchase_items.each do |item|
@@ -277,21 +276,21 @@ class PurchasesController < ApplicationController
           product: item.product,
           warehouse: @purchase.warehouse
         )
-        
+
         next unless inventory
-        
+
         # Calcular nueva cantidad
         new_quantity = inventory.quantity - item.quantity_sale_units
-        
+
         # Advertir si queda negativo (pero permitir)
         if new_quantity < 0
           Rails.logger.warn "Inventario quedará negativo: #{item.product.name} = #{new_quantity}"
         end
-        
+
         # Actualizar inventario
         inventory.quantity = new_quantity
         inventory.save!
-        
+
         # Registrar movimiento
         InventoryMovement.create!(
           inventory: inventory,

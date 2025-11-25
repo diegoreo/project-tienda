@@ -9,6 +9,4 @@ class InventoryAdjustment < ApplicationRecord
   validates :performed_by, presence: true
   validates :quantity, numericality: { greater_than: 0 }
   validates :reason, presence: true
-
-
 end

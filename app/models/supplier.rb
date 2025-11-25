@@ -8,15 +8,15 @@ class Supplier < ApplicationRecord
   # Validaciones de presencia
   validates :name, presence: true, uniqueness: true
   validates :name, length: { minimum: 4, message: "debe tener al menos 4 caracteres" }
-  
+
   # Validaciones de formato
-  validates :email, 
+  validates :email,
     format: { with: URI::MailTo::EMAIL_REGEXP, message: "no es un correo válido" },
     allow_blank: true,
     uniqueness: { case_sensitive: false, allow_blank: true }
 
   validates :rfc,
-    format: { 
+    format: {
       with: /\A[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\z/i,
       message: "formato inválido (debe ser RFC válido de México)"
     },
@@ -25,21 +25,21 @@ class Supplier < ApplicationRecord
     uniqueness: { case_sensitive: false, allow_blank: true }
 
   validates :phone,
-    format: { 
+    format: {
       with: /\A\d{10}\z/,
       message: "debe tener 10 dígitos sin espacios ni guiones"
     },
     allow_blank: true
 
   validates :mobile,
-    format: { 
+    format: {
       with: /\A\d{10}\z/,
       message: "debe tener 10 dígitos sin espacios ni guiones"
     },
     allow_blank: true
 
   validates :zip_code,
-    format: { 
+    format: {
       with: /\A\d{5}\z/,
       message: "debe tener 5 dígitos"
     },

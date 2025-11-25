@@ -3,7 +3,7 @@ class UnitsController < ApplicationController
   def index
     # Autorizar el acceso al índice de unidades
     authorize Unit
-    
+
     @units = Unit.all.order(name: :asc)
   end
 
@@ -15,7 +15,7 @@ class UnitsController < ApplicationController
   def create
     @unit = Unit.new(unit_params)
     authorize @unit
-    
+
     if @unit.save
       redirect_to units_url, notice: "Tu unidad de medida se creó correctamente!"
     else
@@ -31,18 +31,18 @@ class UnitsController < ApplicationController
   def update
     @unit = Unit.find(params[:id])
     authorize @unit
-    
+
     if @unit.update(unit_params)
       redirect_to units_url, notice: "Tu unidad de medida se actualizó correctamente"
     else
       render :edit, status: :unprocessable_content
     end
   end
-  
+
   def destroy
     @unit = Unit.find(params[:id])
     authorize @unit
-    
+
     @unit.destroy
     redirect_to units_url, notice: "La unidad de medida se eliminó correctamente", status: :see_other
   end

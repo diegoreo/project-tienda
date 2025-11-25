@@ -12,7 +12,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[8.0]
       ## Rememberable
       t.datetime :remember_created_at
 
-      ## Trackable (opcional - descomentar si quieres saber cuándo se conectó)
+       ## Trackable (opcional - descomentar si quieres saber cuándo se conectó)
        t.integer  :sign_in_count, default: 0, null: false
        t.datetime :current_sign_in_at
        t.datetime :last_sign_in_at
