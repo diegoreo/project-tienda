@@ -1,4 +1,5 @@
 class Payment < ApplicationRecord
+  has_paper_trail
   # Enums
   enum :payment_method, {
     cash: 0,

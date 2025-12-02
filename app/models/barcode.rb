@@ -1,4 +1,5 @@
 class Barcode < ApplicationRecord
+  has_paper_trail
   belongs_to :product
   # code sea opcional (puede estar vacío o nulo), pero si existe debe ser único
   validates :code, uniqueness: { case_sensitive: false, message: "ya existe en otro producto" }, allow_blank: true

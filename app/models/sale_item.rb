@@ -1,4 +1,5 @@
 class SaleItem < ApplicationRecord
+  has_paper_trail
   belongs_to :sale
   belongs_to :product
 

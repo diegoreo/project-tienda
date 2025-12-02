@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_paper_trail ignore: [:encrypted_password, :reset_password_token, :reset_password_sent_at]
   # Relaciones con register_sessions
   has_many :opened_sessions, class_name: "RegisterSession", foreign_key: "opened_by_id"
   has_many :closed_sessions, class_name: "RegisterSession", foreign_key: "closed_by_id"

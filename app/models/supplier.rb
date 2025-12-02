@@ -1,4 +1,5 @@
 class Supplier < ApplicationRecord
+  has_paper_trail
   has_many :purchases, dependent: :restrict_with_exception
 
   # Scopes útiles para filtrado

@@ -1,4 +1,5 @@
 class Product < ApplicationRecord
+  has_paper_trail
   include PgSearch::Model
   pg_search_scope :search_by_name_description_and_barcode,
     against: [ :name, :description ],

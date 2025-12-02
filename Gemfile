@@ -82,3 +82,6 @@ gem "pundit"
 
 # Paginación rápida y eficiente
 gem "pagy", "~> 6.2"
+
+# Auditoría y versionado
+gem "paper_trail"
