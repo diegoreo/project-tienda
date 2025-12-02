@@ -1,4 +1,5 @@
 class RegisterSession < ApplicationRecord
+  has_paper_trail
   # ========== RELACIONES ==========
   belongs_to :register
   belongs_to :opened_by, class_name: "User"

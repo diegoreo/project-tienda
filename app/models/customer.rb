@@ -1,4 +1,5 @@
 class Customer < ApplicationRecord
+  has_paper_trail
   # Enums
   enum :customer_type, {
     walk_in: 0,      # Cliente de mostrador (ocasional)

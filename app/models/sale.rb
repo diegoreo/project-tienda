@@ -1,4 +1,5 @@
 class Sale < ApplicationRecord
+  has_paper_trail
   belongs_to :customer, optional: true
   belongs_to :user, optional: true # quien hizo la venta
   belongs_to :warehouse

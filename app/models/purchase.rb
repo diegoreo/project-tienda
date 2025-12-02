@@ -1,4 +1,5 @@
 class Purchase < ApplicationRecord
+  has_paper_trail
   belongs_to :supplier
   belongs_to :warehouse
   has_many :purchase_items, dependent: :destroy

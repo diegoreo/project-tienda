@@ -1,4 +1,5 @@
 class PaymentApplication < ApplicationRecord
+  has_paper_trail
   # Relaciones
   belongs_to :payment
   belongs_to :sale
