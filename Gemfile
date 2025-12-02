@@ -85,3 +85,6 @@ gem "pagy", "~> 6.2"
 
 # Auditoría y versionado
 gem "paper_trail"
+
+# Rate limiting y protección contra ataques
+gem 'rack-attack'
