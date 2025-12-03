@@ -52,20 +52,52 @@ class Rack::Attack
     Rails.logger.warn "Rack-Attack: Request throttled"
     Rails.logger.warn "  IP: #{request.ip}"
     Rails.logger.warn "  Path: #{request.path}"
-    Rails.logger.warn "  Email: #{request.params['email']}" if request.params["email"]
-    Rails.logger.warn "  Limit: #{match_data[:limit]}"
-    Rails.logger.warn "  Period: #{match_data[:period]} seconds"
     Rails.logger.warn "  Retry after: #{retry_after} seconds"
-    Rails.logger.warn "  Time: #{now}"
     
-    # Respuesta al cliente con headers
-    [
-      429,
-      {
-        "Content-Type" => "text/plain",
-        "Retry-After" => retry_after.to_s
-      },
-      ["Too Many Requests. Please try again in #{retry_after} seconds.\n"]
-    ]
+    # Obtener el email del request
+    email = request.params.dig("user", "login") || ""
+    
+    # Si es un request de login, retornar HTML con JavaScript para guardar en localStorage
+    if request.path == "/users/sign_in" && request.post?
+      html_response = <<~HTML
+        <!DOCTYPE html>
+        <html>
+        <head><title>Too Many Requests</title></head>
+        <body>
+          <script>
+            // Guardar en localStorage
+            const blockData = {
+              email: "#{email}",
+              retryAfter: #{retry_after},
+              blockedAt: Date.now()
+            };
+            localStorage.setItem('rateLimit_' + "#{email}", JSON.stringify(blockData));
+            
+            // Redirigir al login
+            window.location.href = '/users/sign_in';
+          </script>
+        </body>
+        </html>
+      HTML
+      
+      [
+        429,
+        {
+          "Content-Type" => "text/html",
+          "Retry-After" => retry_after.to_s
+        },
+        [html_response]
+      ]
+    else
+      # Para otros paths, respuesta normal
+      [
+        429,
+        {
+          "Content-Type" => "text/plain",
+          "Retry-After" => retry_after.to_s
+        },
+        ["Too Many Requests. Please try again in #{retry_after} seconds.\n"]
+      ]
+    end
   end
 end

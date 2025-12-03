@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   # Devise solo para login/logout (SIN registro, SIN recuperar password, SIN editar perfil)
   # Los usuarios SOLO pueden hacer login y logout
   devise_for :users, skip: [ :registrations, :passwords ]
+  # Rate limiting check
+  get 'rate_limit/check_login', to: 'rate_limit#check_login'
 
   # Gestión de usuarios (CRUD) - SOLO para admin
   resources :users do
