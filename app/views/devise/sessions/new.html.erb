@@ -13,7 +13,7 @@
 
     <!-- Formulario de Login -->
     <div class="bg-white rounded-2xl shadow-2xl p-8">
-      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "space-y-6", data: { controller: "rate-limit" } }) do |f| %>
         
         <!-- Campo de Nombre o Email -->
         <div>
@@ -27,9 +27,27 @@
             <%= f.text_field :login, 
                 autofocus: true,
                 placeholder: "Juan Pérez o usuario@ejemplo.com",
+                data: { 
+                  rate_limit_target: "loginField"
+                },
                 class: "block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" %>
           </div>
           <p class="mt-1 text-xs text-gray-500">Puedes usar tu nombre completo o tu email</p>
+  
+          <!-- Mensaje de rate limit (oculto por defecto) -->
+          <div data-rate-limit-target="message" class="hidden mt-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div class="flex items-start">
+              <svg class="h-5 w-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div class="flex-1">
+                <h3 class="text-sm font-semibold text-red-800">Demasiados intentos fallidos</h3>
+                <p class="mt-1 text-sm text-red-700">
+                  Por favor, intente de nuevo en <span data-rate-limit-target="countdown" class="font-bold">--:--</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Campo de Contraseña -->
@@ -58,8 +76,12 @@
 
         <!-- Botón de Submit -->
         <div>
-          <%= f.submit "Iniciar Sesión", 
-              class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition transform hover:scale-105" %>
+          <%= f.submit "Iniciar Sesión",
+              data: { 
+                rate_limit_target: "submitBtn",
+                turbo: false
+              },
+              class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" %>
         </div>
       <% end %>
 
