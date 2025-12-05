@@ -213,6 +213,45 @@ class Sale < ApplicationRecord
     cancelled? && user_id == cancelled_by_id
   end
 
+  # Actualizar contadores de la sesión (llamar explícitamente después de crear)
+  def update_session_counters!
+    if inflow?
+      register_session.increment!(:total_inflows, amount)
+    else
+      register_session.increment!(:total_outflows, amount)
+    end
+    register_session.update_expected_balance!
+  end
+
+  # Revertir contadores anteriores y aplicar nuevos (llamar explícitamente después de actualizar)
+  def recalculate_session_counters!(old_amount, old_type)
+    # Revertir valores anteriores
+    if old_type == "inflow"
+      register_session.decrement!(:total_inflows, old_amount)
+    else
+      register_session.decrement!(:total_outflows, old_amount)
+    end
+
+    # Aplicar nuevos valores
+    if inflow?
+      register_session.increment!(:total_inflows, amount)
+    else
+      register_session.increment!(:total_outflows, amount)
+    end
+
+    register_session.update_expected_balance!
+  end
+
+  # Revertir contadores al cancelar (llamar explícitamente)
+  def revert_session_counters!
+    if inflow?
+      register_session.decrement!(:total_inflows, amount)
+    else
+      register_session.decrement!(:total_outflows, amount)
+    end
+    register_session.update_expected_balance!
+  end
+
   private
 
   # Mensaje de error más detallado

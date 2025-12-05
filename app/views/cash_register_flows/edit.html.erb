@@ -1,0 +1,132 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">
+      Editar Movimiento de Efectivo
+    </h1>
+    <p class="mt-2 text-sm text-gray-600">
+      <%= @register_session.display_name %> - Creado el <%= l(@flow.created_at, format: :short) %>
+    </p>
+  </div>
+
+  <!-- Alerta de edición -->
+  <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-yellow-700">
+          <strong>⚠️ Está editando un movimiento existente.</strong> Todos los cambios quedan registrados en el historial de auditoría (Paper Trail).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+    <div class="px-6 py-6">
+      <%= form_with model: @flow, url: register_session_cash_register_flow_path(@register_session, @flow), method: :patch, local: true, class: "space-y-6" do |f| %>
+        
+        <!-- Tipo de movimiento -->
+        <div>
+          <%= f.label :movement_type, "Tipo de Movimiento", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Ingreso -->
+            <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-green-500 hover:border-green-400">
+              <%= f.radio_button :movement_type, :inflow, class: "sr-only" %>
+              <span class="flex flex-1">
+                <span class="flex flex-col">
+                  <span class="block text-lg font-semibold text-gray-900">
+                    ➕ Ingreso
+                  </span>
+                  <span class="mt-1 flex items-center text-sm text-gray-500">
+                    Agregar dinero a la caja
+                  </span>
+                </span>
+              </span>
+            </label>
+
+            <!-- Egreso -->
+            <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-red-500 hover:border-red-400">
+              <%= f.radio_button :movement_type, :outflow, class: "sr-only" %>
+              <span class="flex flex-1">
+                <span class="flex flex-col">
+                  <span class="block text-lg font-semibold text-gray-900">
+                    ➖ Egreso
+                  </span>
+                  <span class="mt-1 flex items-center text-sm text-gray-500">
+                    Sacar dinero de la caja
+                  </span>
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Monto -->
+        <div>
+          <%= f.label :amount, "Monto", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <div class="relative rounded-md shadow-sm">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span class="text-gray-500 sm:text-sm">$</span>
+            </div>
+            <%= f.number_field :amount, 
+                step: 0.01, 
+                min: 0.01,
+                required: true,
+                class: "block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-green-500 focus:ring-green-500 sm:text-lg" %>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <span class="text-gray-500 sm:text-sm">MXN</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descripción/Motivo -->
+        <div>
+          <%= f.label :description, "Descripción / Motivo", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= f.text_area :description,
+              rows: 4,
+              required: true,
+              maxlength: 500,
+              class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" %>
+          <p class="mt-2 text-sm text-gray-500">
+            ⚠️ Obligatorio: Explique claramente el motivo del movimiento (mínimo 5 caracteres)
+          </p>
+        </div>
+
+        <!-- Información original -->
+        <div class="bg-gray-50 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">📋 Información original:</h4>
+          <dl class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="font-medium text-gray-500">Creado por:</dt>
+              <dd class="text-gray-900"><%= @flow.created_by.name %></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Autorizado por:</dt>
+              <dd class="text-gray-900"><%= @flow.authorized_by.name %></dd>
+            </div>
+            <div>
+              <dt class="font-medium text-gray-500">Fecha de creación:</dt>
+              <dd class="text-gray-900"><%= l(@flow.created_at, format: :long) %></dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+          <%= link_to "Cancelar", 
+              register_session_cash_register_flows_path(@register_session),
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          
+          <%= f.submit "Guardar Cambios",
+              data: { confirm: "¿Está seguro de guardar los cambios? Esta acción quedará registrada en el historial." },
+              class: "inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

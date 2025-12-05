@@ -53,6 +53,13 @@ Rails.application.routes.draw do
 
   # Sesiones de caja (Register Sessions)
   resources :register_sessions, except: [ :edit, :update ] do
+    # Flujos de efectivo (ingresos/egresos)
+    resources :cash_register_flows, path: 'flows', only: [ :index, :new, :create, :show, :edit, :update ] do
+      member do
+        post :cancel  # Cancelar un movimiento
+      end
+    end
+    
     member do
       get :close                          # Formulario para cerrar turno
       patch :process_close                # Procesar cierre

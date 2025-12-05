@@ -316,6 +316,161 @@
     <% end %>
   </div>
 
+  <!-- Detalle Completo de Flujos de Efectivo -->
+  <% if @register_session.cash_register_flows.any? %>
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-purple-500">
+      <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+        <span class="text-2xl mr-2">💰</span>
+        Detalle Completo de Flujos de Efectivo
+      </h2>
+      
+      <!-- Resumen de totales -->
+      <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-purple-50 rounded-lg">
+        <div class="text-center">
+          <p class="text-sm text-gray-600 mb-1">➕ Total Ingresos</p>
+          <p class="text-2xl font-bold text-green-600">
+            +$<%= number_with_precision(@register_session.cash_register_flows.inflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @register_session.cash_register_flows.inflows.active.count %> movimientos
+          </p>
+        </div>
+        <div class="text-center">
+          <p class="text-sm text-gray-600 mb-1">➖ Total Egresos</p>
+          <p class="text-2xl font-bold text-red-600">
+            -$<%= number_with_precision(@register_session.cash_register_flows.outflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            <%= @register_session.cash_register_flows.outflows.active.count %> movimientos
+          </p>
+        </div>
+        <div class="text-center">
+          <p class="text-sm text-gray-600 mb-1">💼 Balance Neto</p>
+          <% net_balance = @register_session.cash_register_flows.inflows.active.sum(:amount) - @register_session.cash_register_flows.outflows.active.sum(:amount) %>
+          <p class="text-2xl font-bold <%= net_balance >= 0 ? 'text-blue-600' : 'text-orange-600' %>">
+            <%= net_balance >= 0 ? '+' : '' %>$<%= number_with_precision(net_balance, precision: 2, delimiter: ',') %>
+          </p>
+        </div>
+      </div>
+      
+      <!-- Tabla detallada de movimientos -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-purple-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase">Hora</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase">Tipo</th>
+              <th class="px-4 py-3 text-right text-xs font-medium text-purple-700 uppercase">Monto</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase">Descripción</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase">Creado por</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-purple-700 uppercase">Autorizado por</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <% @register_session.cash_register_flows.order(created_at: :asc).each do |flow| %>
+              <tr class="<%= flow.cancelled? ? 'bg-gray-100 opacity-60' : 'hover:bg-gray-50' %>">
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                  <%= flow.created_at.strftime("%H:%M:%S") %>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= flow.badge_color %>-100 text-<%= flow.badge_color %>-800">
+                    <%= flow.icon %> <%= flow.type_name %>
+                  </span>
+                  <% if flow.cancelled? %>
+                    <span class="ml-1 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      ❌ Cancelado
+                    </span>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold <%= flow.cancelled? ? 'line-through text-gray-500' : (flow.inflow? ? 'text-green-600' : 'text-red-600') %>">
+                  <%= flow.sign %>$<%= number_with_precision(flow.amount, precision: 2, delimiter: ',') %>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-900">
+                  <%= flow.description %>
+                  <% if flow.cancelled? %>
+                    <div class="mt-1 text-xs text-gray-600 italic">
+                      <strong>Razón de cancelación:</strong> <%= flow.cancellation_reason %>
+                    </div>
+                  <% end %>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                  <%= flow.created_by.name %>
+                  <div class="text-xs text-gray-500"><%= flow.created_by.role_name %></div>
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                  <%= flow.authorized_by.name %>
+                  <div class="text-xs text-gray-500"><%= flow.authorized_by.role_name %></div>
+                  <% if flow.cancelled? %>
+                    <div class="mt-1 text-xs text-red-600">
+                      Cancelado por: <%= flow.cancelled_by&.name %>
+                    </div>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+          <tfoot class="bg-purple-50">
+            <tr>
+              <td colspan="2" class="px-4 py-3 text-sm font-semibold text-purple-900">
+                TOTALES:
+              </td>
+              <td class="px-4 py-3 text-sm text-right">
+                <% 
+                  total_inflows = @register_session.cash_register_flows.inflows.active.sum(:amount)
+                  total_outflows = @register_session.cash_register_flows.outflows.active.sum(:amount)
+                  net_balance = total_inflows - total_outflows
+                %>
+                <div class="space-y-1">
+                  <div class="text-green-600 font-bold">
+                    +$<%= number_with_precision(total_inflows, precision: 2, delimiter: ',') %>
+                  </div>
+                  <div class="text-red-600 font-bold">
+                    -$<%= number_with_precision(total_outflows, precision: 2, delimiter: ',') %>
+                  </div>
+                  <div class="pt-1 border-t border-purple-200 font-black <%= net_balance >= 0 ? 'text-blue-600' : 'text-orange-600' %>">
+                    <%= net_balance >= 0 ? '+' : '' %>$<%= number_with_precision(net_balance, precision: 2, delimiter: ',') %>
+                  </div>
+                </div>
+              </td>
+              <td colspan="3" class="px-4 py-3 text-sm text-purple-800">
+                <div class="space-y-1">
+                  <div><%= @register_session.cash_register_flows.inflows.active.count %> ingresos activos</div>
+                  <div><%= @register_session.cash_register_flows.outflows.active.count %> egresos activos</div>
+                  <% if @register_session.cash_register_flows.where(cancelled: true).any? %>
+                    <div class="text-gray-600">
+                      <%= @register_session.cash_register_flows.where(cancelled: true).count %> cancelados (no incluidos en totales)
+                    </div>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <!-- Nota informativa -->
+      <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <div class="flex">
+          <svg class="h-5 w-5 text-blue-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-blue-800 mb-1">
+              <strong>ℹ️ Información importante sobre los flujos:</strong>
+            </p>
+            <ul class="text-xs text-blue-700 space-y-1 list-disc list-inside">
+              <li>Los ingresos (depósitos) se SUMAN al efectivo esperado en caja</li>
+              <li>Los egresos (retiros) se RESTAN del efectivo esperado en caja</li>
+              <li>Los movimientos cancelados NO afectan el balance final</li>
+              <li>Todos los movimientos requieren autorización de Admin, Gerente o Supervisor</li>
+              <li>El historial completo queda registrado en Paper Trail para auditoría</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <!-- Ventas Canceladas -->
   <% if @cancelled_sales.any? %>
     <div class="bg-red-50 rounded-lg shadow-md p-6 border-l-4 border-red-500">

@@ -1,0 +1,155 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">
+      Registrar Movimiento de Efectivo
+    </h1>
+    <p class="mt-2 text-sm text-gray-600">
+      <%= @register_session.display_name %>
+    </p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+    <div class="px-6 py-6">
+      <%= form_with model: @flow, url: register_session_cash_register_flows_path(@register_session), local: true, class: "space-y-6" do |f| %>
+        
+        <!-- Tipo de movimiento -->
+        <div>
+          <%= f.label :movement_type, "Tipo de Movimiento", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Ingreso -->
+            <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-green-500 hover:border-green-400">
+              <%= f.radio_button :movement_type, :inflow, class: "sr-only", checked: true %>
+              <span class="flex flex-1">
+                <span class="flex flex-col">
+                  <span class="block text-lg font-semibold text-gray-900">
+                    ➕ Ingreso
+                  </span>
+                  <span class="mt-1 flex items-center text-sm text-gray-500">
+                    Agregar dinero a la caja
+                  </span>
+                </span>
+              </span>
+              <svg class="h-5 w-5 text-green-600 hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </label>
+
+            <!-- Egreso -->
+            <label class="relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-sm focus-within:ring-2 focus-within:ring-red-500 hover:border-red-400">
+              <%= f.radio_button :movement_type, :outflow, class: "sr-only" %>
+              <span class="flex flex-1">
+                <span class="flex flex-col">
+                  <span class="block text-lg font-semibold text-gray-900">
+                    ➖ Egreso
+                  </span>
+                  <span class="mt-1 flex items-center text-sm text-gray-500">
+                    Sacar dinero de la caja
+                  </span>
+                </span>
+              </span>
+              <svg class="h-5 w-5 text-red-600 hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </label>
+          </div>
+        </div>
+
+        <!-- Monto -->
+        <div>
+          <%= f.label :amount, "Monto", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <div class="relative rounded-md shadow-sm">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <span class="text-gray-500 sm:text-sm">$</span>
+            </div>
+            <%= f.number_field :amount, 
+                step: 0.01, 
+                min: 0.01,
+                placeholder: "0.00",
+                required: true,
+                autofocus: true,
+                class: "block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-green-500 focus:ring-green-500 sm:text-lg" %>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+              <span class="text-gray-500 sm:text-sm">MXN</span>
+            </div>
+          </div>
+          <p class="mt-2 text-sm text-gray-500">
+            💡 Ingrese el monto exacto del movimiento
+          </p>
+        </div>
+
+        <!-- Descripción/Motivo -->
+        <div>
+          <%= f.label :description, "Descripción / Motivo", class: "block text-sm font-medium text-gray-700 mb-2" %>
+          <%= f.text_area :description,
+              rows: 4,
+              placeholder: "Ejemplo: Depósito al banco - corte matutino\nEjemplo: Cambio para operar\nEjemplo: Productos de limpieza",
+              required: true,
+              maxlength: 500,
+              class: "block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" %>
+          <p class="mt-2 text-sm text-gray-500">
+            ⚠️ Obligatorio: Explique claramente el motivo del movimiento (mínimo 5 caracteres)
+          </p>
+        </div>
+
+        <!-- Información de autorización -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-blue-700">
+                <strong>Autorización automática:</strong> Este movimiento será autorizado por <strong><%= current_user.name %></strong> (<%= current_user.role_name %>)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+          <%= link_to "Cancelar", 
+              register_session_cash_register_flows_path(@register_session),
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" %>
+          
+          <%= f.submit "Registrar Movimiento",
+              class: "inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Ejemplos comunes -->
+  <div class="mt-8 bg-gray-50 rounded-lg p-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">
+      💡 Ejemplos comunes de movimientos
+    </h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Ingresos -->
+      <div>
+        <h4 class="text-sm font-semibold text-green-700 mb-2">➕ Ingresos típicos:</h4>
+        <ul class="text-sm text-gray-600 space-y-1">
+          <li>• Cambio para operar</li>
+          <li>• Fondo adicional</li>
+          <li>• Corrección de faltante</li>
+          <li>• Reembolso</li>
+        </ul>
+      </div>
+      
+      <!-- Egresos -->
+      <div>
+        <h4 class="text-sm font-semibold text-red-700 mb-2">➖ Egresos típicos:</h4>
+        <ul class="text-sm text-gray-600 space-y-1">
+          <li>• Depósito al banco</li>
+          <li>• Productos de limpieza</li>
+          <li>• Gastos menores</li>
+          <li>• Corrección de sobrante</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

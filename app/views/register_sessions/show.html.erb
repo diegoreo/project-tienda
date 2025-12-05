@@ -380,6 +380,65 @@
           </div>
         </div>
       <% end %>
+      <!-- Flujos de Efectivo -->
+      <% if @register_session.cash_register_flows.any? || (@register_session.open? && policy(@register_session).manage_flows?) %>
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+            <span class="text-2xl mr-2">💰</span>
+            Flujos de Efectivo
+          </h2>
+          
+          <div class="space-y-4">
+            <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-200">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-purple-800">Total Movimientos</span>
+                <span class="text-2xl font-bold text-purple-900"><%= @register_session.cash_register_flows.count %></span>
+              </div>
+              
+              <% if @register_session.cash_register_flows.any? %>
+                <div class="mt-3 pt-3 border-t border-purple-200 space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-purple-700">➕ Ingresos:</span>
+                    <span class="text-sm font-bold text-green-700">
+                      +$<%= number_with_precision(@register_session.cash_register_flows.inflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs text-purple-700">➖ Egresos:</span>
+                    <span class="text-sm font-bold text-red-700">
+                      -$<%= number_with_precision(@register_session.cash_register_flows.outflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                  <% net_balance = @register_session.cash_register_flows.inflows.active.sum(:amount) - @register_session.cash_register_flows.outflows.active.sum(:amount) %>
+                  <div class="flex justify-between items-center pt-2 border-t border-purple-200">
+                    <span class="text-xs font-semibold text-purple-800">Balance Neto:</span>
+                    <span class="text-base font-black <%= net_balance >= 0 ? 'text-blue-700' : 'text-orange-700' %>">
+                      <%= net_balance >= 0 ? '+' : '' %>$<%= number_with_precision(net_balance, precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+            
+            <% if @register_session.open? && policy(@register_session).manage_flows? %>
+              <%= link_to register_session_cash_register_flows_path(@register_session),
+                  class: "block w-full text-center px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition" do %>
+                <span class="flex items-center justify-center">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Gestionar Flujos
+                </span>
+              <% end %>
+            <% elsif @register_session.cash_register_flows.any? %>
+              <%= link_to register_session_cash_register_flows_path(@register_session),
+                  class: "block w-full text-center px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition text-sm" do %>
+                Ver detalle de flujos →
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
   </div>
 </div>
