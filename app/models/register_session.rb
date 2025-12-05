@@ -5,6 +5,7 @@ class RegisterSession < ApplicationRecord
   belongs_to :opened_by, class_name: "User"
   belongs_to :closed_by, class_name: "User", optional: true
   has_many :sales, dependent: :restrict_with_error
+  has_many :cash_register_flows, dependent: :restrict_with_error
 
   # ========== ENUMS ==========
   enum :status, {
@@ -80,6 +81,14 @@ class RegisterSession < ApplicationRecord
     read_attribute(:cancelled_sales_total) || 0.0
   end
 
+  def total_inflows
+    cash_register_flows.inflows.active.sum(:amount)
+  end
+  
+  def total_outflows
+    cash_register_flows.outflows.active.sum(:amount)
+  end
+
   # ========== MÉTODOS DE ESTADO ==========
 
   # Verificar si está abierta
@@ -96,12 +105,12 @@ class RegisterSession < ApplicationRecord
 
   # Efectivo esperado en caja al cierre
   def expected_balance
-    opening_balance + total_cash_sales
+    opening_balance + total_cash_sales + total_inflows - total_outflows
   end
-
+  
   # Calcular balance esperado (actualizar columna)
   def calculate_expected_balance
-    opening_balance + total_cash_sales
+    opening_balance + total_cash_sales + total_inflows - total_outflows
   end
 
   # Actualizar balance esperado

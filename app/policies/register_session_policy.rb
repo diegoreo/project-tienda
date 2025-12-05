@@ -120,4 +120,10 @@ class RegisterSessionPolicy < ApplicationPolicy
     return false unless user.gerente? || user.admin?
     record.sales.empty?
   end
+
+  # Permiso para gestionar flujos de efectivo
+  def manage_flows?
+    # Solo Admin, Gerente y Supervisor pueden gestionar flujos
+    user.admin? || user.gerente? || user.supervisor?
+  end
 end

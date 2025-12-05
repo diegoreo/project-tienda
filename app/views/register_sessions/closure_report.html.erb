@@ -116,6 +116,86 @@
       </div>
     </div>
 
+    <!-- Flujos de Efectivo -->
+    <% if @register_session.cash_register_flows.any? %>
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg shadow-lg p-6 mb-6 border-2 border-purple-200">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 text-center flex items-center justify-center">
+          <span class="text-3xl mr-2">💰</span>
+          Flujos de Efectivo del Turno
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <!-- Total Ingresos -->
+          <div class="bg-white rounded-lg p-6 shadow text-center">
+            <p class="text-sm text-gray-600 mb-2">➕ Ingresos</p>
+            <p class="text-3xl font-bold text-green-600">
+              +$<%= number_with_precision(@register_session.cash_register_flows.inflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              <%= @register_session.cash_register_flows.inflows.active.count %> 
+              <%= @register_session.cash_register_flows.inflows.active.count == 1 ? 'movimiento' : 'movimientos' %>
+            </p>
+          </div>
+          
+          <!-- Total Egresos -->
+          <div class="bg-white rounded-lg p-6 shadow text-center">
+            <p class="text-sm text-gray-600 mb-2">➖ Egresos</p>
+            <p class="text-3xl font-bold text-red-600">
+              -$<%= number_with_precision(@register_session.cash_register_flows.outflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              <%= @register_session.cash_register_flows.outflows.active.count %> 
+              <%= @register_session.cash_register_flows.outflows.active.count == 1 ? 'movimiento' : 'movimientos' %>
+            </p>
+          </div>
+          
+          <!-- Balance Neto -->
+          <div class="bg-white rounded-lg p-6 shadow text-center">
+            <p class="text-sm text-gray-600 mb-2">💼 Balance Neto</p>
+            <% net_balance = @register_session.cash_register_flows.inflows.active.sum(:amount) - @register_session.cash_register_flows.outflows.active.sum(:amount) %>
+            <p class="text-3xl font-bold <%= net_balance >= 0 ? 'text-blue-600' : 'text-orange-600' %>">
+              <%= net_balance >= 0 ? '+' : '' %>$<%= number_with_precision(net_balance, precision: 2, delimiter: ',') %>
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              <%= @register_session.cash_register_flows.active.count %> movimientos totales
+            </p>
+          </div>
+        </div>
+        
+        <!-- Lista resumida de movimientos -->
+        <div class="bg-white rounded-lg p-4 shadow">
+          <h3 class="text-sm font-bold text-gray-700 mb-3">📋 Resumen de Movimientos:</h3>
+          <div class="space-y-2 max-h-48 overflow-y-auto">
+            <% @register_session.cash_register_flows.active.order(created_at: :asc).each do |flow| %>
+              <div class="flex justify-between items-center text-sm py-2 px-3 bg-gray-50 rounded">
+                <div class="flex items-center space-x-2">
+                  <span class="<%= flow.inflow? ? 'text-green-600' : 'text-red-600' %> font-bold">
+                    <%= flow.icon %>
+                  </span>
+                  <span class="text-gray-700">
+                    <%= flow.created_at.strftime("%H:%M") %>
+                  </span>
+                  <span class="text-gray-600 text-xs">
+                    <%= truncate(flow.description, length: 30) %>
+                  </span>
+                </div>
+                <span class="font-semibold <%= flow.inflow? ? 'text-green-700' : 'text-red-700' %>">
+                  <%= flow.sign %>$<%= number_with_precision(flow.amount, precision: 2, delimiter: ',') %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+        
+        <!-- Nota informativa -->
+        <div class="mt-4 bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+          <p class="text-xs text-blue-800">
+            <strong>ℹ️ Nota:</strong> Estos movimientos ya están incluidos en el cálculo del efectivo esperado en caja.
+          </p>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Estadísticas -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
       <div class="bg-white rounded-lg shadow-md p-6">

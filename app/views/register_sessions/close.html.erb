@@ -141,6 +141,54 @@
               </div>
             </div>
 
+            <!-- Flujos de Efectivo -->
+            <% if @register_session.cash_register_flows.any? %>
+              <div class="mt-4 pt-4 border-t-2 border-gray-300">
+                <h4 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                  <span class="text-xl mr-2">💰</span>
+                  Flujos de Efectivo
+                </h4>
+                
+                <div class="space-y-2 text-sm">
+                  <!-- Ingresos -->
+                  <div class="flex justify-between items-center bg-green-50 rounded px-4 py-2">
+                    <span class="text-green-700 flex items-center">
+                      <span class="text-base mr-1">➕</span>
+                      Ingresos (<%= @register_session.cash_register_flows.inflows.active.count %>)
+                    </span>
+                    <span class="font-bold text-green-700">
+                      +$<%= number_with_precision(@register_session.cash_register_flows.inflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                  
+                  <!-- Egresos -->
+                  <div class="flex justify-between items-center bg-red-50 rounded px-4 py-2">
+                    <span class="text-red-700 flex items-center">
+                      <span class="text-base mr-1">➖</span>
+                      Egresos (<%= @register_session.cash_register_flows.outflows.active.count %>)
+                    </span>
+                    <span class="font-bold text-red-700">
+                      -$<%= number_with_precision(@register_session.cash_register_flows.outflows.active.sum(:amount), precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                  
+                  <!-- Balance Neto -->
+                  <% net_balance = @register_session.cash_register_flows.inflows.active.sum(:amount) - @register_session.cash_register_flows.outflows.active.sum(:amount) %>
+                  <div class="flex justify-between items-center bg-purple-50 rounded px-4 py-2 border border-purple-200">
+                    <span class="text-purple-800 font-semibold">Balance Neto:</span>
+                    <span class="font-bold <%= net_balance >= 0 ? 'text-blue-700' : 'text-orange-700' %>">
+                      <%= net_balance >= 0 ? '+' : '' %>$<%= number_with_precision(net_balance, precision: 2, delimiter: ',') %>
+                    </span>
+                  </div>
+                </div>
+                
+                <%= link_to "Ver detalle de flujos →", 
+                    register_session_cash_register_flows_path(@register_session),
+                    target: "_blank",
+                    class: "inline-block mt-2 text-xs text-purple-600 hover:text-purple-900 hover:underline" %>
+              </div>
+            <% end %>
+
             <!-- Efectivo Esperado - SOLO supervisores y superiores -->
             <% if policy(@register_session).view_cash_differences? %>
               <div class="mt-6 pt-6 border-t-2 border-gray-300">

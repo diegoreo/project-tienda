@@ -1,0 +1,101 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">
+          Detalle del Movimiento
+        </h1>
+        <p class="mt-2 text-sm text-gray-600">
+          <%= @register_session.display_name %>
+        </p>
+      </div>
+      
+      <div class="flex space-x-3">
+        <% if !@flow.cancelled? && policy(@flow).edit? %>
+          <%= link_to edit_register_session_cash_register_flow_path(@register_session, @flow),
+              class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+            Editar
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+    <div class="px-6 py-6 space-y-6">
+      
+      <!-- Tipo y monto -->
+      <div class="text-center py-8 border-b border-gray-200">
+        <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-<%= @flow.badge_color %>-100 text-<%= @flow.badge_color %>-800 mb-4">
+          <%= @flow.icon %> <%= @flow.type_name %>
+        </span>
+        <h2 class="text-5xl font-bold <%= @flow.inflow? ? 'text-green-600' : 'text-red-600' %> mt-2">
+          <%= @flow.sign %>$<%= number_with_precision(@flow.amount, precision: 2, delimiter: ',') %>
+        </h2>
+        <% if @flow.cancelled? %>
+          <span class="inline-block mt-4 px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            ❌ Movimiento Cancelado
+          </span>
+        <% end %>
+      </div>
+
+      <!-- Descripción -->
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-2">Descripción / Motivo</h3>
+        <p class="text-base text-gray-900 whitespace-pre-wrap"><%= @flow.description %></p>
+      </div>
+
+      <!-- Información de creación -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-gray-200">
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3">👤 Creado por</h3>
+          <p class="text-lg font-semibold text-gray-900"><%= @flow.created_by.name %></p>
+          <p class="text-sm text-gray-600"><%= @flow.created_by.role_name %></p>
+          <p class="text-sm text-gray-500 mt-1"><%= l(@flow.created_at, format: :long) %></p>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3">✅ Autorizado por</h3>
+          <p class="text-lg font-semibold text-gray-900"><%= @flow.authorized_by.name %></p>
+          <p class="text-sm text-gray-600"><%= @flow.authorized_by.role_name %></p>
+        </div>
+      </div>
+
+      <!-- Información de cancelación (si aplica) -->
+      <% if @flow.cancelled? %>
+        <div class="pt-6 border-t border-gray-200 bg-red-50 -mx-6 px-6 py-4">
+          <h3 class="text-sm font-medium text-red-800 mb-3">❌ Información de Cancelación</h3>
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <dt class="text-sm font-medium text-red-700">Cancelado por:</dt>
+              <dd class="text-base text-red-900"><%= @flow.cancelled_by.name %></dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-red-700">Fecha de cancelación:</dt>
+              <dd class="text-base text-red-900"><%= l(@flow.cancelled_at, format: :long) %></dd>
+            </div>
+            <div class="md:col-span-2">
+              <dt class="text-sm font-medium text-red-700 mb-1">Razón:</dt>
+              <dd class="text-base text-red-900"><%= @flow.cancellation_reason %></dd>
+            </div>
+          </dl>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Botones de navegación -->
+  <div class="mt-6 flex justify-between">
+    <%= link_to register_session_cash_register_flows_path(@register_session),
+        class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+      ← Volver a flujos
+    <% end %>
+
+    <%= link_to @register_session,
+        class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" do %>
+      Ver turno completo
+    <% end %>
+  </div>
+</div>

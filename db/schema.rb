@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_01_192842) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_04_232609) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -21,6 +21,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_01_192842) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["product_id"], name: "index_barcodes_on_product_id"
+  end
+
+  create_table "cash_register_flows", force: :cascade do |t|
+    t.bigint "register_session_id", null: false
+    t.integer "movement_type", default: 0, null: false
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.text "description", null: false
+    t.bigint "created_by_id", null: false
+    t.bigint "authorized_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "cancelled", default: false, null: false
+    t.bigint "cancelled_by_id"
+    t.datetime "cancelled_at"
+    t.text "cancellation_reason"
+    t.index ["authorized_by_id"], name: "index_cash_register_flows_on_authorized_by_id"
+    t.index ["cancelled"], name: "index_cash_register_flows_on_cancelled"
+    t.index ["cancelled_at"], name: "index_cash_register_flows_on_cancelled_at"
+    t.index ["cancelled_by_id"], name: "index_cash_register_flows_on_cancelled_by_id"
+    t.index ["created_at"], name: "index_cash_register_flows_on_created_at"
+    t.index ["created_by_id"], name: "index_cash_register_flows_on_created_by_id"
+    t.index ["movement_type"], name: "index_cash_register_flows_on_movement_type"
+    t.index ["register_session_id", "movement_type"], name: "idx_on_register_session_id_movement_type_c1972de8a1"
+    t.index ["register_session_id"], name: "index_cash_register_flows_on_register_session_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -190,12 +214,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_01_192842) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "total_inflows", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "total_outflows", precision: 10, scale: 2, default: "0.0", null: false
     t.index ["closed_by_id"], name: "index_register_sessions_on_closed_by_id"
     t.index ["opened_at"], name: "index_register_sessions_on_opened_at"
     t.index ["opened_by_id"], name: "index_register_sessions_on_opened_by_id"
     t.index ["register_id", "closed_at"], name: "index_register_sessions_on_register_id_and_closed_at"
     t.index ["register_id"], name: "index_register_sessions_on_register_id"
     t.index ["status"], name: "index_register_sessions_on_status"
+    t.index ["total_inflows"], name: "index_register_sessions_on_total_inflows"
+    t.index ["total_outflows"], name: "index_register_sessions_on_total_outflows"
   end
 
   create_table "registers", force: :cascade do |t|
@@ -329,6 +357,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_01_192842) do
   end
 
   add_foreign_key "barcodes", "products"
+  add_foreign_key "cash_register_flows", "register_sessions"
+  add_foreign_key "cash_register_flows", "users", column: "authorized_by_id"
+  add_foreign_key "cash_register_flows", "users", column: "cancelled_by_id"
+  add_foreign_key "cash_register_flows", "users", column: "created_by_id"
   add_foreign_key "inventories", "products"
   add_foreign_key "inventories", "warehouses"
   add_foreign_key "inventory_adjustments", "inventories"
