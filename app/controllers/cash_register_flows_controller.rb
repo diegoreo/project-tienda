@@ -13,6 +13,66 @@ class CashRegisterFlowsController < ApplicationController
     @stats = calculate_flows_stats
   end
 
+  def quick_create
+    # 1. Validar que existan los parámetros necesarios
+    unless params[:authorized_by_id].present? && params[:password].present?
+      return render json: { 
+        error: "Faltan datos de autorización" 
+      }, status: :bad_request
+    end
+  
+    # 2. Buscar al autorizador
+    authorizer = User.find_by(id: params[:authorized_by_id])
+    
+    unless authorizer
+      return render json: { 
+        error: "Usuario autorizador no encontrado" 
+      }, status: :not_found
+    end
+  
+    # 3. Validar contraseña
+    unless authorizer.valid_password?(params[:password])
+      return render json: { 
+        error: "❌ Contraseña incorrecta" 
+      }, status: :unauthorized
+    end
+  
+    # 4. Verificar que el autorizador tenga permisos
+    unless authorizer.admin? || authorizer.gerente? || authorizer.supervisor?
+      return render json: { 
+        error: "Este usuario no tiene permisos para autorizar movimientos" 
+      }, status: :forbidden
+    end
+  
+    # 5. Verificar que la sesión esté abierta
+    unless @register_session.open?
+      return render json: { 
+        error: "No se pueden registrar movimientos en una sesión cerrada" 
+      }, status: :unprocessable_entity
+    end
+  
+    # 6. Crear el flujo usando quick_flow_params
+    @flow = @register_session.cash_register_flows.build(quick_flow_params)
+    @flow.created_by = current_user
+    @flow.authorized_by = authorizer
+  
+    if @flow.save
+      # Actualizar contadores de la sesión
+      @flow.update_session_counters!
+      
+      # Respuesta exitosa
+      render json: { 
+        success: true,
+        message: "✅ #{@flow.type_name} de $#{'%.2f' % @flow.amount} registrado exitosamente"
+      }, status: :created
+    else
+      # Errores de validación del modelo
+      render json: { 
+        error: @flow.errors.full_messages.join(", ") 
+      }, status: :unprocessable_entity
+    end
+  end
+
   # GET /register_sessions/:register_session_id/flows/:id
   def show
     # Vista de detalle de un flujo específico
@@ -113,6 +173,7 @@ class CashRegisterFlowsController < ApplicationController
 
   private
 
+
   def set_register_session
     @register_session = RegisterSession.find(params[:register_session_id])
   end
@@ -132,6 +193,10 @@ class CashRegisterFlowsController < ApplicationController
       :amount,
       :description
     )
+  end
+
+  def quick_flow_params
+    params.permit(:movement_type, :amount, :description)
   end
 
   def calculate_flows_stats
