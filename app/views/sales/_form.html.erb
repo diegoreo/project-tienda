@@ -1,5 +1,5 @@
 <div data-controller="quick-flow" data-session-id="<%= @current_session&.id %>"> 
-  <%= form_with model: sale, local: true, data: { controller: "pos-sale" }, class: "space-y-3" do |f| %>
+  <%= form_with model: sale, local: true, data: { controller: "pos-sale", action: "submit->pos-sale#validateSubmit" }, class: "space-y-3" do |f| %>
     
     <!-- Errores -->
     <% if sale.errors.any? %>
