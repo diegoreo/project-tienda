@@ -55,6 +55,10 @@ Rails.application.routes.draw do
   resources :register_sessions, except: [ :edit, :update ] do
     # Flujos de efectivo (ingresos/egresos)
     resources :cash_register_flows, path: 'flows', only: [ :index, :new, :create, :show, :edit, :update ] do
+      collection do
+        post :quick_create  #  Crear flujo con autorización rápida
+      end
+      
       member do
         post :cancel  # Cancelar un movimiento
       end
