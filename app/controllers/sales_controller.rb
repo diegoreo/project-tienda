@@ -53,15 +53,15 @@ class SalesController < ApplicationController
 
   def new
     authorize Sale
-
-     # VALIDACIÓN: Verificar sesión abierta ANTES de mostrar formulario
-     @current_session = current_user_open_session
-
-     unless @current_session
-       redirect_to register_sessions_path, alert: "⚠️ Debe abrir un turno de caja antes de realizar ventas. Por favor, abra un turno primero."
-       return
-     end
-
+  
+    # VALIDACIÓN: Verificar sesión abierta ANTES de mostrar formulario
+    @current_session = current_user_open_session
+  
+    unless @current_session
+      redirect_to register_sessions_path, alert: "⚠️ Debe abrir un turno de caja antes de realizar ventas. Por favor, abra un turno primero."
+      return
+    end
+  
     # Si viene de una venta exitosa, restaurar configuración
     if params[:success] == "true"
       @sale = Sale.new(
@@ -70,23 +70,27 @@ class SalesController < ApplicationController
         payment_method: params[:payment_method] || "cash",
         sale_date: Date.current
       )
-
+  
       @success_message = "✅ Venta ##{params[:sale_id]} registrada - Total: $#{sprintf('%.2f', params[:total].to_f)}"
     else
       @sale = Sale.new(sale_date: Date.current)
-
+  
       # Establecer cliente por defecto
       default_customer = Customer.where("LOWER(TRIM(name)) LIKE ?", "%general%")
                           .order(created_at: :asc)
                           .first
       @sale.customer_id = default_customer&.id if default_customer
-
+  
       # Establecer almacén por defecto (usar el de la sesión actual)
       @sale.warehouse_id = @current_session.register.warehouse_id
     end
-
+  
     # Crear primer item con valores por defecto
     @sale.sale_items.build(quantity: 1, discount: 0)
+  
+    # Cargar supervisores que pueden autorizar flujos (Admin, Gerente, Supervisor)
+    @authorizers = User.where(role: [:admin, :gerente, :supervisor])
+                       .order(:name)
   end
 
   def create
