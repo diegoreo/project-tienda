@@ -119,6 +119,45 @@ export default class extends Controller {
     }
   }
 
+  // Validar antes de enviar el formulario
+  validateSubmit(event) {
+    const paymentSelect = this.element.querySelector('select[name="sale[payment_method]"]')
+    const paymentMethod = paymentSelect ? paymentSelect.value : null
+    
+    // Solo validar si es pago en efectivo
+    if (paymentMethod === 'cash') {
+      const total = this.getCurrentTotal()
+      
+      // Si no hay campo de recibido visible, es porque no se configuró bien
+      if (!this.hasReceivedAmountTarget || this.paymentSectionTarget.style.display === 'none') {
+        event.preventDefault()
+        alert('⚠️ Debes ingresar el monto recibido en efectivo')
+        return false
+      }
+      
+      const received = parseFloat(this.receivedAmountTarget.value) || 0
+      
+      // Validar que el monto recibido sea mayor o igual al total
+      if (received < total) {
+        event.preventDefault()
+        const missing = total - received
+        alert(`⚠️ Efectivo insuficiente\n\n` +
+              `Total de la venta: $${total.toFixed(2)}\n` +
+              `Efectivo recibido: $${received.toFixed(2)}\n` +
+              `Falta: $${missing.toFixed(2)}\n\n` +
+              `Por favor, solicita el monto completo al cliente.`)
+        
+        // Enfocar el campo de recibido
+        this.receivedAmountTarget.focus()
+        this.receivedAmountTarget.select()
+        return false
+      }
+    }
+    
+    // Si pasa todas las validaciones, permitir el submit
+    return true
+  }
+
   searchProducts(event) {
     clearTimeout(this.searchTimeout)
     const query = event.target.value.trim()
