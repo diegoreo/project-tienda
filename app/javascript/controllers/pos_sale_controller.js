@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import Swal from "sweetalert2"
 
 export default class extends Controller {
   static targets = [
@@ -141,15 +142,36 @@ export default class extends Controller {
       if (received < total) {
         event.preventDefault()
         const missing = total - received
-        alert(`⚠️ Efectivo insuficiente\n\n` +
-              `Total de la venta: $${total.toFixed(2)}\n` +
-              `Efectivo recibido: $${received.toFixed(2)}\n` +
-              `Falta: $${missing.toFixed(2)}\n\n` +
-              `Por favor, solicita el monto completo al cliente.`)
         
-        // Enfocar el campo de recibido
-        this.receivedAmountTarget.focus()
-        this.receivedAmountTarget.select()
+        Swal.fire({
+          icon: 'warning',
+          title: '⚠️ Efectivo insuficiente',
+          html: `
+            <div class="text-left space-y-3">
+              <p class="text-base"><strong>Total de la venta:</strong> <span class="text-green-600 font-bold text-lg">$${total.toFixed(2)}</span></p>
+              <p class="text-base"><strong>Efectivo recibido:</strong> <span class="text-blue-600 font-bold text-lg">$${received.toFixed(2)}</span></p>
+              
+              <div class="text-center py-4 bg-red-50 rounded-lg border-2 border-red-200 my-4">
+                <p class="text-red-800 font-bold text-xl mb-1">Falta:</p>
+                <p class="text-red-600 font-bold text-3xl">$${missing.toFixed(2)}</p>
+              </div>
+              
+              <hr class="my-3 border-gray-300">
+              <p class="text-gray-700 text-sm">Por favor, solicita el monto completo al cliente.</p>
+            </div>
+          `,
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#16a34a',
+          customClass: {
+            popup: 'rounded-lg shadow-2xl',
+            confirmButton: 'px-6 py-3 rounded-lg font-semibold'
+          }
+        }).then(() => {
+          // Enfocar el campo de recibido después de cerrar el modal
+          this.receivedAmountTarget.focus()
+          this.receivedAmountTarget.select()
+        })
+        
         return false
       }
     }

@@ -25,7 +25,9 @@ module Tienda
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    # Zona horaria de México (Ciudad de México, Hidalgo, etc.)
+    config.time_zone = "Mexico City"
+    config.active_record.default_timezone = :utc
     # config.eager_load_paths << Rails.root.join("extras")
     # available lenguages
     config.i18n.available_locales = [ :en, :es ]
