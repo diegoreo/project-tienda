@@ -5,7 +5,7 @@ class SalesController < ApplicationController
     authorize Sale
 
     # Construir query (sin @, solo variable local)
-    sales = policy_scope(Sale).includes(:customer, :warehouse, :sale_items).order(sale_date: :desc, created_at: :desc)
+    sales = policy_scope(Sale).includes(:customer, :warehouse, :user, register_session: :register).order(sale_date: :desc, created_at: :desc)
 
     # Control de visualización de costos
     @show_costs = policy(Sale).view_costs?
