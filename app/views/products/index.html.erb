@@ -21,16 +21,37 @@
               </span>
             </div>
           </div>
-          
-          <!-- 🔥 BOTÓN CON data-turbo-frame="_top" -->
-          <%= link_to new_product_path, 
-              data: { turbo_frame: "_top" },
-              class: "inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition duration-200" do %>
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Nuevo Producto
-          <% end %>
+
+          <div class="flex gap-3">
+            <!-- Toggle Vista -->
+            <div class="inline-flex rounded-lg shadow-sm" role="group">
+              <%= link_to products_path(view: 'table', query: params[:query], category_id: params[:category_id], status: params[:status]),
+                  class: "inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-l-lg border transition #{params[:view] != 'cards' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}" do %>
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <span class="hidden sm:inline">Tabla</span>
+              <% end %>
+              
+              <%= link_to products_path(view: 'cards', query: params[:query], category_id: params[:category_id], status: params[:status]),
+                  class: "inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-r-lg border-t border-r border-b transition #{params[:view] == 'cards' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'}" do %>
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                <span class="hidden sm:inline">Tarjetas</span>
+              <% end %>
+            </div>
+
+            <!-- BOTÓN CON data-turbo-frame="_top" -->
+            <%= link_to new_product_path, 
+                data: { turbo_frame: "_top" },
+                class: "inline-flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition duration-200" do %>
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Nuevo Producto
+            <% end %>
+          </div>
         </div>
       </div>
 
@@ -102,32 +123,203 @@
         <% end %>
       </div>
 
-      <!-- Products Grid -->
-      <% if @products.any? %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <%= render partial: "product", collection: @products %>
-        </div>
-      <% else %>
-        <div class="bg-white rounded-lg shadow-md p-12 text-center">
-          <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
-          </svg>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
-          <p class="text-gray-500 mb-6">Intenta con otra búsqueda o agrega un nuevo producto</p>
-          
-          <!-- 🔥 BOTÓN CON data-turbo-frame="_top" -->
-          <%= link_to new_product_path, 
-              data: { turbo_frame: "_top" },
-              class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" do %>
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      <!-- Tabla o Tarjetas según vista seleccionada -->
+      <% if params[:view] == 'cards' %>
+        <!-- Vista de Tarjetas -->
+        <% if @products.any? %>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <%= render partial: "product", collection: @products %>
+          </div>
+        <% else %>
+          <!-- Empty state -->
+          <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <svg class="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
             </svg>
-            Crear Primer Producto
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
+            <p class="text-gray-500 mb-6">Intenta con otra búsqueda o agrega un nuevo producto</p>
+            
+            <%= link_to new_product_path, 
+                data: { turbo_frame: "_top" },
+                class: "inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" do %>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Crear Primer Producto
+            <% end %>
+          </div>
+        <% end %>
+
+      <% else %>
+        <!-- Vista de Tabla -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+          <% if @products.any? %>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                  <tr>
+                    <!-- ID  -->
+                    <th scope="col" class="px-3 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-16">
+                      ID
+                    </th>
+                    
+                    <!-- Producto  -->
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Producto
+                    </th>
+                    
+                    <!-- Categoría -->
+                    <th scope="col" class="px-4 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider w-32">
+                      Categoría
+                    </th>
+                    
+                    <!-- Precio -->
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Precio
+                    </th>
+                    
+                    <!-- Unidad -->
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Unidad
+                    </th>
+                    
+                    <!-- Stock Total -->
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Stock
+                    </th>
+                    
+                    <!-- Estado -->
+                    <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Estado
+                    </th>
+                    
+                    <!-- Acciones -->
+                    <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <% @products.each do |product| %>
+                    <tr class="hover:bg-gray-50 transition <%= 'opacity-60' unless product.active? %>">
+                      <!-- ID -->
+                      <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">
+                        #<%= product.id %>
+                      </td>
+                      
+                      <!-- Producto -->
+                      <td class="px-6 py-4">
+                        <div class="flex items-center">
+                          <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                          </div>
+                          <div class="ml-4 min-w-0 flex-1">
+                            <!-- Nombre con truncate + tooltip -->
+                            <div class="text-sm font-medium text-gray-900 truncate max-w-[200px] cursor-help" 
+                                title="<%= product.name %>">
+                              <%= product.name %>
+                            </div>
+                            <!-- Descripción con truncate + tooltip -->
+                            <% if product.description.present? %>
+                              <div class="text-xs text-gray-500 truncate max-w-[200px] cursor-help" 
+                                  title="<%= product.description %>">
+                                <%= product.description %>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </td>
+                      
+                      <!-- Categoría -->
+                      <td class="px-4 py-4 whitespace-nowrap">
+                        <% if product.category %>
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                            <%= product.category.name %>
+                          </span>
+                        <% else %>
+                          <span class="text-xs text-gray-400">—</span>
+                        <% end %>
+                      </td>
+                      
+                      <!-- Precio -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-bold text-green-600">
+                          <%= number_to_currency(product.price) %>
+                        </div>
+                      </td>
+                      
+                      <!-- Unidad -->
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <%= product.sale_unit.abbreviation %>
+                      </td>
+                      
+                      <!-- Stock -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <% total_stock = product.inventories.sum(:quantity) %>
+                        <div class="text-sm font-semibold <%= total_stock > 50 ? 'text-green-600' : total_stock > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                          <%= number_with_delimiter(total_stock.to_i) %>
+                        </div>
+                      </td>
+                      
+                      <!-- Estado -->
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <% if product.active? %>
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                            Activo
+                          </span>
+                        <% else %>
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                            <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5"></span>
+                            Inactivo
+                          </span>
+                        <% end %>
+                      </td>
+                      
+                      <!-- Acciones -->
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end gap-2">
+                          <%= link_to product_path(product), 
+                              class: "inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition" do %>
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Ver
+                          <% end %>
+                          
+                          <%= link_to edit_product_path(product), 
+                              data: { turbo_frame: "_top" },
+                              class: "inline-flex items-center px-3 py-1.5 bg-yellow-600 text-white text-xs font-semibold rounded-md hover:bg-yellow-700 transition" do %>
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                            Editar
+                          <% end %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <!-- Empty state para tabla -->
+            <div class="p-12 text-center">
+              <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+              </svg>
+              <h3 class="text-lg font-semibold text-gray-700 mb-2">No se encontraron productos</h3>
+              <p class="text-gray-500">Intenta con otra búsqueda o agrega un nuevo producto</p>
+            </div>
           <% end %>
         </div>
       <% end %>
+      <!-- Fin Toggle Vista -->
       
-      <!-- 🔥 PAGINACIÓN -->
+      <!--  PAGINACIÓN -->
       <% if @products.any? %>
         <%= render 'shared/pagy_nav', pagy: @pagy %>
       <% end %>
@@ -136,3 +328,5 @@
 
   </div>
 </div>
+
+
