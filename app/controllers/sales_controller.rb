@@ -10,6 +10,14 @@ class SalesController < ApplicationController
     # Control de visualización de costos
     @show_costs = policy(Sale).view_costs?
 
+    # Cargar opciones para filtros
+    @users_for_filter = User.where(id: Sale.distinct.pluck(:user_id).compact).order(:name)
+    @registers_for_filter = Register.joins(:register_sessions)
+                                    .where(register_sessions: { id: Sale.distinct.pluck(:register_session_id).compact })
+                                    .distinct
+                                    .order(:name)
+
+
     # Filtro por folio
     sales = sales.where(id: params[:folio]) if params[:folio].present?
 
@@ -35,6 +43,14 @@ class SalesController < ApplicationController
     # Filtro para ventas con deuda pendiente
     if params[:with_pending_amount] == "true"
       sales = sales.where("pending_amount > 0")
+    end
+
+    # Filtro por vendedor
+    sales = sales.where(user_id: params[:user_id]) if params[:user_id].present?
+
+    # Filtro por caja (register)
+    if params[:register_id].present?
+      sales = sales.joins(:register_session).where(register_sessions: { register_id: params[:register_id] })
     end
 
     # PAGINACIÓN (25 ventas por página)
