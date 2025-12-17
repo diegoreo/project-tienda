@@ -1,5 +1,7 @@
 <div class="bg-gray-50 min-h-screen">
-  <div class="container mx-auto px-4 py-6">
+  <div class="container mx-auto px-4 py-6"
+       data-controller="table-filters"
+       data-page="inventories">
     
     <!-- Header Section -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-4">
@@ -44,8 +46,22 @@
           </div>
         </div>
 
-        <!-- Botón Exportar CSV -->
+        
         <div class="flex gap-3">
+          <!-- Botón Filtros -->
+          <button type="button"
+                  data-action="click->table-filters#toggleFilters"
+                  class="inline-flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            <span data-table-filters-target="buttonText">🔍 Filtros</span>
+            <svg class="w-4 h-4 ml-1" data-table-filters-target="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- Botón Exportar CSV -->
           <%= link_to inventories_path(format: :csv, query: params[:query], warehouse_id: params[:warehouse_id], stock_status: params[:stock_status], category_id: params[:category_id], sort: params[:sort], direction: params[:direction]), 
               class: "inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition duration-200" do %>
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,84 +113,92 @@
     </div>
 
     <!-- Filtros compactos -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-      <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6"
+         data-table-filters-target="filtersSection">
+      
+      <!-- Filtro de Categoría (arriba, horizontal con wrap) -->
+      <div class="space-y-2 mb-4">
+        <label class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          Categoría:
+        </label>
+        
+        <div class="flex flex-wrap gap-2">
+          <%= link_to inventories_path(warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
+              class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:category_id].blank? ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+            Todas
+          <% end %>
+          
+          <% @categories.each do |category| %>
+            <%= link_to inventories_path(category_id: category.id, warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:category_id].to_i == category.id ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+              <%= category.name %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="border-t border-gray-200 my-4"></div>
+
+      <!-- Almacén y Estado (abajo, misma fila) -->
+      <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+        
         <!-- Filtro de Almacén -->
-        <div class="flex items-center gap-2 flex-1 min-w-0">
-          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
           </svg>
           <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Almacén:</span>
-          <div class="flex flex-wrap gap-2 overflow-x-auto">
+          <div class="flex flex-wrap gap-2">
             <%= link_to inventories_path(query: params[:query], stock_status: params[:stock_status], category_id: params[:category_id]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:warehouse_id].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:warehouse_id].blank? ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
               Todos
             <% end %>
             
             <% @warehouses.each do |warehouse| %>
               <%= link_to inventories_path(warehouse_id: warehouse.id, query: params[:query], stock_status: params[:stock_status], category_id: params[:category_id]), 
-                  class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:warehouse_id].to_i == warehouse.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                  class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:warehouse_id].to_i == warehouse.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
                 <%= warehouse.name %>
               <% end %>
             <% end %>
           </div>
         </div>
 
-        <!-- Separador -->
+        <!-- Separador vertical (solo en pantallas grandes) -->
         <div class="hidden lg:block w-px h-8 bg-gray-300"></div>
 
         <!-- Filtro de Estado de Stock -->
-        <div class="flex items-center gap-2 flex-1 min-w-0">
-          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
           <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Estado:</span>
           <div class="flex flex-wrap gap-2">
             <%= link_to inventories_path(warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status].blank? ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:stock_status].blank? ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
               Todos
             <% end %>
             
             <%= link_to inventories_path(stock_status: 'optimal', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:stock_status] == 'optimal' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
               Óptimo
             <% end %>
             
             <%= link_to inventories_path(stock_status: 'medium', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'medium' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:stock_status] == 'medium' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
               Medio
             <% end %>
             
             <%= link_to inventories_path(stock_status: 'low', warehouse_id: params[:warehouse_id], query: params[:query], category_id: params[:category_id]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:stock_status] == 'low' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
+                class: "px-3 py-1.5 text-sm font-medium rounded-lg transition whitespace-nowrap #{params[:stock_status] == 'low' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
               Bajo
             <% end %>
           </div>
         </div>
 
-        <!-- Separador -->
-        <div class="hidden lg:block w-px h-8 bg-gray-300"></div>
-
-        <!-- Filtro de Categoría -->
-        <div class="flex items-center gap-2 flex-1 min-w-0">
-          <svg class="w-4 h-4 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-          </svg>
-          <span class="text-sm font-semibold text-gray-700 flex-shrink-0">Categoría:</span>
-          <div class="flex flex-wrap gap-2 overflow-x-auto">
-            <%= link_to inventories_path(warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
-                class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:category_id].blank? ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
-              Todas
-            <% end %>
-            
-            <% @categories.each do |category| %>
-              <%= link_to inventories_path(category_id: category.id, warehouse_id: params[:warehouse_id], query: params[:query], stock_status: params[:stock_status]), 
-                  class: "px-3 py-1 rounded-full text-xs font-medium transition whitespace-nowrap #{params[:category_id].to_i == category.id ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}" do %>
-                <%= category.name %>
-              <% end %>
-            <% end %>
-          </div>
-        </div>
       </div>
     </div>
 
