@@ -5,8 +5,18 @@ export default class extends Controller {
   
   connect() {
     console.log("Table filters controller connected")
-    this.storageKey = "sales_filters_visible"
+    
+    // Detectar página actual desde data-page attribute
+    const page = this.element.dataset.page || 'default'
+    this.storageKey = `${page}_filters_visible`
+    
+    console.log(`Storage key: ${this.storageKey}`)
+    
     this.loadFilterPreference()
+    
+    // Cerrar con ESC
+    this.handleEscape = this.handleEscape.bind(this)
+    document.addEventListener('keydown', this.handleEscape)
   }
   
   // Cargar preferencia guardada
@@ -54,5 +64,21 @@ export default class extends Controller {
     const button = this.element.querySelector('[data-action*="toggleFilters"]')
     button.classList.remove('bg-green-100', 'text-green-700')
     button.classList.add('bg-gray-100', 'text-gray-700')
+  }
+
+  // Manejar tecla ESC
+  handleEscape(event) {
+    if (event.key === 'Escape') {
+      // Si los filtros están visibles, ocultarlos
+      if (this.hasFiltersSectionTarget && !this.filtersSectionTarget.classList.contains('hidden')) {
+        this.hideFilters()
+        localStorage.setItem(this.storageKey, "false")
+      }
+    }
+  }
+  
+  // Limpiar event listener al desconectar
+  disconnect() {
+    document.removeEventListener('keydown', this.handleEscape)
   }
 }
