@@ -37,9 +37,9 @@ class ProductsController < ApplicationController
       products = products.active  # Por defecto mostrar solo activos
     end
 
-    # Orden y preload de asociaciones
-    products = products.includes(:purchase_unit, :sale_unit, :category)
-      .order(created_at: :desc)
+    # Orden y preload de asociaciones (agregado :inventories, :barcodes)
+    products = products.includes(:purchase_unit, :sale_unit, :category, :inventories, :barcodes)
+    .order(created_at: :desc)
 
     # PAGINACIÓN (20 productos por página)
     @pagy, @products = pagy(products, items: 20)
@@ -47,9 +47,9 @@ class ProductsController < ApplicationController
   end
 
   def show
-    @product = Product.find(params[:id])
+    @product = Product.includes(inventories: :warehouse).find(params[:id])
     authorize @product
-
+  
     respond_to do |format|
       format.html # busca la vista show.html.erb por defecto
       format.json { render json: @product.as_json(only: [ :id, :name, :price ]) }
