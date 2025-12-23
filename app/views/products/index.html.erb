@@ -257,7 +257,7 @@
                       
                       <!-- Stock -->
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <% total_stock = product.inventories.sum(:quantity) %>
+                        <% total_stock = product.inventories.sum(&:quantity) %>
                         <div class="text-sm font-semibold <%= total_stock > 50 ? 'text-green-600' : total_stock > 10 ? 'text-yellow-600' : 'text-red-600' %>">
                           <%= number_with_delimiter(total_stock.to_i) %>
                         </div>
@@ -282,6 +282,7 @@
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center justify-end gap-2">
                           <%= link_to product_path(product), 
+                              data: { turbo_frame: "_top" },
                               class: "inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-md hover:bg-blue-700 transition" do %>
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>

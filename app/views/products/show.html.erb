@@ -119,20 +119,27 @@
           
           <!-- Stock Card -->
           <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-5 border-2 border-green-200">
-            <h3 class="text-sm font-semibold text-green-800 mb-2">Stock Disponible</h3>
+            <h3 class="text-sm font-semibold text-green-800 mb-2">Stock Total</h3>
+            <% total_stock = @product.inventories.sum(&:quantity) %>
             <p class="text-4xl font-bold text-green-700 mb-1">
-              <%= @product.stock_for_sale %>
+              <%= number_with_delimiter(total_stock.to_i) %>
             </p>
             <p class="text-sm text-green-600">
               <%= @product.sale_unit&.name || 'unidades' %>
             </p>
             
-            <% if @product.stock_quantity.present? && @product.unit_conversion.present? %>
+            <!-- Detalle por almacén -->
+            <% if @product.inventories.any? %>
               <div class="mt-4 pt-4 border-t border-green-200">
-                <p class="text-xs text-green-700">
-                  Inventario por <%= @product.purchase_unit&.abbreviation %>:
-                  <span class="font-semibold"><%= @product.stock_quantity.to_i %></span>
-                </p>
+                <p class="text-xs font-semibold text-green-800 mb-2">Por almacén:</p>
+                <div class="space-y-1">
+                  <% @product.inventories.each do |inventory| %>
+                    <div class="flex justify-between text-xs text-green-700">
+                      <span><%= inventory.warehouse.name %></span>
+                      <span class="font-semibold"><%= number_with_delimiter(inventory.quantity.to_i) %></span>
+                    </div>
+                  <% end %>
+                </div>
               </div>
             <% end %>
           </div>
