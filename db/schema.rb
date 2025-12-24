@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_04_232609) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_24_190115) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -92,10 +92,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_04_232609) do
     t.integer "adjustment_type", default: 0, null: false
     t.string "reason", null: false
     t.text "note"
-    t.string "performed_by", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "performed_by_id", null: false
     t.index ["inventory_id"], name: "index_inventory_adjustments_on_inventory_id"
+    t.index ["performed_by_id"], name: "index_inventory_adjustments_on_performed_by_id"
   end
 
   create_table "inventory_movements", force: :cascade do |t|
@@ -364,6 +365,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_04_232609) do
   add_foreign_key "inventories", "products"
   add_foreign_key "inventories", "warehouses"
   add_foreign_key "inventory_adjustments", "inventories"
+  add_foreign_key "inventory_adjustments", "users", column: "performed_by_id"
   add_foreign_key "inventory_movements", "inventories"
   add_foreign_key "payment_applications", "payments"
   add_foreign_key "payment_applications", "sales"
