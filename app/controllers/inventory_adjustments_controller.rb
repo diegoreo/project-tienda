@@ -4,14 +4,14 @@ class InventoryAdjustmentsController < ApplicationController
 
   def index
     authorize InventoryAdjustment
-    @adjustments = inventory.inventory_adjustments
+    @adjustments = inventory.inventory_adjustments.includes(:performed_by)
 
     # Variable para controlar visualización de costos
     @show_costs = policy(InventoryAdjustment).view_costs?
   end
 
   def show
-    @adjustment = inventory.inventory_adjustments.find(params[:id])
+    @adjustment = inventory.inventory_adjustments.includes(:performed_by).find(params[:id])
     authorize @adjustment
 
     # Variable para controlar visualización de costos
@@ -33,7 +33,7 @@ class InventoryAdjustmentsController < ApplicationController
       quantity: adjustment_params[:quantity],
       adjustment_type: adjustment_params[:adjustment_type],
       reason: adjustment_params[:reason],
-      performed_by: adjustment_params[:performed_by],
+      performed_by: current_user,
       note: adjustment_params[:note]
     )
     redirect_to inventory_inventory_adjustments_path(inventory), notice: "Ajuste aplicado correctamente."
@@ -46,6 +46,6 @@ class InventoryAdjustmentsController < ApplicationController
   private
 
   def adjustment_params
-    params.require(:inventory_adjustment).permit(:quantity, :adjustment_type, :reason, :performed_by, :note)
+    params.require(:inventory_adjustment).permit(:quantity, :adjustment_type, :reason, :note)
   end
 end
