@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_24_190115) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_02_221123) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -66,6 +66,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_24_190115) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["current_debt"], name: "index_customers_on_current_debt_positive", where: "(current_debt > (0)::numeric)"
     t.index ["customer_type"], name: "index_customers_on_customer_type"
     t.index ["email"], name: "index_customers_on_email"
     t.index ["name"], name: "index_customers_on_name"
