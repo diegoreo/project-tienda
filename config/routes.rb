@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  get "errors/not_found"
+  get "errors/unprocessable_entity"
+  get "errors/internal_server_error"
   # Devise solo para login/logout (SIN registro, SIN recuperar password, SIN editar perfil)
   # Los usuarios SOLO pueden hacer login y logout
   devise_for :users, skip: [ :registrations, :passwords ]
@@ -77,4 +80,8 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "products#index"
+
+  match '/404', to: 'errors#not_found', via: :all
+  match '/422', to: 'errors#unprocessable_entity', via: :all
+  match '/500', to: 'errors#internal_server_error', via: :all
 end
