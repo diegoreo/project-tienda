@@ -40,6 +40,7 @@ class Sale < ApplicationRecord
   validate :register_session_must_be_open, if: -> { register_session.present? && new_record? }
   # Debe tener al menos un producto
   validate :must_have_items, on: :create
+  validate :sale_date_cannot_be_future
 
   # Scopes
   scope :completed, -> { where(status: :completed) }
@@ -290,6 +291,17 @@ class Sale < ApplicationRecord
 
     if active_items.empty?
       errors.add(:base, "⚠️ La venta debe tener al menos un producto")
+    end
+  end
+
+  def sale_date_cannot_be_future
+    return unless sale_date.present?
+    
+    if sale_date > Date.current
+      errors.add(:sale_date, 
+        "no puede ser una fecha futura. " \
+        "Fecha actual: #{Date.current.strftime('%d/%m/%Y')}"
+      )
     end
   end
 end

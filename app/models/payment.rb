@@ -27,6 +27,8 @@ class Payment < ApplicationRecord
   # Venta debe tener saldo pendiente
   validate :sale_must_have_pending_amount, if: :sale_id?
 
+  validate :payment_date_cannot_be_future
+
   # Callbacks - NO USAR callbacks según tu estándar,
   # pero para actualizar deuda es necesario
   # Si prefieres hacerlo manual en el controller, comenta estas líneas
@@ -191,5 +193,16 @@ class Payment < ApplicationRecord
 
     # Eliminar las aplicaciones AL FINAL
     PaymentApplication.where(id: applications_to_revert.map(&:id)).delete_all
+  end
+
+  def payment_date_cannot_be_future
+    return unless payment_date.present?
+    
+    if payment_date > Date.current
+      errors.add(:payment_date, 
+        "no puede ser una fecha futura. " \
+        "Fecha actual: #{Date.current.strftime('%d/%m/%Y')}"
+      )
+    end
   end
 end

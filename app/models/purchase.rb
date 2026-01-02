@@ -8,6 +8,8 @@ class Purchase < ApplicationRecord
 
   validates :supplier, :warehouse, :purchase_date, presence: true
   validates :total, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validate :purchase_date_cannot_be_future
+
 
   # Constante para definir días editables
   EDITABLE_DAYS = 15
@@ -62,6 +64,17 @@ class Purchase < ApplicationRecord
       update_columns(
         total: calculate_total,
         processed_at: Time.current
+      )
+    end
+  end
+
+  def purchase_date_cannot_be_future
+    return unless purchase_date.present?
+    
+    if purchase_date > Date.current
+      errors.add(:purchase_date, 
+        "no puede ser una fecha futura. " \
+        "Fecha actual: #{Date.current.strftime('%d/%m/%Y')}"
       )
     end
   end
