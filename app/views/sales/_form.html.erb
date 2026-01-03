@@ -30,7 +30,8 @@
             :id, 
             :name, 
             { selected: Customer.find_by(name: "Público General")&.id }, 
-            class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" %>
+            class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition",
+            data: { 'pos-sale-target': 'customerSelect' } %>
         </div>
 
         <!-- Almacén -->
@@ -98,6 +99,44 @@
         
         <!-- Botones de acción -->
         <div class="flex gap-2">
+          
+          <!-- NUEVO: Dropdown de Tickets en Espera -->
+          <div class="relative" data-controller="dropdown">
+            <button type="button"
+                    data-action="click->dropdown#toggle"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              📋 Tickets
+              <span data-pos-sale-target="pendingCount"
+                    class="hidden bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 ml-1">
+                0
+              </span>
+            </button>
+            
+            <!-- Dropdown menu -->
+            <div data-dropdown-target="menu"
+                class="hidden absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto border-2 border-blue-500">
+              <div class="p-4">
+                <h3 class="font-bold text-gray-800 mb-3 text-base">Tickets Pausados</h3>
+                <div data-pos-sale-target="pendingList">
+                  <!-- Lista dinámica de tickets -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- NUEVO: Botón Pausar Venta -->
+          <button type="button"
+                  data-action="click->pos-sale#pauseSale"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            ⏸️ Pausar
+          </button>
+          
           <!-- Botón Egreso - Siempre visible -->
           <button 
             type="button"

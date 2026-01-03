@@ -69,10 +69,11 @@ class SalesController < ApplicationController
 
   def new
     authorize Sale
+
+    # Cargar datos necesarios para el formulario
+    load_form_data
   
-    # VALIDACIÓN: Verificar sesión abierta ANTES de mostrar formulario
-    @current_session = current_user_open_session
-  
+    # VALIDACIÓN: Verificar sesión abierta ANTES de mostrar formulario  
     unless @current_session
       redirect_to register_sessions_path, alert: "⚠️ Debe abrir un turno de caja antes de realizar ventas. Por favor, abra un turno primero."
       return
@@ -104,9 +105,7 @@ class SalesController < ApplicationController
     # Crear primer item con valores por defecto
     @sale.sale_items.build(quantity: 1, discount: 0)
   
-    # Cargar supervisores que pueden autorizar flujos (Admin, Gerente, Supervisor)
-    @authorizers = User.where(role: [:admin, :gerente, :supervisor])
-                       .order(:name)
+
   end
 
   def create
@@ -115,10 +114,11 @@ class SalesController < ApplicationController
     @sale.user = current_user
 
     authorize @sale
+    # Cargar datos necesarios para el formulario (por si hay error)
+    load_form_data
 
     # VALIDACIÓN: Verificar sesión abierta ANTES de procesar venta
-    @current_session = current_user_open_session
-
+    
     unless @current_session
       flash[:alert] = "⚠️ Debe aperturar caja antes de realizar ventas."
       redirect_to register_sessions_path
@@ -226,7 +226,13 @@ class SalesController < ApplicationController
     )
   end
 
-  # MÉTODO NUEVO: Obtener sesión abierta del usuario actual
+  # Cargar datos necesarios para el formulario de ventas
+  def load_form_data
+    @current_session = current_user_open_session
+    @authorizers = User.where(role: [:admin, :gerente, :supervisor]).order(:name)
+  end
+
+  # Obtener sesión abierta del usuario actual
   def current_user_open_session
     if current_user.admin? || current_user.gerente?
       # Admin y gerente pueden usar cualquier sesión abierta

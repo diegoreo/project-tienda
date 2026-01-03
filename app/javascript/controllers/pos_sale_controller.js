@@ -13,7 +13,10 @@ export default class extends Controller {
     "submitButton",
     "paymentSection",      
     "receivedAmount",      
-    "changeAmount"         
+    "changeAmount",
+    "pendingCount",        // Badge de contador
+    "pendingList",         // Dropdown de tickets
+    "customerSelect"       // Select de cliente         
   ]
 
   connect() {
@@ -32,6 +35,8 @@ export default class extends Controller {
     setTimeout(() => {
       this.focusSearch()
     }, 100)
+
+    this.updatePendingUI()
     
     // Atajos de teclado globales
     document.addEventListener('keydown', this.handleGlobalKeydown.bind(this))
@@ -510,6 +515,10 @@ export default class extends Controller {
     if (this.hasReceivedAmountTarget) {
       this.receivedAmountTarget.value = ''
     }
+    
+    // IMPORTANTE: Resetear itemIndex
+    this.itemIndex = 0
+    
     this.updateTotal()
     this.updateEmptyCartVisibility()
     this.focusSearch()
@@ -520,6 +529,451 @@ export default class extends Controller {
     const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIEGi78OahUBELTKXh8bJpHgU2jdXuzngtBSh+yO7djkILEnC967hdIAQua9DxwHMmBTGFzvLYiTUIEWW58OOmURILSKPh8bllIAU0jtXuznctBSh+yO7djUALEHG967ldIAU') 
     audio.volume = 0.3
     audio.play().catch(() => {})
+  }
+
+  // ========== PAUSAR VENTA ==========
+  
+  pauseSale(event) {
+    event.preventDefault()
+    
+    const items = this.collectCurrentSaleItems()
+    
+    if (items.length === 0) {
+      alert("⚠️ No hay productos para pausar")
+      return
+    }
+    
+    const saleData = {
+      ticketNumber: this.generateTicketNumber(),
+      items: items,
+      customerId: this.hasCustomerSelectTarget ? this.customerSelectTarget.value : null,
+      customerName: this.getCustomerName(),
+      warehouseId: this.warehouseSelectTarget.value,
+      subtotal: this.getCurrentTotal(),
+      timestamp: new Date().toISOString(),
+      notes: this.hasNotesContainerTarget ? this.element.querySelector('[name="sale[notes]"]')?.value : ''
+    }
+    
+    this.savePendingSale(saleData)
+    this.clearSale()
+    this.updatePendingUI()
+    
+    Swal.fire({
+      icon: 'success',
+      title: '✅ Venta pausada',
+      html: `<p class="text-lg">Ticket #${saleData.ticketNumber}</p>
+             <p class="text-gray-600">${items.length} productos guardados</p>
+             <p class="text-green-600 font-bold text-2xl mt-2">$${saleData.subtotal.toFixed(2)}</p>`,
+      timer: 2000,
+      showConfirmButton: false
+    })
+  }
+  
+  resumeSale(event) {
+    const ticketNumber = parseInt(event.currentTarget.dataset.ticket)
+    const saleData = this.loadPendingSale(ticketNumber)
+    
+    if (!saleData) {
+      Swal.fire({
+        icon: 'error',
+        title: '❌ Error',
+        text: 'No se encontró el ticket',
+        confirmButtonColor: '#dc2626'
+      })
+      return
+    }
+    
+    // Generar HTML de productos
+    const itemsHTML = saleData.items.map(item => `
+      <div class="flex justify-between items-center py-2 border-b border-gray-200">
+        <div class="text-left flex-1">
+          <p class="font-semibold text-gray-800 text-sm">${item.productName}</p>
+          <p class="text-xs text-gray-500">
+            ${item.quantity} × $${item.unitPrice.toFixed(2)}
+            ${item.discount > 0 ? `<span class="text-orange-600">(-$${item.discount.toFixed(2)})</span>` : ''}
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="font-bold text-green-600">$${item.subtotal.toFixed(2)}</p>
+        </div>
+      </div>
+    `).join('')
+    
+    // Calcular tiempo transcurrido
+    const timestamp = new Date(saleData.timestamp)
+    const now = new Date()
+    const diffMinutes = Math.floor((now - timestamp) / 1000 / 60)
+    let timeText = ''
+    
+    if (diffMinutes < 1) {
+      timeText = 'Hace menos de 1 minuto'
+    } else if (diffMinutes < 60) {
+      timeText = `Hace ${diffMinutes} minuto${diffMinutes !== 1 ? 's' : ''}`
+    } else {
+      const diffHours = Math.floor(diffMinutes / 60)
+      timeText = `Hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`
+    }
+    
+    // SWEETALERT2 EN VEZ DE CONFIRM FEO
+    Swal.fire({
+      title: `🎫 Ticket #${ticketNumber}`,
+      html: `
+        <div class="text-left space-y-4">
+          <!-- Info del ticket -->
+          <div class="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p class="text-gray-600 font-medium">Cliente:</p>
+                <p class="font-bold text-gray-800">${saleData.customerName || 'Mostrador'}</p>
+              </div>
+              <div>
+                <p class="text-gray-600 font-medium">Pausado:</p>
+                <p class="font-bold text-gray-800">${timeText}</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Lista de productos -->
+          <div>
+            <h4 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+              Productos (${saleData.items.length})
+            </h4>
+            <div class="max-h-64 overflow-y-auto bg-gray-50 rounded-lg p-3 border border-gray-200">
+              ${itemsHTML}
+            </div>
+          </div>
+          
+          <!-- Total -->
+          <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-4 text-white">
+            <div class="flex justify-between items-center">
+              <span class="text-lg font-semibold">Total:</span>
+              <span class="text-3xl font-bold">$${saleData.subtotal.toFixed(2)}</span>
+            </div>
+          </div>
+          
+          ${saleData.notes ? `
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+              <p class="text-xs font-semibold text-yellow-800 mb-1">📝 Notas:</p>
+              <p class="text-sm text-yellow-900">${saleData.notes}</p>
+            </div>
+          ` : ''}
+          
+          <!-- Advertencia -->
+          <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
+            <p class="text-sm text-amber-800">
+              <strong>⚠️ Atención:</strong> Se descartará la venta actual si existe.
+            </p>
+          </div>
+        </div>
+      `,
+      icon: null,
+      showCancelButton: true,
+      confirmButtonText: '✅ Continuar venta',
+      cancelButtonText: '❌ Cancelar',
+      confirmButtonColor: '#16a34a',
+      cancelButtonColor: '#6b7280',
+      width: '600px',
+      customClass: {
+        popup: 'rounded-xl shadow-2xl',
+        title: 'text-2xl font-bold',
+        htmlContainer: 'text-base',
+        confirmButton: 'px-6 py-3 rounded-lg font-bold text-base shadow-lg',
+        cancelButton: 'px-6 py-3 rounded-lg font-semibold text-base'
+      },
+      focusConfirm: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.restoreSaleData(saleData)
+        this.removePendingSale(ticketNumber)
+        this.updatePendingUI()
+        
+        Swal.fire({
+          icon: 'success',
+          title: '✅ Ticket restaurado',
+          html: `
+            <div class="text-center space-y-2">
+              <p class="text-lg">${saleData.items.length} producto${saleData.items.length !== 1 ? 's' : ''} cargado${saleData.items.length !== 1 ? 's' : ''}</p>
+              <p class="text-green-600 font-bold text-2xl">$${saleData.subtotal.toFixed(2)}</p>
+            </div>
+          `,
+          timer: 2000,
+          showConfirmButton: false,
+          customClass: {
+            popup: 'rounded-xl shadow-2xl'
+          }
+        })
+      }
+    })
+  }
+  
+  cancelTicket(event) {
+    event.stopPropagation()
+    const ticketNumber = parseInt(event.currentTarget.dataset.ticket)
+    const saleData = this.loadPendingSale(ticketNumber)
+    
+    Swal.fire({
+      title: '⚠️ ¿Cancelar ticket?',
+      html: `
+        <div class="text-left space-y-3">
+          <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+            <p class="text-center mb-3">
+              <span class="text-5xl">🗑️</span>
+            </p>
+            <p class="text-lg font-bold text-gray-800 text-center mb-2">
+              Ticket #${ticketNumber}
+            </p>
+            <div class="text-sm text-gray-700 space-y-1">
+              <p><strong>Cliente:</strong> ${saleData.customerName || 'Mostrador'}</p>
+              <p><strong>Productos:</strong> ${saleData.items.length} artículo${saleData.items.length !== 1 ? 's' : ''}</p>
+              <p><strong>Total:</strong> <span class="text-red-600 font-bold text-xl">$${saleData.subtotal.toFixed(2)}</span></p>
+            </div>
+          </div>
+          
+          <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
+            <p class="text-sm text-amber-800">
+              <strong>⚠️ Esta acción no se puede deshacer.</strong><br>
+              Todos los productos de este ticket se perderán.
+            </p>
+          </div>
+        </div>
+      `,
+      icon: null,
+      showCancelButton: true,
+      confirmButtonText: '🗑️ Sí, cancelar ticket',
+      cancelButtonText: '← Volver',
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      customClass: {
+        popup: 'rounded-xl shadow-2xl',
+        title: 'text-2xl font-bold',
+        confirmButton: 'px-6 py-3 rounded-lg font-bold text-base shadow-lg',
+        cancelButton: 'px-6 py-3 rounded-lg font-semibold text-base'
+      },
+      focusCancel: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.removePendingSale(ticketNumber)
+        this.updatePendingUI()
+        
+        Swal.fire({
+          icon: 'info',
+          title: 'Ticket cancelado',
+          text: `Ticket #${ticketNumber} eliminado`,
+          timer: 1500,
+          showConfirmButton: false,
+          customClass: {
+            popup: 'rounded-xl shadow-2xl'
+          }
+        })
+      }
+    })
+  }
+  
+  collectCurrentSaleItems() {
+    const items = []
+    const rows = this.itemsContainerTarget.querySelectorAll('.sale-item-row')
+    
+    rows.forEach(row => {
+      if (row.style.display !== 'none') {
+        const productId = row.dataset.productId
+        const productName = row.querySelector('.product-name-cell')?.textContent || 'Producto'
+        const quantity = parseFloat(row.querySelector('input[name*="[quantity]"]')?.value || 0)
+        const unitPrice = parseFloat(row.querySelector('input[name*="[unit_price]"]')?.value || 0)
+        const discount = parseFloat(row.querySelector('input[name*="[discount]"]')?.value || 0)
+        const subtotal = parseFloat(row.querySelector('input[name*="[subtotal]"]')?.value || 0)
+        const stock = row.querySelector('.stock-cell')?.textContent || ''
+        const unit = row.querySelector('.stock-cell')?.textContent?.match(/[a-zA-Z]+/) || ['']
+        
+        if (productId && quantity > 0) {
+          items.push({
+            productId,
+            productName,
+            quantity,
+            unitPrice,
+            discount,
+            subtotal,
+            stock,
+            unit: unit[0]
+          })
+        }
+      }
+    })
+    
+    return items
+  }
+  
+  restoreSaleData(saleData) {
+    this.clearSale()
+    
+    if (this.hasCustomerSelectTarget && saleData.customerId) {
+      this.customerSelectTarget.value = saleData.customerId
+    }
+    
+    if (saleData.warehouseId) {
+      this.warehouseSelectTarget.value = saleData.warehouseId
+    }
+    
+    if (saleData.notes && this.hasNotesContainerTarget) {
+      const notesField = this.element.querySelector('[name="sale[notes]"]')
+      if (notesField) {
+        notesField.value = saleData.notes
+        this.notesContainerTarget.style.display = 'block'
+      }
+    }
+    
+    // IMPORTANTE: Resetear itemIndex para que Rails lo reciba correctamente
+    this.itemIndex = 0
+    
+    saleData.items.forEach(item => {
+      const product = {
+        id: item.productId,
+        name: item.productName,
+        price: item.unitPrice,
+        stock: parseFloat(item.stock) || 0,
+        unit: item.unit
+      }
+      
+      this.createNewItemRow(product)
+      
+      const lastRow = this.itemsContainerTarget.querySelector('.sale-item-row:last-child')
+      if (lastRow) {
+        const qtyInput = lastRow.querySelector('input[name*="[quantity]"]')
+        const discountInput = lastRow.querySelector('input[name*="[discount]"]')
+        
+        if (qtyInput && item.quantity !== 1) {
+          qtyInput.value = item.quantity
+          qtyInput.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+        
+        if (discountInput && item.discount > 0) {
+          discountInput.value = item.discount
+          discountInput.dispatchEvent(new Event('input', { bubbles: true }))
+        }
+      }
+    })
+    
+    this.updateEmptyCartVisibility()
+    this.updateTotal()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  
+  getPendingSales() {
+    const sessionId = this.getCurrentSessionId()
+    const key = `pending_sales_${sessionId}`
+    const data = localStorage.getItem(key)
+    return data ? JSON.parse(data) : []
+  }
+  
+  savePendingSale(saleData) {
+    const pending = this.getPendingSales()
+    pending.push(saleData)
+    
+    const sessionId = this.getCurrentSessionId()
+    localStorage.setItem(`pending_sales_${sessionId}`, JSON.stringify(pending))
+  }
+  
+  loadPendingSale(ticketNumber) {
+    const pending = this.getPendingSales()
+    return pending.find(sale => sale.ticketNumber === ticketNumber)
+  }
+  
+  removePendingSale(ticketNumber) {
+    const pending = this.getPendingSales()
+    const filtered = pending.filter(sale => sale.ticketNumber !== ticketNumber)
+    
+    const sessionId = this.getCurrentSessionId()
+    localStorage.setItem(`pending_sales_${sessionId}`, JSON.stringify(filtered))
+  }
+  
+  generateTicketNumber() {
+    const pending = this.getPendingSales()
+    const maxTicket = pending.reduce((max, sale) => 
+      Math.max(max, sale.ticketNumber), 0)
+    return maxTicket + 1
+  }
+  
+  updatePendingUI() {
+    this.updatePendingCount()
+    this.loadPendingList()
+  }
+  
+  updatePendingCount() {
+    if (!this.hasPendingCountTarget) return
+    
+    const count = this.getPendingSales().length
+    this.pendingCountTarget.textContent = count
+    
+    if (count > 0) {
+      this.pendingCountTarget.classList.remove('hidden')
+    } else {
+      this.pendingCountTarget.classList.add('hidden')
+    }
+  }
+  
+  loadPendingList() {
+    if (!this.hasPendingListTarget) return
+    
+    const pending = this.getPendingSales()
+    
+    if (pending.length === 0) {
+      this.pendingListTarget.innerHTML = `
+        <div class="p-4 text-center text-gray-500 text-sm">
+          No hay tickets en espera
+        </div>
+      `
+      return
+    }
+    
+    this.pendingListTarget.innerHTML = pending.map(sale => `
+      <div class="border-b border-gray-200 p-3 hover:bg-gray-50 cursor-pointer transition"
+           data-action="click->pos-sale#resumeSale"
+           data-ticket="${sale.ticketNumber}">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <span class="font-bold text-lg text-gray-800">Ticket #${sale.ticketNumber}</span>
+            <p class="text-sm text-gray-600">${sale.customerName || 'Mostrador'}</p>
+            <p class="text-xs text-gray-500">${sale.items.length} producto${sale.items.length !== 1 ? 's' : ''}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-bold text-green-600">$${sale.subtotal.toFixed(2)}</p>
+            <p class="text-xs text-gray-500">${this.formatTime(sale.timestamp)}</p>
+          </div>
+        </div>
+        
+        <div class="flex gap-2 mt-2">
+          <button type="button" class="flex-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded hover:bg-blue-700 transition">
+            Continuar
+          </button>
+          <button type="button" data-action="click->pos-sale#cancelTicket"
+                  data-ticket="${sale.ticketNumber}"
+                  class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-semibold rounded hover:bg-red-200 transition">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    `).join('')
+  }
+  
+  getCurrentSessionId() {
+    const metaTag = document.querySelector('meta[name="register-session-id"]')
+    return metaTag?.content || this.element.dataset.sessionId || 'default'
+  }
+  
+  getCustomerName() {
+    if (!this.hasCustomerSelectTarget) return 'Mostrador'
+    const selected = this.customerSelectTarget.selectedOptions[0]
+    return selected ? selected.textContent : 'Mostrador'
+  }
+  
+  formatTime(timestamp) {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString('es-MX', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   }
 }
 
