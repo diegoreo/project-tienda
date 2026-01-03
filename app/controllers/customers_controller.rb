@@ -5,6 +5,15 @@ class CustomersController < ApplicationController
 
     customers = Customer.order(name: :asc)
 
+    #  BÚSQUEDA
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      customers = customers.where(
+        "name ILIKE ? OR phone ILIKE ? OR email ILIKE ?",
+        search_term, search_term, search_term
+      )
+    end
+
     # Aplicar filtros
     customers = customers.by_type(params[:type]) if params[:type].present?
     customers = customers.with_debt if params[:with_debt] == "true"
