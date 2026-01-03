@@ -115,12 +115,67 @@ export default class extends Controller {
     
     // Escape - Limpiar búsqueda o venta
     if (event.key === 'Escape') {
+      event.preventDefault()      // ← FIX 1: Prevenir default
+      event.stopPropagation()     // ← FIX 2: Detener propagación
+      
       if (this.searchResultsTarget.classList.contains('active')) {
+        // Si hay resultados de búsqueda abiertos, cerrarlos
         this.closeSearchResults()
         this.searchInputTarget.value = ''
         this.focusSearch()
-      } else if (confirm('¿Limpiar toda la venta?')) {
-        this.clearSale()
+      } else {
+        // Si no hay búsqueda activa, preguntar si limpiar venta
+        const items = this.itemsContainerTarget.querySelectorAll('.sale-item-row')
+        const hasItems = Array.from(items).some(row => row.style.display !== 'none')
+        
+        if (!hasItems) {
+          // No hay productos, no hacer nada
+          return
+        }
+        
+        // ← FIX 3: SweetAlert2 en vez de confirm()
+        Swal.fire({
+          title: '🗑️ ¿Limpiar toda la venta?',
+          html: `
+            <div class="text-center space-y-3">
+              <p class="text-gray-700">Se perderán todos los productos agregados</p>
+              <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                <p class="text-red-800 font-bold text-lg">
+                  ${items.length} producto${items.length !== 1 ? 's' : ''} en el carrito
+                </p>
+              </div>
+              <p class="text-sm text-gray-500">Presiona ESC para cancelar</p>
+            </div>
+          `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '✓ Sí, limpiar todo',
+          cancelButtonText: '✗ No, cancelar',
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#6b7280',
+          focusCancel: true,
+          customClass: {
+            popup: 'rounded-xl shadow-2xl',
+            title: 'text-2xl font-bold',
+            confirmButton: 'px-6 py-3 rounded-lg font-bold shadow-lg',
+            cancelButton: 'px-6 py-3 rounded-lg font-semibold'
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            this.clearSale()
+            
+            Swal.fire({
+              icon: 'success',
+              title: '✅ Venta limpiada',
+              text: 'Todos los productos fueron eliminados',
+              timer: 1500,
+              showConfirmButton: false,
+              customClass: {
+                popup: 'rounded-xl shadow-2xl'
+              }
+            })
+          }
+        })
       }
     }
   }
