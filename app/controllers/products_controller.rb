@@ -66,13 +66,28 @@ class ProductsController < ApplicationController
   def create
     @product = Product.new(product_params)
     authorize @product
-
+  
     if @product.save
-      # Elegir almacén: el seleccionado en el form (top-level) o el primero
-      warehouse = params[:initial_warehouse_id].present? ? Warehouse.find_by(id: params[:initial_warehouse_id]) : Warehouse.first
-      InventoryBootstrapper.call(product: @product, warehouse: warehouse)
-      redirect_to products_path, notice: "Producto creado con éxito."
+      # Crear inventarios con minimum_quantity para cada almacén
+      if params[:inventory_minimums].present?
+        params[:inventory_minimums].each do |warehouse_id, minimum_qty|
+          next if minimum_qty.blank?
+          
+          Inventory.create!(
+            product: @product,
+            warehouse_id: warehouse_id,
+            quantity: 0, # Inventario inicial en 0
+            minimum_quantity: minimum_qty.to_f
+          )
+        end
+      end
+      
+      redirect_to products_path, notice: "Producto creado exitosamente."
     else
+      # 👇 AGREGAR ESTAS LÍNEAS PARA DEBUG
+      Rails.logger.error "❌ Errores al crear producto:"
+      Rails.logger.error @product.errors.full_messages.inspect
+      
       render :new, status: :unprocessable_content
     end
   end
@@ -87,20 +102,31 @@ class ProductsController < ApplicationController
   def update
     @product = Product.find(params[:id])
     authorize @product
-
-    # Si se está intentando cambiar el precio, verificar permiso especial
+  
+    # Verificar permisos de precio
     if price_changing? && !policy(@product).update_prices?
       flash[:alert] = "No tienes permiso para modificar precios. Solo Gerentes pueden hacerlo."
       render :edit, status: :unprocessable_content
       return
     end
-
+  
     if @product.update(product_params)
-      redirect_to products_path, notice: "Tu producto se ha actualizado correctamente"
+      # Actualizar minimum_quantity de inventarios existentes
+      if params[:inventory_minimums].present?
+        params[:inventory_minimums].each do |warehouse_id, minimum_qty|
+          inventory = @product.inventories.find_or_initialize_by(warehouse_id: warehouse_id)
+          inventory.minimum_quantity = minimum_qty.to_f if minimum_qty.present?
+          inventory.quantity ||= 0 # Si es nuevo, quantity = 0
+          inventory.save
+        end
+      end
+      
+      redirect_to products_path, notice: "Producto actualizado correctamente."
     else
       render :edit, status: :unprocessable_content
     end
   end
+  
 
   def destroy
     @product = Product.find(params[:id])
@@ -172,8 +198,8 @@ class ProductsController < ApplicationController
       { barcodes_attributes: [ :id, :code, :_destroy ] }
     ]
 
-    # Solo permitir stock_quantity al crear
-    base_params << :stock_quantity if action_name == "create"
+    # (ya no usaremos stock_quantity en el form) Solo permitir stock_quantity al crear
+    #base_params << :stock_quantity if action_name == "create"
 
     params.require(:product).permit(base_params)
   end

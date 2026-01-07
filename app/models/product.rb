@@ -24,7 +24,7 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :barcodes, allow_destroy: true, reject_if: :all_blank
 
   # Validaciones de presencia (obligatorios)
-  validates :name, :price, :stock_quantity, :purchase_unit, :sale_unit, :unit_conversion, presence: true
+  validates :name, :price, :purchase_unit, :sale_unit, :unit_conversion, presence: true
   # Validación de unicidad del nombre
   validates :name, uniqueness: {
     case_sensitive: false,
@@ -38,7 +38,7 @@ class Product < ApplicationRecord
 
   # stock_quantity solo debe ser un número válido, pero puede ser positivo o negativo.
   validates :price, :unit_conversion, numericality: { greater_than_or_equal_to: 0 }
-  validates :stock_quantity, numericality: true
+  validates :stock_quantity, numericality: true, allow_nil: true 
   # Validación para evitar valores de conversión en cero
   validates :unit_conversion, numericality: { greater_than: 0 }
   # Opcional: longitud mínima de nombre
