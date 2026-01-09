@@ -36,32 +36,32 @@ end
 puts "\n📦 Creando categorías..."
 
 categorias = [
-  'Bebidas',
-  'Lácteos',
-  'Abarrotes secos',
-  'Panadería y repostería',
-  'Carnes y embutidos',
-  'Frutas y verduras',
-  'Enlatados y conservas',
-  'Aceites y condimentos',
-  'Dulces y botanas',
-  'Cereales y desayuno',
-  'Higiene personal',
-  'Cuidado del bebé',
-  'Artículos de limpieza',
-  'Congelados',
-  'Mascotas',
-  'Papelería y desechables',
-  'Ferretería y hogar',
-  'Otros'
+  { name: 'Bebidas', description: 'Refrescos, jugos, aguas y bebidas alcohólicas' },
+  { name: 'Lácteos', description: 'Leche, queso, yogurt, crema y mantequilla' },
+  { name: 'Abarrotes secos', description: 'Pastas, arroz, frijol, harinas y granos' },
+  { name: 'Panadería y repostería', description: 'Pan, pasteles, galletas y pan dulce' },
+  { name: 'Carnes y embutidos', description: 'Carnes frescas, jamón, salchichas y chorizo' },
+  { name: 'Frutas y verduras', description: 'Frutas y verduras frescas de temporada' },
+  { name: 'Enlatados y conservas', description: 'Atún, chiles, vegetales y frutas en conserva' },
+  { name: 'Aceites y condimentos', description: 'Aceites, vinagres, salsas, especias y sazonadores' },
+  { name: 'Dulces y botanas', description: 'Chocolates, dulces, papas, chicharrones y frituras' },
+  { name: 'Cereales y desayuno', description: 'Cereales, avena, granola y barras energéticas' },
+  { name: 'Higiene personal', description: 'Jabones, shampoo, pasta dental y desodorantes' },
+  { name: 'Cuidado del bebé', description: 'Pañales, toallitas, fórmulas y papillas' },
+  { name: 'Artículos de limpieza', description: 'Detergentes, cloro, desinfectantes y limpiadores' },
+  { name: 'Congelados', description: 'Helados, verduras congeladas, pizzas y comidas preparadas' },
+  { name: 'Mascotas', description: 'Alimento y accesorios para perros y gatos' },
+  { name: 'Papelería y desechables', description: 'Cuadernos, plumas, servilletas, platos y vasos desechables' },
+  { name: 'Ferretería y hogar', description: 'Pilas, focos, herramientas básicas y artículos para el hogar' },
+  { name: 'Otros', description: 'Productos sin categoría específica o misceláneos' }
 ]
 
-categorias.each do |nombre|
-  unless Category.exists?(name: nombre)
-    Category.create!(name: nombre)
-    puts "  ✅ Categoría creada: #{nombre}"
+categorias.each do |cat_data|
+  unless Category.exists?(name: cat_data[:name])
+    Category.create!(cat_data)
+    puts "  ✅ Categoría creada: #{cat_data[:name]}"
   else
-    puts "  ⏭️  Categoría ya existe: #{nombre}"
+    puts "  ⏭️  Categoría ya existe: #{cat_data[:name]}"
   end
 end
 
@@ -102,24 +102,24 @@ end
 puts "\n📏 Creando unidades de medida..."
 
 unidades = [
-  { name: 'Pieza', abbreviation: 'pz' },
-  { name: 'Kilogramo', abbreviation: 'kg' },
-  { name: 'Gramo', abbreviation: 'g' },
-  { name: 'Litro', abbreviation: 'L' },
-  { name: 'Mililitro', abbreviation: 'ml' },
-  { name: 'Caja', abbreviation: 'caj' },
-  { name: 'Paquete', abbreviation: 'paq' },
-  { name: 'Bolsa', abbreviation: 'bol' },
-  { name: 'Saco', abbreviation: 'sac' },
-  { name: 'Costal', abbreviation: 'cos' },
-  { name: 'Rollo', abbreviation: 'ro' },
-  { name: 'Bote', abbreviation: 'bt' },
-  { name: 'Lata', abbreviation: 'lta' },
-  { name: 'Frasco', abbreviation: 'fco' },
-  { name: 'Sobre', abbreviation: 'sob' },
-  { name: 'Docena', abbreviation: 'dz' },
-  { name: 'Exhibidor', abbreviation: 'exh' },
-  { name: 'A granel', abbreviation: 'grn' }
+  { name: 'Pieza', abbreviation: 'pz', description: 'Unidad individual de producto' },
+  { name: 'Kilogramo', abbreviation: 'kg', description: 'Unidad de peso - 1000 gramos' },
+  { name: 'Gramo', abbreviation: 'g', description: 'Unidad de peso pequeña' },
+  { name: 'Litro', abbreviation: 'L', description: 'Medida de volumen para líquidos' },
+  { name: 'Mililitro', abbreviation: 'ml', description: 'Medida de volumen pequeña - 1/1000 de litro' },
+  { name: 'Caja', abbreviation: 'caj', description: 'Contenedor con múltiples piezas' },
+  { name: 'Paquete', abbreviation: 'paq', description: 'Conjunto de varias piezas empaquetadas' },
+  { name: 'Bolsa', abbreviation: 'bol', description: 'Envoltorio flexible con producto' },
+  { name: 'Saco', abbreviation: 'sac', description: 'Contenedor grande para productos a granel' },
+  { name: 'Costal', abbreviation: 'cos', description: 'Saco grande, generalmente de 50kg' },
+  { name: 'Rollo', abbreviation: 'ro', description: 'Producto enrollado (papel, tela, etc.)' },
+  { name: 'Bote', abbreviation: 'bt', description: 'Envase rígido para productos' },
+  { name: 'Lata', abbreviation: 'lta', description: 'Envase metálico sellado' },
+  { name: 'Frasco', abbreviation: 'fco', description: 'Envase de vidrio o plástico con tapa' },
+  { name: 'Sobre', abbreviation: 'sob', description: 'Empaque individual pequeño' },
+  { name: 'Docena', abbreviation: 'dz', description: 'Conjunto de 12 unidades' },
+  { name: 'Exhibidor', abbreviation: 'exh', description: 'Exhibidor con múltiples piezas para punto de venta' },
+  { name: 'A granel', abbreviation: 'grn', description: 'Producto sin empaque, pesado al momento' }
 ]
 
 unidades.each do |unidad_data|
