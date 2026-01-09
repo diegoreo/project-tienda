@@ -11,14 +11,15 @@ builder:
 # Servidores
 servers:
   web:
-    hosts:
-      - 178.156.216.102
+    hosts: [178.156.216.102]
     labels:
       traefik.http.routers.tienda-pro.rule: Host(`178.156.216.102`)
       traefik.http.services.tienda-pro.loadbalancer.server.port: 3000
-    healthcheck:
-      path: /up
-      interval: 10s
+    options:
+      health-cmd: "curl -f http://localhost:3000/up || exit 1"
+      health-interval: 10s
+      health-timeout: 5s
+      health-retries: 3
 
 # Registry (Docker Hub)
 registry:
