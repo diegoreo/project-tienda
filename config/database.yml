@@ -85,11 +85,7 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: tienda_production
-    # USAR VARIABLES DE ENTORNO EN PRODUCCIÓN
-    username: <%= ENV.fetch('PRODUCTION_DATABASE_USERNAME', 'tienda') %>
-    password: <%= ENV.fetch('PRODUCTION_DATABASE_PASSWORD') %>
-    host: <%= ENV.fetch('PRODUCTION_DATABASE_HOST', 'localhost') %>
+    url: <%= ENV.fetch("DATABASE_URL") { "postgres://tienda:password@localhost/tienda_production" } %>
   cache:
     <<: *primary_production
     database: tienda_production_cache
