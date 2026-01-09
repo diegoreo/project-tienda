@@ -12,6 +12,7 @@ builder:
 servers:
   web:
     hosts: [178.156.216.102]
+    port: 3000
     labels:
       traefik.http.routers.tienda-pro.rule: Host(`178.156.216.102`)
       traefik.http.services.tienda-pro.loadbalancer.server.port: 3000
