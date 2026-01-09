@@ -97,7 +97,42 @@ else
 end
 
 # ===========================================
-# 5. PROVEEDORES
+# 5. UNIDADES DE MEDIDA
+# ===========================================
+puts "\n📏 Creando unidades de medida..."
+
+unidades = [
+  { name: 'Pieza', abbreviation: 'pz' },
+  { name: 'Kilogramo', abbreviation: 'kg' },
+  { name: 'Gramo', abbreviation: 'g' },
+  { name: 'Litro', abbreviation: 'L' },
+  { name: 'Mililitro', abbreviation: 'ml' },
+  { name: 'Caja', abbreviation: 'caj' },
+  { name: 'Paquete', abbreviation: 'paq' },
+  { name: 'Bolsa', abbreviation: 'bol' },
+  { name: 'Saco', abbreviation: 'sac' },
+  { name: 'Costal', abbreviation: 'cos' },
+  { name: 'Rollo', abbreviation: 'ro' },
+  { name: 'Bote', abbreviation: 'bt' },
+  { name: 'Lata', abbreviation: 'lta' },
+  { name: 'Frasco', abbreviation: 'fco' },
+  { name: 'Sobre', abbreviation: 'sob' },
+  { name: 'Docena', abbreviation: 'dz' },
+  { name: 'Exhibidor', abbreviation: 'exh' },
+  { name: 'A granel', abbreviation: 'grn' }
+]
+
+unidades.each do |unidad_data|
+  unless Unit.exists?(name: unidad_data[:name])
+    Unit.create!(unidad_data)
+    puts "  ✅ Unidad creada: #{unidad_data[:name]} (#{unidad_data[:abbreviation]})"
+  else
+    puts "  ⏭️  Unidad ya existe: #{unidad_data[:name]}"
+  end
+end
+
+# ===========================================
+# 6. PROVEEDORES
 # ===========================================
 puts "\n🏭 Creando proveedores..."
 
@@ -134,6 +169,7 @@ puts "  👥 Usuarios: #{User.count}"
 puts "  📦 Categorías: #{Category.count}"
 puts "  👤 Clientes: #{Customer.count}"
 puts "  🏪 Almacenes: #{Warehouse.count}"
+puts "  📏 Unidades: #{Unit.count}"
 puts "  🏭 Proveedores: #{Supplier.count}"
 puts "\n🔐 Contraseña para todos los usuarios: Password123!"
 puts "\n⚠️  IMPORTANTE: Cambia las contraseñas después del primer login"
