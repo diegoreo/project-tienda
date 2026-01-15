@@ -5,23 +5,43 @@ export default class extends Controller {
 
   add(event) {
     event.preventDefault()
-    // Clonamos el template
+    
     const template = document.getElementById("barcode-template").content.cloneNode(true)
-    // Reemplazamos "NEW_RECORD" por un timestamp único
-    const html = template.firstElementChild.outerHTML.replace(/NEW_RECORD/g, new Date().getTime())
-    // Insertamos el nuevo campo
+    const timestamp = new Date().getTime()
+    
+    const html = template.firstElementChild.outerHTML.replace(/NEW_RECORD/g, timestamp)
+    
     this.containerTarget.insertAdjacentHTML("beforeend", html)
   }
 
   remove(event) {
     event.preventDefault()
+    
     const field = event.target.closest(".barcode-field")
+    
+    if (!field) {
+      console.error("❌ No se encontró .barcode-field")
+      return
+    }
 
+    console.log("✅ Campo encontrado:", field)
+    console.log("📋 data-new-record:", field.dataset.newRecord)
+
+    // Si es un registro nuevo (no guardado en BD), eliminarlo del DOM
     if (field.dataset.newRecord === "true") {
+      console.log("🗑️ Eliminando registro nuevo")
       field.remove()
     } else {
-      field.querySelector('input[name*="_destroy"]').value = "1"
-      field.style.display = "none"
+      console.log("🏷️ Marcando registro existente para destruir")
+      const destroyInput = field.querySelector('input[name*="_destroy"]')
+      
+      if (destroyInput) {
+        destroyInput.value = "1"
+        field.style.display = "none"
+        console.log("✅ Marcado para destruir")
+      } else {
+        console.error("❌ No se encontró input _destroy")
+      }
     }
   }
 }
