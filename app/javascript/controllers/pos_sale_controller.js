@@ -245,20 +245,22 @@ export default class extends Controller {
 
   searchProducts(event) {
     clearTimeout(this.searchTimeout)
-    const query = event.target.value.trim()
+    const query = event.target.value.replace(/\s+/g, '')
     
     if (query.length === 0) {
       this.closeSearchResults()
       return
     }
     
-    // 🔧 NUEVO: Detectar si es código de barras (2+ dígitos consecutivos)
+    // 🔧 Detectar si es código de barras (2+ dígitos consecutivos)
     const isBarcodePattern = /^\d{2,}$/.test(query)
     
     if (isBarcodePattern) {
-      // 🚀 ES CÓDIGO DE BARRAS - Buscar INMEDIATAMENTE sin delay
-      console.log(`🔍 Código detectado: ${query} - Búsqueda inmediata`)
-      this.performSearch(query)
+      // 🚀 ES CÓDIGO DE BARRAS - NO BUSCAR hasta Enter
+      // El lector escribe tan rápido que dispararía múltiples búsquedas
+      console.log(`📦 Código detectado: ${query} - Esperando Enter...`)
+      this.closeSearchResults()  // Cerrar resultados para evitar confusión
+      return  // NO buscar hasta que presione Enter
     } else {
       // 📝 ES TEXTO - Esperar 400ms (escritura manual)
       this.searchTimeout = setTimeout(() => {
@@ -337,7 +339,7 @@ export default class extends Controller {
     this.selectedIndex = -1
   }
 
-  handleSearchKeydown(event) {
+  async handleSearchKeydown(event) {
     // Si presiona Enter en el campo de búsqueda
     if (event.key === 'Enter') {
       event.preventDefault()
@@ -348,7 +350,7 @@ export default class extends Controller {
         return
       }
       
-      const query = this.searchInputTarget.value.trim()
+      const query = this.searchInputTarget.value.replace(/\s+/g, '')
       
       if (query.length === 0) {
         return
@@ -361,39 +363,45 @@ export default class extends Controller {
         console.log(`📦 Procesando código de barras: ${query}`)
         this.isProcessingBarcode = true
         
-        // Esperar a que la búsqueda termine (si aún no terminó)
-        this.waitForSearchResults(query).then(() => {
-          // Buscar coincidencia EXACTA de código de barras
-          const exactMatch = this.searchResultsData.find(product => {
-            // Buscar en el array de códigos de barras
-            if (product.barcodes && Array.isArray(product.barcodes)) {
-              return product.barcodes.some(barcode => barcode === query)
-            }
-            return false
-          })
+        // 🔧 Buscar AHORA con el código completo (una sola vez)
+        await this.performSearch(query)
+        
+        // Esperar 150ms para asegurar que la respuesta llegó
+        await new Promise(resolve => setTimeout(resolve, 150))
+        
+        // Buscar coincidencia EXACTA de código de barras
+        const exactMatch = this.searchResultsData.find(product => {
+          // Buscar en el array de códigos de barras
+          if (product.barcodes && Array.isArray(product.barcodes)) {
+            return product.barcodes.some(barcode => barcode === query)
+          }
+          return false
+        })
+        
+        if (exactMatch) {
+          console.log(`✅ Código ${query} coincide con: ${exactMatch.name}`)
+          this.addProductToSale(exactMatch)
+          this.searchInputTarget.value = ''
+          this.closeSearchResults()
+        } else {
+          console.log(`❌ Código ${query} no encontrado en productos`)
+          console.log(`📊 Datos recibidos del servidor:`, this.searchResultsData)
           
-          if (exactMatch) {
-            console.log(`✅ Código ${query} coincide con: ${exactMatch.name}`)
-            this.addProductToSale(exactMatch)
+          // Si solo hay un resultado, agregarlo de todas formas
+          if (this.searchResultsData.length === 1) {
+            console.log(`⚠️ Solo hay 1 resultado, agregándolo...`)
+            this.addProductToSale(this.searchResultsData[0])
             this.searchInputTarget.value = ''
             this.closeSearchResults()
-          } else {
-            console.log(`❌ Código ${query} no encontrado en productos`)
-            // Si no hay coincidencia exacta, mostrar el primer resultado si existe
-            if (this.searchResultsData.length === 1) {
-              this.addProductToSale(this.searchResultsData[0])
-              this.searchInputTarget.value = ''
-              this.closeSearchResults()
-            }
           }
-          
-          // Liberar el flag después de 100ms
-          setTimeout(() => {
-            this.isProcessingBarcode = false
-          }, 100)
-          
-          this.focusSearch()
-        })
+        }
+        
+        // Liberar el flag después de 100ms
+        setTimeout(() => {
+          this.isProcessingBarcode = false
+        }, 100)
+        
+        this.focusSearch()
         return
       }
       

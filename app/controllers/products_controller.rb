@@ -157,7 +157,7 @@ class ProductsController < ApplicationController
     # Esta acción es para el POS, todos los usuarios autenticados pueden buscar productos
     # No requiere autorización explícita ya que es solo lectura y necesaria para ventas
 
-    query = params[:q]&.strip
+    query = params[:q]&.gsub(/\s+/, '') || ""
     warehouse_id = params[:warehouse_id]
 
     if query.blank?
