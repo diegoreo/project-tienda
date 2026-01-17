@@ -25,6 +25,9 @@ export default class extends Controller {
     this.selectedIndex = -1
     this.searchResultsData = []
     this.itemIndex = 0
+
+    // 🔧 FIX: Flag para prevenir múltiples agregados simultáneos
+    this.isProcessingBarcode = false  
     
     // Cargar almacén guardado
     this.loadWarehousePreference()
@@ -249,12 +252,22 @@ export default class extends Controller {
       return
     }
     
-    // Solo buscar, NO agregar automáticamente
-    // Esperar 400ms para búsqueda
-    this.searchTimeout = setTimeout(() => {
+    // 🔧 NUEVO: Detectar si es código de barras (2+ dígitos consecutivos)
+    const isBarcodePattern = /^\d{2,}$/.test(query)
+    
+    if (isBarcodePattern) {
+      // 🚀 ES CÓDIGO DE BARRAS - Buscar INMEDIATAMENTE sin delay
+      console.log(`🔍 Código detectado: ${query} - Búsqueda inmediata`)
       this.performSearch(query)
-    }, 400)
+    } else {
+      // 📝 ES TEXTO - Esperar 400ms (escritura manual)
+      this.searchTimeout = setTimeout(() => {
+        this.performSearch(query)
+      }, 400)
+    }
   }
+
+
 
   async performSearch(query) {
     const warehouseId = this.warehouseSelectTarget.value
@@ -328,8 +341,63 @@ export default class extends Controller {
     // Si presiona Enter en el campo de búsqueda
     if (event.key === 'Enter') {
       event.preventDefault()
+      
+      // 🔧 PREVENIR múltiples Enters rápidos
+      if (this.isProcessingBarcode) {
+        console.log('⏸️ Ya procesando código, ignorando Enter...')
+        return
+      }
+      
       const query = this.searchInputTarget.value.trim()
       
+      if (query.length === 0) {
+        return
+      }
+      
+      // 🔧 NUEVO: Detectar si es código de barras
+      const isBarcodePattern = /^\d{2,}$/.test(query)
+      
+      if (isBarcodePattern) {
+        console.log(`📦 Procesando código de barras: ${query}`)
+        this.isProcessingBarcode = true
+        
+        // Esperar a que la búsqueda termine (si aún no terminó)
+        this.waitForSearchResults(query).then(() => {
+          // Buscar coincidencia EXACTA de código de barras
+          const exactMatch = this.searchResultsData.find(product => {
+            // Buscar en el array de códigos de barras
+            if (product.barcodes && Array.isArray(product.barcodes)) {
+              return product.barcodes.some(barcode => barcode === query)
+            }
+            return false
+          })
+          
+          if (exactMatch) {
+            console.log(`✅ Código ${query} coincide con: ${exactMatch.name}`)
+            this.addProductToSale(exactMatch)
+            this.searchInputTarget.value = ''
+            this.closeSearchResults()
+          } else {
+            console.log(`❌ Código ${query} no encontrado en productos`)
+            // Si no hay coincidencia exacta, mostrar el primer resultado si existe
+            if (this.searchResultsData.length === 1) {
+              this.addProductToSale(this.searchResultsData[0])
+              this.searchInputTarget.value = ''
+              this.closeSearchResults()
+            }
+          }
+          
+          // Liberar el flag después de 100ms
+          setTimeout(() => {
+            this.isProcessingBarcode = false
+          }, 100)
+          
+          this.focusSearch()
+        })
+        return
+      }
+      
+      // 📝 ENTRADA MANUAL (no es código de barras)
       if (query.length > 0) {
         // Si hay resultados visibles y uno seleccionado
         if (this.searchResultsTarget.classList.contains('active') && this.selectedIndex >= 0) {
@@ -1030,6 +1098,33 @@ export default class extends Controller {
       minute: '2-digit' 
     })
   }
+
+  //Esperar a que termine la búsqueda
+  waitForSearchResults(query, timeout = 1000) {
+    return new Promise((resolve) => {
+      const startTime = Date.now()
+      
+      const checkResults = () => {
+        // Si ya tenemos resultados, resolver
+        if (this.searchResultsData && this.searchResultsData.length > 0) {
+          resolve(this.searchResultsData)
+          return
+        }
+        
+        // Si se acabó el tiempo, resolver con vacío
+        if (Date.now() - startTime > timeout) {
+          resolve([])
+          return
+        }
+        
+        // Intentar de nuevo en 50ms
+        setTimeout(checkResults, 50)
+      }
+      
+      checkResults()
+    })
+  }
+
 }
 
 

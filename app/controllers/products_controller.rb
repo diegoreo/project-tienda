@@ -157,7 +157,7 @@ class ProductsController < ApplicationController
     # Esta acción es para el POS, todos los usuarios autenticados pueden buscar productos
     # No requiere autorización explícita ya que es solo lectura y necesaria para ventas
 
-    query = params[:q]
+    query = params[:q]&.strip
     warehouse_id = params[:warehouse_id]
 
     if query.blank?
@@ -167,7 +167,8 @@ class ProductsController < ApplicationController
 
     # 1. Primero buscar coincidencia exacta por código de barras
     barcode = Barcode.includes(product: [ :inventories, :barcodes ])
-                     .find_by("LOWER(code) = ?", query.downcase)
+                     .where("TRIM(LOWER(code)) = ?", query.downcase)
+                     .first
 
     if barcode && barcode.product && barcode.product.active?
       # Encontró por código de barras - devolver solo este producto si está activo
