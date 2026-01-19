@@ -30,6 +30,10 @@ Rails.application.routes.draw do
   resources :suppliers
   resources :customers do
     resources :payments, only: [ :index, :new, :create, :destroy ]
+    
+    member do
+      get :sales  # Nueva ruta para historial completo
+    end
   end
 
   resources :inventories, only: [ :index, :show ] do

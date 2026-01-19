@@ -49,4 +49,11 @@ class CustomerPolicy < ApplicationPolicy
   def update_credit_limit?
     manager?
   end
+
+  # Ver historial completo de ventas del cliente - TODOS pueden ver
+  # (Útil para que cajeros vean compras previas, supervisores analicen, etc.)
+  def sales?
+    true  # Todos los usuarios autenticados
+  end
+  
 end

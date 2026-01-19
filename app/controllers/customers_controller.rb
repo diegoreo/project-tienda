@@ -42,6 +42,20 @@ class CustomersController < ApplicationController
     @total_payments = @customer.total_paid_amount
   end
 
+  def sales
+    @customer = Customer.find(params[:id])
+    authorize @customer
+  
+    # Todas las ventas con paginación de 50
+    sales = @customer.sales.order(created_at: :desc).includes(:warehouse)
+    
+    @pagy, @sales = pagy(sales, items: 50)
+    
+    # Estadísticas
+    @total_sales_count = @customer.sales.count
+    @total_sales_amount = @customer.total_sales_amount
+  end
+
   def new
     @customer = Customer.new
     authorize @customer
