@@ -46,7 +46,7 @@ class Customer < ApplicationRecord
   def pending_sales
     sales.where(payment_status: [ :pending, :partial ])
          .where("pending_amount > 0")
-         .order(sale_date: :desc)
+         .order(created_at: :desc)
   end
 
   # Total de ventas realizadas

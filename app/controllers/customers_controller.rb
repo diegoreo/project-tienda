@@ -27,10 +27,10 @@ class CustomersController < ApplicationController
     authorize @customer
 
     # Ventas pendientes de pago (las más importantes)
-    @pending_sales = @customer.pending_sales.includes(:warehouse).limit(10)
+    @pending_sales = @customer.pending_sales.includes(:warehouse)
 
     # Todas las ventas recientes
-    @all_sales = @customer.sales.order(sale_date: :desc).includes(:warehouse).limit(20)
+    @all_sales = @customer.sales.order(created_at: :desc).includes(:warehouse).limit(30)
 
     # Pagos recientes
     @recent_payments = @customer.payments.recent.includes(:sale).limit(10)
