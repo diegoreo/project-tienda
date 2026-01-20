@@ -43,10 +43,10 @@
   <!-- Cantidad -->
   <td class="px-4 py-3">
     <%= f.number_field :quantity, 
-        min: 1, 
+        min: 0.001, 
         required: true, 
-        step: 1,
-        placeholder: "0",
+        step: 0.001,
+        placeholder: "0.000",
         data: { action: "input->purchase-items#updateSubtotal" },
         class: "w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent text-right" %>
   </td>
@@ -68,10 +68,10 @@
   <!-- Factor de Conversión -->
   <td class="px-4 py-3">
     <%= f.number_field :conversion_factor, 
-        min: 1, 
+        min: 0.001, 
         required: true, 
-        step: 1,
-        placeholder: "1",
+        step: 0.001,
+        placeholder: "1.000",
         data: { 
           action: "input->purchase-items#updateSubtotal",
           'purchase-product-search-target': 'conversionInput'

@@ -259,7 +259,7 @@
                       <td class="px-6 py-4 whitespace-nowrap">
                         <% total_stock = product.inventories.sum(&:quantity) %>
                         <div class="text-sm font-semibold <%= total_stock > 50 ? 'text-green-600' : total_stock > 10 ? 'text-yellow-600' : 'text-red-600' %>">
-                          <%= number_with_delimiter(total_stock.to_i) %>
+                          <%= number_with_precision(total_stock, precision: 2, strip_insignificant_zeros: true) %>
                         </div>
                       </td>
                       
