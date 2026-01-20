@@ -11,9 +11,6 @@
 
 @import "tailwindcss";
 
-/* Tus componentes personalizados */
-@import "components/alerts";
-
 /* Estilos para impresión */
 @media print {
     /* Ocultar elementos que no se deben imprimir */
