@@ -24,13 +24,39 @@ export default class extends Controller {
       this.showSearchView()
     }
     
-    // Cerrar dropdown al hacer scroll o click fuera
-    this.boundCloseOnScroll = this.closeSearchResults.bind(this)
-    window.addEventListener('scroll', this.boundCloseOnScroll, true)
+    // Cerrar dropdown al hacer click fuera
+    this.boundCloseOnClickOutside = this.closeOnClickOutside.bind(this)
+    document.addEventListener('click', this.boundCloseOnClickOutside)
+    
+    // Reposicionar o cerrar dropdown al hacer scroll
+    this.boundHandleScroll = this.handleScroll.bind(this)
+    window.addEventListener('scroll', this.boundHandleScroll, true)
   }
 
   disconnect() {
-    window.removeEventListener('scroll', this.boundCloseOnScroll, true)
+    // Limpiar event listeners al desconectar
+    document.removeEventListener('click', this.boundCloseOnClickOutside)
+    window.removeEventListener('scroll', this.boundHandleScroll, true)
+  }
+
+  closeOnClickOutside(event) {
+    // Cerrar solo si el click fue FUERA del input y del dropdown
+    if (!this.element.contains(event.target)) {
+      this.closeSearchResults()
+    }
+  }
+
+  handleScroll(event) {
+    // Si el scroll es dentro del dropdown mismo, no hacer nada
+    if (event.target === this.searchResultsTarget || 
+        this.searchResultsTarget.contains(event.target)) {
+      return
+    }
+    
+    // Si el dropdown está visible, reposicionarlo
+    if (!this.searchResultsTarget.classList.contains('hidden')) {
+      this.positionDropdown()
+    }
   }
 
   searchProducts(event) {
@@ -67,9 +93,9 @@ export default class extends Controller {
     this.selectedIndex = -1
     
     const html = products.map((product, index) => `
-      <div class="px-4 py-3 cursor-pointer border-b border-gray-200 last:border-b-0 hover:bg-green-50 transition duration-150" 
+      <div class="search-result-item px-4 py-3 cursor-pointer border-b border-gray-200 last:border-b-0 hover:bg-green-50 transition duration-150" 
            data-index="${index}" 
-           data-action="click->purchase-product-search#selectProduct">
+           data-action="click->purchase-product-search#selectProduct mouseenter->purchase-product-search#highlightItem">
         <div class="flex justify-between items-start">
           <div class="flex-1">
             <div class="font-semibold text-gray-900">${product.name}</div>
@@ -88,20 +114,26 @@ export default class extends Controller {
     
     this.searchResultsTarget.innerHTML = html
     
-    // Posicionar el dropdown con fixed
+    // Posicionar el dropdown justo debajo del input
     this.positionDropdown()
     
     this.searchResultsTarget.classList.remove('hidden')
+    
+    // Auto-scroll al item seleccionado si existe
+    if (this.selectedIndex >= 0) {
+      this.scrollToSelected()
+    }
   }
-
+  
   positionDropdown() {
     const inputRect = this.searchInputTarget.getBoundingClientRect()
     
-    // Usar fixed positioning
+    // Posicionar con fixed
     this.searchResultsTarget.style.position = 'fixed'
     this.searchResultsTarget.style.top = `${inputRect.bottom + 4}px`
     this.searchResultsTarget.style.left = `${inputRect.left}px`
     this.searchResultsTarget.style.width = `${inputRect.width}px`
+    this.searchResultsTarget.style.zIndex = '99999'
   }
 
   showNoResults() {
@@ -121,6 +153,7 @@ export default class extends Controller {
   }
 
   handleSearchKeydown(event) {
+    // Enter - Seleccionar
     if (event.key === 'Enter') {
       event.preventDefault()
       
@@ -134,32 +167,65 @@ export default class extends Controller {
       return
     }
     
+    // Escape - Cerrar
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      this.closeSearchResults()
+      return
+    }
+    
+    // Si el dropdown está cerrado, no procesar flechas
     if (this.searchResultsTarget.classList.contains('hidden')) return
     
-    const items = this.searchResultsTarget.querySelectorAll('[data-index]')
+    const items = this.searchResultsTarget.querySelectorAll('.search-result-item')
     
+    // Flecha Abajo
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       this.selectedIndex = Math.min(this.selectedIndex + 1, items.length - 1)
       this.highlightSelected(items)
-    } else if (event.key === 'ArrowUp') {
+      this.scrollToSelected()
+    } 
+    // Flecha Arriba
+    else if (event.key === 'ArrowUp') {
       event.preventDefault()
       this.selectedIndex = Math.max(this.selectedIndex - 1, 0)
       this.highlightSelected(items)
-    } else if (event.key === 'Escape') {
-      event.preventDefault()
-      this.closeSearchResults()
+      this.scrollToSelected()
     }
+  }
+
+  highlightItem(event) {
+    // Highlight al pasar el mouse
+    const items = this.searchResultsTarget.querySelectorAll('.search-result-item')
+    const index = parseInt(event.currentTarget.dataset.index)
+    this.selectedIndex = index
+    this.highlightSelected(items)
   }
 
   highlightSelected(items) {
     items.forEach((item, index) => {
       if (index === this.selectedIndex) {
-        item.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500')
+        item.classList.add('bg-green-100', 'border-l-4', 'border-green-500')
+        item.classList.remove('hover:bg-green-50')
       } else {
-        item.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500')
+        item.classList.remove('bg-green-100', 'border-l-4', 'border-green-500')
+        item.classList.add('hover:bg-green-50')
       }
     })
+  }
+
+  scrollToSelected() {
+    const items = this.searchResultsTarget.querySelectorAll('.search-result-item')
+    if (this.selectedIndex >= 0 && items[this.selectedIndex]) {
+      const selectedItem = items[this.selectedIndex]
+      
+      // Scroll suave al elemento seleccionado
+      selectedItem.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
   }
 
   selectProduct(event) {
