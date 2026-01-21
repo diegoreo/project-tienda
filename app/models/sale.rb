@@ -109,24 +109,40 @@ class Sale < ApplicationRecord
       self.total = calculated_total
       save!
 
-      # Actualizar inventario
+      # ========================================
+      # Soporte para productos vinculados
+      # ========================================
       sale_items.each do |item|
+        # Obtener el producto que maneja el inventario real
+        # - Si es base o master: retorna el mismo producto
+        # - Si es presentation: retorna el producto maestro
+        inventory_product = item.product.inventory_product
+        
+        # Calcular unidades base a descontar
+        # - Productos base/master: cantidad × 1 = cantidad
+        # - Productos presentation: cantidad × conversion_factor
+        # Ejemplo: 3 paquetes × 4 rollos/paquete = 12 rollos
+        base_units = item.product.calculate_base_units(item.quantity)
+
+        # Buscar inventario del producto correcto (maestro si es presentación)
         inventory = Inventory.find_by!(
-          product: item.product,
+          product: inventory_product,
           warehouse: warehouse
         )
 
-        inventory.quantity -= item.quantity
+        # Descontar unidades base del inventario
+        inventory.quantity -= base_units
         inventory.save!
 
-        # Registrar movimiento
+        # Registrar movimiento con nota descriptiva
         InventoryMovement.create!(
           inventory: inventory,
           movement_type: :outgoing,
           reason: :sale,
-          quantity: item.quantity,
+          quantity: base_units,
           source: self,
-          note: "Venta ##{id} - #{item.product.name}"
+          note: "Venta ##{id} - #{item.quantity} × #{item.product.name}" + 
+                (item.product.presentation? ? " (#{base_units} unidades base)" : "")
         )
       end
 
@@ -149,23 +165,35 @@ class Sale < ApplicationRecord
     return unless can_be_cancelled?
 
     transaction do
-      # Revertir inventario
+      # ========================================
+      # Revertir inventario con soporte para productos vinculados
+      # ========================================
       sale_items.each do |item|
+        # Obtener el producto que maneja el inventario real
+        inventory_product = item.product.inventory_product
+        
+        # Calcular unidades base a revertir
+        base_units = item.product.calculate_base_units(item.quantity)
+
+        # Buscar o crear inventario del producto correcto
         inventory = Inventory.find_or_create_by!(
-          product: item.product,
+          product: inventory_product,
           warehouse: warehouse
         )
 
-        inventory.quantity += item.quantity
+        # Devolver unidades base al inventario
+        inventory.quantity += base_units
         inventory.save!
 
+        # Registrar movimiento de reversión
         InventoryMovement.create!(
           inventory: inventory,
           movement_type: :incoming,
           reason: :adjustment,
-          quantity: item.quantity,
+          quantity: base_units,
           source: self,
-          note: "Cancelación venta ##{id} - #{item.product.name}"
+          note: "Cancelación venta ##{id} - #{item.quantity} × #{item.product.name}" +
+                (item.product.presentation? ? " (#{base_units} unidades base)" : "")
         )
       end
 

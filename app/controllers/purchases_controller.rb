@@ -170,12 +170,10 @@ class PurchasesController < ApplicationController
   def destroy
     @purchase = Purchase.find(params[:id])
     authorize @purchase
-
+  
     # Revertir inventario si la compra fue procesada
-    if @purchase.processed_at.present?
-      revert_purchase_inventory
-    end
-
+    @purchase.revert_inventory! if @purchase.processed_at.present?
+  
     @purchase.destroy
     redirect_to purchases_path, notice: "Compra eliminada correctamente y el inventario fue ajustado."
   rescue StandardError => e
@@ -198,25 +196,31 @@ class PurchasesController < ApplicationController
   def adjust_inventory(old_items_data)
     @purchase.purchase_items.each do |item|
       next if item.marked_for_destruction?
-
+  
       # Buscar dato anterior
       old_data = old_items_data.find { |d| d[:id] == item.id }
-
+  
       if old_data
         # Item existente - calcular diferencia
         old_qty = old_data[:old_quantity_sale_units].to_f
         new_qty = item.quantity_sale_units.to_f
         difference = new_qty - old_qty
-
+  
         next if difference.zero?
-
+  
         adjust_inventory_for_item(item, difference)
       else
         # Item nuevo agregado en la edición
-        adjust_inventory_for_item(item, item.quantity_sale_units.to_f)
+        # Calcular unidades base correctamente
+        base_units = if item.product.presentation?
+          item.product.calculate_base_units(item.quantity_sale_units / item.product.conversion_factor)
+        else
+          item.quantity_sale_units
+        end
+        adjust_inventory_for_item(item, base_units)
       end
     end
-
+  
     # Manejar items eliminados
     old_items_data.each do |old_data|
       item = @purchase.purchase_items.find { |i| i.id == old_data[:id] }
@@ -229,76 +233,111 @@ class PurchasesController < ApplicationController
   end
 
   def adjust_inventory_for_item(item, difference)
+    # Obtener el producto que maneja el inventario real
+    inventory_product = item.product.inventory_product
+    
+    # Calcular unidades base (si difference ya está en base, usar directo)
+    # Si no, convertir usando calculate_base_units
+    base_units = if item.product.presentation?
+      # Para presentaciones en ajustes, difference ya representa unidades base
+      difference
+    else
+      difference
+    end
+  
     inventory = Inventory.find_or_create_by!(
-      product: item.product,
+      product: inventory_product,
       warehouse: @purchase.warehouse
     )
-
-    inventory.quantity += difference
+  
+    inventory.quantity += base_units
     inventory.save!
-
+  
     # Registrar movimiento de ajuste
     InventoryMovement.create!(
       inventory: inventory,
-      movement_type: difference > 0 ? :incoming : :outgoing,
+      movement_type: base_units > 0 ? :incoming : :outgoing,
       reason: :adjustment,
-      quantity: difference.abs,
+      quantity: base_units.abs,
       source: @purchase,
-      note: "Ajuste por edición compra ##{@purchase.id} - #{item.product.name}"
+      note: "Ajuste por edición compra ##{@purchase.id} - #{item.product.name}" +
+            (item.product.presentation? ? " (#{base_units.abs} unidades base)" : "")
     )
   end
 
   def adjust_inventory_for_item_removal(product, quantity)
+    # Obtener el producto que maneja el inventario real
+    inventory_product = product.inventory_product
+    
+    # Calcular unidades base
+    base_units = if product.presentation?
+      product.calculate_base_units(quantity / product.conversion_factor)
+    else
+      quantity
+    end
+  
     inventory = Inventory.find_by(
-      product: product,
+      product: inventory_product,
       warehouse: @purchase.warehouse
     )
-
+  
     return unless inventory
-
-    inventory.quantity -= quantity
+  
+    inventory.quantity -= base_units
     inventory.save!
-
+  
     InventoryMovement.create!(
       inventory: inventory,
       movement_type: :outgoing,
       reason: :adjustment,
-      quantity: quantity,
+      quantity: base_units,
       source: @purchase,
-      note: "Item eliminado de compra ##{@purchase.id} - #{product.name}"
+      note: "Item eliminado de compra ##{@purchase.id} - #{product.name}" +
+            (product.presentation? ? " (#{base_units} unidades base)" : "")
     )
   end
 
   def revert_purchase_inventory
     ActiveRecord::Base.transaction do
       @purchase.purchase_items.each do |item|
+        # Obtener el producto que maneja el inventario real
+        inventory_product = item.product.inventory_product
+        
+        # Calcular unidades base a revertir
+        base_units = if item.product.presentation?
+          item.product.calculate_base_units(item.quantity_sale_units / item.product.conversion_factor)
+        else
+          item.quantity_sale_units
+        end
+  
         inventory = Inventory.find_by(
-          product: item.product,
+          product: inventory_product,
           warehouse: @purchase.warehouse
         )
-
+  
         next unless inventory
-
+  
         # Calcular nueva cantidad
-        new_quantity = inventory.quantity - item.quantity_sale_units
-
+        new_quantity = inventory.quantity - base_units
+  
         # Advertir si queda negativo (pero permitir)
         if new_quantity < 0
-          Rails.logger.warn "Inventario quedará negativo: #{item.product.name} = #{new_quantity}"
+          Rails.logger.warn "Inventario quedará negativo: #{inventory_product.name} = #{new_quantity}"
         end
-
+  
         # Actualizar inventario
         inventory.quantity = new_quantity
         inventory.save!
-
+  
         # Registrar movimiento
         InventoryMovement.create!(
           inventory: inventory,
           movement_type: :outgoing,
           reason: :purchase_cancellation,
-          quantity: item.quantity_sale_units,
+          quantity: base_units,
           source: @purchase,
-          note: "Eliminación de compra ##{@purchase.id} - #{item.product.name}"
+          note: "Eliminación de compra ##{@purchase.id} - #{item.product.name}" +
+                (item.product.presentation? ? " (#{base_units} unidades base)" : "")
         )
       end
     end

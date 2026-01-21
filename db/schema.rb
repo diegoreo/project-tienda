@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_02_221123) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_20_225953) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -155,8 +155,13 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_02_221123) do
     t.bigint "purchase_unit_id", null: false
     t.bigint "sale_unit_id", null: false
     t.boolean "active", default: true, null: false
+    t.integer "product_type", default: 0, null: false
+    t.bigint "master_product_id"
+    t.decimal "conversion_factor", precision: 10, scale: 3, default: "1.0", null: false
     t.index ["active"], name: "index_products_on_active"
     t.index ["category_id"], name: "index_products_on_category_id"
+    t.index ["master_product_id"], name: "index_products_on_master_product_id"
+    t.index ["product_type"], name: "index_products_on_product_type"
     t.index ["purchase_unit_id"], name: "index_products_on_purchase_unit_id"
     t.index ["sale_unit_id"], name: "index_products_on_sale_unit_id"
   end
@@ -373,6 +378,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_02_221123) do
   add_foreign_key "payments", "customers"
   add_foreign_key "payments", "sales"
   add_foreign_key "products", "categories"
+  add_foreign_key "products", "products", column: "master_product_id", on_delete: :restrict
   add_foreign_key "products", "units", column: "purchase_unit_id"
   add_foreign_key "products", "units", column: "sale_unit_id"
   add_foreign_key "purchase_items", "products"

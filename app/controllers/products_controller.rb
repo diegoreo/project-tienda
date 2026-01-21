@@ -196,6 +196,9 @@ class ProductsController < ApplicationController
       :sale_unit_id,
       :unit_conversion,
       :category_id,
+      :product_type,           # ← NUEVO
+      :master_product_id,      # ← NUEVO
+      :conversion_factor,      # ← NUEVO
       { barcodes_attributes: [ :id, :code, :_destroy ] }
     ]
 
