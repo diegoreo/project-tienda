@@ -1,5 +1,5 @@
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-  <%= form_with(model: @product, local: true, class: "space-y-6") do |form| %>
+  <%= form_with(model: @product, local: true, class: "space-y-6", data: { controller: "product-type" }) do |form| %>
     
     <!-- Encabezado -->
     <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-lg shadow-md">
@@ -50,6 +50,165 @@
               rows: 2, 
               placeholder: "Describe el producto..." %>
           <%= field_error_messages(@product, :description) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1.5: Tipo de Producto y Vinculación (NUEVA) -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+        </svg>
+        Tipo de Producto y Vinculación
+      </h3>
+
+      <div class="space-y-6">
+        <!-- Tipo de producto -->
+        <div>
+          <%= form.label :product_type, class: "block text-sm font-semibold text-gray-700 mb-2" do %>
+            Tipo de producto <span class="text-red-500">*</span>
+          <% end %>
+          <%= form.select :product_type, 
+              [
+                ['Producto normal (sin vinculación)', 'base'],
+                ['Producto maestro (unidad base: rollo, pieza, litro)', 'master'],
+                ['Presentación (paquete, caja, six-pack)', 'presentation']
+              ],
+              { selected: @product.product_type || 'base' },
+              class: "w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white",
+              data: { 
+                product_type_target: "typeSelect",
+                action: "change->product-type#toggleFields"
+              },
+              required: true %>
+          <%= field_error_messages(@product, :product_type) %>
+          
+          <!-- Ayudas contextuales -->
+          <div class="mt-3 space-y-2 text-sm">
+            <div class="p-3 bg-gray-50 border-l-4 border-gray-400 rounded" data-product-type-target="baseHelp">
+              <p class="text-gray-700">
+                <strong>Producto normal:</strong> Un producto independiente sin relación con otros (ej: Coca-Cola 2L, Leche 1L).
+              </p>
+            </div>
+            
+            <div class="hidden p-3 bg-blue-50 border-l-4 border-blue-400 rounded" data-product-type-target="masterHelp">
+              <p class="text-blue-800">
+                <strong>Producto maestro:</strong> La unidad más pequeña que maneja el inventario real (ej: 1 rollo, 1 pieza, 1 litro). Otros productos pueden vincularse a este.
+              </p>
+            </div>
+            
+            <div class="hidden p-3 bg-indigo-50 border-l-4 border-indigo-400 rounded" data-product-type-target="presentationHelp">
+              <p class="text-indigo-800">
+                <strong>Presentación:</strong> Una forma de vender el producto maestro en otra cantidad (ej: paquete de 4 rollos, caja de 24 piezas). El inventario se descuenta del producto maestro.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos para PRESENTACIÓN (solo visible cuando product_type = presentation) -->
+        <div class="hidden space-y-6" data-product-type-target="presentationFields">
+          <!-- Producto maestro CON BUSCADOR -->
+          <div data-controller="master-product-search">
+            <%= form.label :master_product_id, class: "block text-sm font-semibold text-gray-700 mb-2" do %>
+              Producto maestro <span class="text-red-500">*</span>
+            <% end %>
+            
+            <!-- Campo oculto para guardar el ID -->
+            <%= form.hidden_field :master_product_id, 
+                data: { master_product_search_target: "hiddenField" },
+                value: @product.master_product_id %>
+            
+            <!-- Input de búsqueda -->
+            <div class="relative">
+              <input type="text"
+                    data-master-product-search-target="searchInput"
+                    data-action="input->master-product-search#search keydown->master-product-search#navigate"
+                    class="w-full px-4 py-2.5 pr-10 border-2 border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                    placeholder="Buscar producto maestro..."
+                    value="<%= @product.master_product&.name %>"
+                    autocomplete="off">
+              
+              <!-- Icono de búsqueda -->
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+              
+              <!-- Botón de limpiar (solo visible cuando hay selección) -->
+              <button type="button"
+                      data-master-product-search-target="clearButton"
+                      data-action="click->master-product-search#clear"
+                      class="<%= @product.master_product_id ? '' : 'hidden' %> absolute inset-y-0 right-10 flex items-center pr-3 text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Resultados de búsqueda -->
+            <div data-master-product-search-target="searchResults"
+                class="hidden absolute z-50 mt-1 w-full bg-white border-2 border-indigo-300 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+              <!-- Los resultados se insertan aquí dinámicamente -->
+            </div>
+            
+            <%= field_error_messages(@product, :master_product_id) %>
+            
+            <div class="mt-2 space-y-2">
+              <p class="text-sm text-gray-500 flex items-start">
+                <svg class="w-4 h-4 mr-1 mt-0.5 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Escribe para buscar el producto base. También puedes usar el lector de código de barras.
+              </p>
+              
+              <div class="flex items-center gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-200">
+                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm font-mono">↑↓</kbd>
+                <span>Navegar</span>
+                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm font-mono">Enter</kbd>
+                <span>Seleccionar</span>
+                <kbd class="px-2 py-1 bg-white border border-gray-300 rounded shadow-sm font-mono">Esc</kbd>
+                <span>Cerrar</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Factor de conversión -->
+          <div>
+            <%= form.label :conversion_factor, class: "block text-sm font-semibold text-gray-700 mb-2" do %>
+              Factor de conversión <span class="text-red-500">*</span>
+            <% end %>
+            <%= form.number_field :conversion_factor,
+                class: "w-full px-4 py-2.5 border-2 border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition",
+                step: 0.001,
+                min: 0.001,
+                placeholder: "Ej. 4.0",
+                value: @product.conversion_factor || 1.0 %>
+            <%= field_error_messages(@product, :conversion_factor) %>
+            <p class="mt-2 text-sm text-gray-500 flex items-start">
+              <svg class="w-4 h-4 mr-1 mt-0.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Cuántas unidades del producto maestro contiene esta presentación. <strong>Ejemplo:</strong> Si 1 paquete = 4 rollos, escribe <strong>4</strong>
+            </p>
+          </div>
+
+          <!-- Ejemplo visual -->
+          <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+            <h4 class="font-semibold text-indigo-900 mb-2 flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+              </svg>
+              Ejemplo
+            </h4>
+            <p class="text-sm text-indigo-800">
+              <strong>Maestro:</strong> "Papel higiénico Rollo" (40 unidades en inventario)<br>
+              <strong>Presentación:</strong> "Papel higiénico Paquete x4" (conversion_factor: 4.0)<br>
+              <strong>Resultado:</strong> Al vender 2 paquetes, se descontarán 8 rollos del inventario maestro.<br>
+              <strong>Stock disponible:</strong> 40 rollos = 10 paquetes completos
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -135,7 +294,7 @@
       </div>
     </div>
 
-    <!-- SECCIÓN 3.5: Stock Mínimo por Almacén (NUEVO) -->
+    <!-- SECCIÓN 3.5: Stock Mínimo por Almacén -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
         <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

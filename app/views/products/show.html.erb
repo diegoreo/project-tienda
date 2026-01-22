@@ -18,7 +18,27 @@
       <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold mb-2"><%= @product.name %></h1>
+            <div class="flex items-center gap-3 mb-2">
+              <h1 class="text-3xl font-bold"><%= @product.name %></h1>
+              
+              <!-- Badge de tipo de producto -->
+              <% if @product.master? %>
+                <span class="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                  MAESTRO
+                </span>
+              <% elsif @product.presentation? %>
+                <span class="px-3 py-1 bg-indigo-500 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                  PRESENTACIÓN
+                </span>
+              <% end %>
+            </div>
+            
             <% if @product.category %>
               <span class="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
                 <%= @product.category.name %>
@@ -40,6 +60,7 @@
         
         <!-- Main Info Column -->
         <div class="md:col-span-2 space-y-6">
+          
           
           <!-- Description -->
           <div class="bg-gray-50 rounded-lg p-5">
@@ -112,6 +133,143 @@
             <% end %>
           </div>
 
+          <!-- NUEVA SECCIÓN: Información de Vinculación -->
+          <% if @product.presentation? || @product.master? %>
+            <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 rounded-lg p-5 border-2 border-indigo-300">
+              <h2 class="text-lg font-semibold text-indigo-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+                Productos Vinculados
+              </h2>
+
+              <% if @product.presentation? %>
+                <!-- Es una PRESENTACIÓN - Mostrar producto maestro -->
+                <div class="bg-white rounded-lg p-4 border-2 border-indigo-200">
+                  <div class="flex items-start justify-between mb-3">
+                    <div>
+                      <p class="text-sm font-semibold text-indigo-700 mb-1">Producto Maestro:</p>
+                      <%= link_to @product.master_product, class: "text-lg font-bold text-indigo-900 hover:text-indigo-600 transition flex items-center gap-2" do %>
+                        <%= @product.master_product.name %>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                      <% end %>
+                    </div>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+                      MAESTRO
+                    </span>
+                  </div>
+
+                  <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                    <p class="text-sm font-semibold text-indigo-800 mb-2">Factor de Conversión:</p>
+                    <div class="flex items-center gap-2">
+                      <div class="flex-1 bg-white rounded-lg p-3 border-2 border-indigo-300 text-center">
+                        <p class="text-2xl font-bold text-indigo-900">1</p>
+                        <p class="text-xs text-gray-600"><%= @product.name %></p>
+                      </div>
+                      <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                      </svg>
+                      <div class="flex-1 bg-white rounded-lg p-3 border-2 border-indigo-300 text-center">
+                        <p class="text-2xl font-bold text-indigo-900"><%= @product.conversion_factor.to_i %></p>
+                        <p class="text-xs text-gray-600"><%= @product.master_product.name %></p>
+                      </div>
+                    </div>
+                    <p class="text-xs text-center text-indigo-700 mt-3">
+                      Al vender 1 <%= @product.name %>, se descontarán <%= @product.conversion_factor.to_i %> unidades de <%= @product.master_product.name %>
+                    </p>
+                  </div>
+
+                  <% warehouse = Warehouse.first %>
+                  <% if warehouse %>
+                    <div class="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <p class="text-sm font-semibold text-green-800 mb-2">Stock Disponible:</p>
+                      <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white rounded p-2 text-center">
+                          <p class="text-lg font-bold text-green-700"><%= @product.master_product.available_stock(warehouse).to_i %></p>
+                          <p class="text-xs text-gray-600"><%= @product.master_product.name %></p>
+                        </div>
+                        <div class="bg-white rounded p-2 text-center">
+                          <p class="text-lg font-bold text-green-700"><%= @product.available_stock(warehouse).to_i %></p>
+                          <p class="text-xs text-gray-600"><%= @product.name %> disponibles</p>
+                        </div>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+
+              <% elsif @product.master? && @product.presentations.any? %>
+                <!-- Es un MAESTRO con presentaciones -->
+                <div class="space-y-3">
+                  <p class="text-sm font-semibold text-indigo-800 mb-3">
+                    Este producto maestro tiene <%= @product.presentations.count %> presentación<%= @product.presentations.count != 1 ? 'es' : '' %> vinculada<%= @product.presentations.count != 1 ? 's' : '' %>:
+                  </p>
+
+                  <% @product.presentations.each do |presentation| %>
+                    <div class="bg-white rounded-lg p-4 border-2 border-indigo-200 hover:border-indigo-400 transition">
+                      <div class="flex items-center justify-between mb-2">
+                        <%= link_to presentation, class: "flex-1 text-base font-bold text-indigo-900 hover:text-indigo-600 transition flex items-center gap-2" do %>
+                          <%= presentation.name %>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                          </svg>
+                        <% end %>
+                        <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded">
+                          PRESENTACIÓN
+                        </span>
+                      </div>
+                      
+                      <div class="flex items-center gap-2 text-sm text-gray-700">
+                        <span class="font-semibold">Factor:</span>
+                        <span class="px-2 py-1 bg-indigo-50 rounded font-mono">1 × <%= presentation.name %> = <%= presentation.conversion_factor.to_i %> × <%= @product.name %></span>
+                      </div>
+
+                      <div class="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                        <span class="font-semibold">Precio:</span>
+                        <span class="text-green-600 font-bold"><%= number_to_currency(presentation.price) %></span>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <% warehouse = Warehouse.first %>
+                  <% if warehouse %>
+                    <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <p class="text-sm font-semibold text-green-800 mb-3">📊 Desglose de Stock (Almacén Principal):</p>
+                      <% breakdown = @product.stock_breakdown(warehouse) %>
+                      
+                      <div class="bg-white rounded-lg p-3 border-2 border-green-300 mb-3">
+                        <p class="text-xs text-gray-600">Total unidades base:</p>
+                        <p class="text-2xl font-bold text-green-700"><%= breakdown[:total_base_units].to_i %> <%= @product.name %></p>
+                      </div>
+
+                      <div class="space-y-2">
+                        <p class="text-xs font-semibold text-green-800">Disponible en presentaciones:</p>
+                        <% breakdown[:presentations].each do |p| %>
+                          <div class="flex justify-between items-center bg-white rounded p-2 border border-green-200">
+                            <span class="text-sm text-gray-700"><%= p[:name] %></span>
+                            <span class="font-bold text-green-700"><%= p[:available_packs] %> disponibles</span>
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+
+              <% elsif @product.master? %>
+                <!-- Es maestro pero sin presentaciones aún -->
+                <div class="bg-white rounded-lg p-4 border-2 border-indigo-200 text-center">
+                  <svg class="w-12 h-12 mx-auto mb-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                  <p class="text-sm text-indigo-800 font-semibold mb-1">Producto Maestro sin presentaciones</p>
+                  <p class="text-xs text-gray-600">Puedes crear presentaciones vinculadas a este producto</p>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+          
+
         </div>
 
         <!-- Sidebar -->
@@ -119,17 +277,39 @@
           
           <!-- Stock Card -->
           <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-5 border-2 border-green-200">
-            <h3 class="text-sm font-semibold text-green-800 mb-2">Stock Total</h3>
-            <% total_stock = @product.inventories.sum(&:quantity) %>
-            <p class="text-4xl font-bold text-green-700 mb-1">
-              <%= number_with_delimiter(total_stock.to_i) %>
-            </p>
-            <p class="text-sm text-green-600">
-              <%= @product.sale_unit&.name || 'unidades' %>
-            </p>
+            <h3 class="text-sm font-semibold text-green-800 mb-2">
+              <% if @product.presentation? %>
+                Stock Disponible (calculado)
+              <% else %>
+                Stock Total
+              <% end %>
+            </h3>
+            
+            <% if @product.presentation? %>
+              <% warehouse = Warehouse.first %>
+              <% if warehouse %>
+                <p class="text-4xl font-bold text-green-700 mb-1">
+                  <%= @product.available_stock(warehouse).to_i %>
+                </p>
+                <p class="text-sm text-green-600">
+                  <%= @product.name %> disponibles
+                </p>
+                <p class="text-xs text-green-700 mt-2 pt-2 border-t border-green-200">
+                  Basado en <%= @product.master_product.available_stock(warehouse).to_i %> <%= @product.master_product.name %>
+                </p>
+              <% end %>
+            <% else %>
+              <% total_stock = @product.inventories.sum(&:quantity) %>
+              <p class="text-4xl font-bold text-green-700 mb-1">
+                <%= number_with_delimiter(total_stock.to_i) %>
+              </p>
+              <p class="text-sm text-green-600">
+                <%= @product.sale_unit&.name || 'unidades' %>
+              </p>
+            <% end %>
             
             <!-- Detalle por almacén -->
-            <% if @product.inventories.any? %>
+            <% if @product.inventories.any? && !@product.presentation? %>
               <div class="mt-4 pt-4 border-t border-green-200">
                 <p class="text-xs font-semibold text-green-800 mb-2">Por almacén:</p>
                 <div class="space-y-1">

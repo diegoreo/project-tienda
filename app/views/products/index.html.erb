@@ -257,9 +257,27 @@
                       
                       <!-- Stock -->
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <% total_stock = product.inventories.sum(&:quantity) %>
-                        <div class="text-sm font-semibold <%= total_stock > 50 ? 'text-green-600' : total_stock > 10 ? 'text-yellow-600' : 'text-red-600' %>">
-                          <%= number_with_precision(total_stock, precision: 2, strip_insignificant_zeros: true) %>
+                        <% 
+                          # Calcular stock según tipo de producto
+                          if product.presentation?
+                            # Para presentaciones, usar available_stock del primer warehouse
+                            total_stock = product.available_stock(Warehouse.first) || 0
+                          else
+                            # Para base y master, sumar inventarios
+                            total_stock = product.inventories.sum(&:quantity)
+                          end
+                        %>
+                        <div class="flex items-center gap-2">
+                          <div class="text-sm font-semibold <%= total_stock > 50 ? 'text-green-600' : total_stock > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                            <%= number_with_precision(total_stock, precision: 2, strip_insignificant_zeros: true) %>
+                          </div>
+                          
+                          <!-- Badge de tipo de producto (opcional pero útil) -->
+                          <% if product.master? %>
+                            <span class="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded" title="Producto Maestro">M</span>
+                          <% elsif product.presentation? %>
+                            <span class="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded" title="Presentación">P</span>
+                          <% end %>
                         </div>
                       </td>
                       

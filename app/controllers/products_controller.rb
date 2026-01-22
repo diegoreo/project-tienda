@@ -185,6 +185,24 @@ class ProductsController < ApplicationController
     render json: products.map { |p| format_product_for_pos(p, warehouse_id) }
   end
 
+  # Búsqueda de productos maestros para vincular presentaciones
+  def search_master
+    query = params[:q]
+
+    if query.blank?
+      render json: []
+      return
+    end
+
+    # Buscar solo productos base o master (los que pueden ser maestros)
+    products = Product.where(product_type: [:base, :master])
+                      .search_by_name_description_and_barcode(query)
+                      .limit(10)
+
+    # Retornar solo id y name en formato JSON
+    render json: products.map { |p| { id: p.id, name: p.name } }
+  end
+
   private
 
   def product_params
@@ -196,9 +214,9 @@ class ProductsController < ApplicationController
       :sale_unit_id,
       :unit_conversion,
       :category_id,
-      :product_type,           # ← NUEVO
-      :master_product_id,      # ← NUEVO
-      :conversion_factor,      # ← NUEVO
+      :product_type,           
+      :master_product_id,      
+      :conversion_factor,      
       { barcodes_attributes: [ :id, :code, :_destroy ] }
     ]
 
