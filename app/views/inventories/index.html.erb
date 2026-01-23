@@ -257,8 +257,15 @@
                   <div class="flex items-center justify-between">
                     <div>
                       <p class="text-xs text-gray-500">Cantidad</p>
-                      <p class="text-2xl font-bold <%= inventory.quantity > 50 ? 'text-green-600' : inventory.quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
-                        <%= number_with_delimiter(inventory.quantity.to_i) %>
+                      <%
+                        display_quantity = if inventory.product.presentation?
+                          inventory.product.available_stock(inventory.warehouse)
+                        else
+                          inventory.quantity
+                        end
+                      %>
+                      <p class="text-2xl font-bold <%= display_quantity > 50 ? 'text-green-600' : display_quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                        <%= number_with_delimiter(display_quantity.to_i) %>
                         <span class="text-sm font-normal text-gray-500"><%= inventory.product.sale_unit.abbreviation %></span>
                       </p>
                     </div>
@@ -266,9 +273,16 @@
                     <% if @show_costs %>
                       <div class="text-right">
                         <p class="text-xs text-gray-500">Valor</p>
-                        <p class="text-lg font-semibold text-emerald-600">
-                          <%= number_to_currency(inventory.quantity * inventory.product.price) %>
-                        </p>
+                        <% if inventory.product.presentation? %>
+                          <p class="text-lg font-semibold text-indigo-600">
+                            <%= number_to_currency(display_quantity * inventory.product.price) %>
+                          </p>
+                          <p class="text-xs text-gray-400 italic">*No suma</p>
+                        <% else %>
+                          <p class="text-lg font-semibold text-emerald-600">
+                            <%= number_to_currency(inventory.quantity * inventory.product.price) %>
+                          </p>
+                        <% end %>
                       </div>
                     <% end %>
                   </div>
@@ -448,8 +462,15 @@
                   
                   <!-- Cantidad -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-bold <%= inventory.quantity > 50 ? 'text-green-600' : inventory.quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
-                      <%= number_with_delimiter(inventory.quantity.to_i) %>
+                    <%
+                      display_quantity = if inventory.product.presentation?
+                        inventory.product.available_stock(inventory.warehouse)
+                      else
+                        inventory.quantity
+                      end
+                    %>
+                    <div class="text-sm font-bold <%= display_quantity > 50 ? 'text-green-600' : display_quantity > 10 ? 'text-yellow-600' : 'text-red-600' %>">
+                      <%= number_with_delimiter(display_quantity.to_i) %>
                       <span class="text-xs font-normal text-gray-500 ml-1">
                         <%= inventory.product.sale_unit.abbreviation %>
                       </span>
@@ -458,12 +479,12 @@
                   
                   <!-- Estado del Stock -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <% if inventory.quantity > 50 %>
+                    <% if display_quantity > 50 %>
                       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
                         <span class="w-2 h-2 bg-green-500 rounded-full mr-1.5"></span>
                         Óptimo
                       </span>
-                    <% elsif inventory.quantity > 10 %>
+                    <% elsif display_quantity > 10 %>
                       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
                         <span class="w-2 h-2 bg-yellow-500 rounded-full mr-1.5"></span>
                         Medio
@@ -479,12 +500,16 @@
                   <!-- Valor Total (Cantidad × Precio) - SOLO SI TIENE PERMISOS -->
                   <% if @show_costs %>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="text-sm font-semibold text-emerald-600">
-                        <%= number_to_currency(inventory.quantity * inventory.product.price) %>
-                      </div>
-                      <div class="text-xs text-gray-500">
-                        <%= number_to_currency(inventory.product.price) %> / <%= inventory.product.sale_unit.abbreviation %>
-                      </div>
+                      <% if inventory.product.presentation? %>
+                        <div class="text-sm font-semibold text-indigo-600">
+                          <%= number_to_currency(display_quantity * inventory.product.price) %>
+                        </div>
+                        <div class="text-xs text-gray-400 italic">*No suma al total</div>
+                      <% else %>
+                        <div class="text-sm font-semibold text-emerald-600">
+                          <%= number_to_currency(inventory.quantity * inventory.product.price) %>
+                        </div>
+                      <% end %>
                     </td>
                   <% end %>
                   

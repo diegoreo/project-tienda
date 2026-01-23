@@ -51,8 +51,8 @@ class Purchase < ApplicationRecord
         # Nota: quantity_sale_units = quantity × conversion_factor del producto
         # Si compramos 10 paquetes (conversion_factor: 4), quantity_sale_units = 40 rollos
         base_units = if item.product.presentation?
-          # Para presentaciones, quantity_sale_units ya tiene la conversión correcta
-          item.product.calculate_base_units(item.quantity_sale_units / item.product.conversion_factor)
+          # Para presentaciones, multiplicar cantidad por factor de conversión
+          item.quantity * item.product.conversion_factor
         else
           # Para base/master, usar quantity_sale_units directo
           item.quantity_sale_units
@@ -111,7 +111,7 @@ class Purchase < ApplicationRecord
         
         # Calcular unidades base a revertir
         base_units = if item.product.presentation?
-          item.product.calculate_base_units(item.quantity_sale_units / item.product.conversion_factor)
+          item.quantity * item.product.conversion_factor
         else
           item.quantity_sale_units
         end

@@ -169,11 +169,11 @@
           <div class="<%= @inventory.quantity > 50 ? 'bg-gradient-to-br from-green-500 to-green-600' : @inventory.quantity > 10 ? 'bg-gradient-to-br from-yellow-500 to-yellow-600' : 'bg-gradient-to-br from-red-500 to-red-600' %> p-6 text-white">
             <div class="flex items-center justify-between mb-2">
               <h3 class="text-lg font-semibold">Stock Actual</h3>
-              <% if @inventory.quantity > 50 %>
+              <% if inventory.quantity > 50 %>
                 <span class="px-3 py-1 bg-white bg-opacity-30 rounded-full text-xs font-bold">
                   ÓPTIMO
                 </span>
-              <% elsif @inventory.quantity > 10 %>
+              <% elsif inventory.quantity > 10 %>
                 <span class="px-3 py-1 bg-white bg-opacity-30 rounded-full text-xs font-bold">
                   MEDIO
                 </span>
@@ -185,8 +185,15 @@
             </div>
             
             <div class="text-center">
+              <%
+                display_quantity = if inventory.product.presentation?
+                  inventory.product.available_stock(inventory.warehouse)
+                else
+                  inventory.quantity
+                end
+              %>
               <p class="text-6xl font-bold mb-2">
-                <%= number_with_delimiter(@inventory.quantity.to_i) %>
+                <%= number_with_delimiter(display_quantity.to_i) %>
               </p>
               <p class="text-xl font-medium opacity-90">
                 <%= @inventory.product.sale_unit.abbreviation %>
