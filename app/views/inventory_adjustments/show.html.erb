@@ -17,8 +17,8 @@
             <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
             </svg>
-            <%= link_to inventory_path(inventory), class: "ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2" do %>
-              Detalle #<%= inventory.id %>
+            <%= link_to inventory_path(@inventory), class: "ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2" do %>
+              Detalle #<%= @inventory.id %>
             <% end %>
           </div>
         </li>
@@ -27,7 +27,7 @@
             <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
             </svg>
-            <%= link_to inventory_inventory_adjustments_path(inventory), class: "ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2" do %>
+            <%= link_to inventory_inventory_adjustments_path(@inventory), class: "ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2" do %>
               Historial
             <% end %>
           </div>
@@ -69,7 +69,7 @@
             <%= @adjustment.increase? ? '+' : '-' %><%= number_with_delimiter(@adjustment.quantity.to_i) %>
           </div>
           <div class="text-xl opacity-90">
-            <%= inventory.product.sale_unit.abbreviation %>
+            <%= @inventory.product.sale_unit.abbreviation %>
           </div>
         </div>
       </div>
@@ -126,7 +126,7 @@
                 <dt class="text-sm font-medium text-gray-500 mb-2">Cantidad Ajustada</dt>
                 <dd class="text-4xl font-bold <%= @adjustment.increase? ? 'text-green-600' : 'text-red-600' %>">
                   <%= @adjustment.increase? ? '+' : '-' %><%= number_with_delimiter(@adjustment.quantity.to_i) %>
-                  <span class="text-lg text-gray-500 ml-2"><%= inventory.product.sale_unit.abbreviation %></span>
+                  <span class="text-lg text-gray-500 ml-2"><%= @inventory.product.sale_unit.abbreviation %></span>
                 </dd>
               </div>
 
@@ -204,23 +204,23 @@
           <div class="p-6 space-y-4">
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1">Producto</label>
-              <p class="text-base font-semibold text-gray-800"><%= inventory.product.name %></p>
+              <p class="text-base font-semibold text-gray-800"><%= @inventory.product.name %></p>
             </div>
 
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1">Almacén</label>
-              <p class="text-base font-semibold text-gray-800"><%= inventory.warehouse.name %></p>
+              <p class="text-base font-semibold text-gray-800"><%= @inventory.warehouse.name %></p>
             </div>
 
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1">Stock Actual</label>
               <p class="text-3xl font-bold text-purple-600">
-                <%= number_with_delimiter(inventory.quantity.to_i) %>
-                <span class="text-sm text-gray-500"><%= inventory.product.sale_unit.abbreviation %></span>
+                <%= number_with_delimiter(@inventory.quantity.to_i) %>
+                <span class="text-sm text-gray-500"><%= @inventory.product.sale_unit.abbreviation %></span>
               </p>
             </div>
 
-            <%= link_to inventory_path(inventory), 
+            <%= link_to inventory_path(@inventory), 
                 class: "block w-full text-center px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" do %>
               <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -241,7 +241,7 @@
           </h3>
           
           <div class="space-y-3">
-            <%= link_to new_inventory_inventory_adjustment_path(inventory), 
+            <%= link_to new_inventory_inventory_adjustment_path(@inventory), 
                 class: "block w-full text-center px-4 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition" do %>
               <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -249,7 +249,7 @@
               Nuevo Ajuste
             <% end %>
             
-            <%= link_to inventory_inventory_adjustments_path(inventory), 
+            <%= link_to inventory_inventory_adjustments_path(@inventory), 
                 class: "block w-full text-center px-4 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition" do %>
               <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
