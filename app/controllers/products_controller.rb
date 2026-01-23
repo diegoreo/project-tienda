@@ -233,9 +233,18 @@ class ProductsController < ApplicationController
   end
 
   def format_product_for_pos(product, warehouse_id)
-    inventory = product.inventories.find_by(warehouse_id: warehouse_id)
-    stock = inventory&.quantity || 0
-
+    warehouse = Warehouse.find_by(id: warehouse_id)
+    
+    # Calcular stock según tipo de producto
+    stock = if product.presentation?
+      # Para presentaciones, calcular del maestro
+      product.available_stock(warehouse) || 0
+    else
+      # Para base/master, usar inventario directo
+      inventory = product.inventories.find_by(warehouse_id: warehouse_id)
+      inventory&.quantity || 0
+    end
+  
     {
       id: product.id,
       name: product.name,
