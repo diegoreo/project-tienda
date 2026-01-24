@@ -8,10 +8,16 @@ export default class extends Controller {
   }
 
   recalculate() {
-    const current = parseFloat(this.currentQuantityTarget.textContent) || 0
+    // Leer stock actual (ya viene en unidades correctas desde la vista)
+    const current = parseFloat(this.currentQuantityTarget.textContent.replace(/,/g, '')) || 0
+    
+    // Leer ajuste (en unidades de presentación o producto)
     const adjust = parseFloat(this.quantityInputTarget.value) || 0
+    
+    // Tipo de ajuste
     const type = this.element.querySelector("select").value
 
+    // Calcular final (TODO en las mismas unidades)
     let final = current
     if (type === "increase") {
       final = current + adjust
@@ -19,6 +25,10 @@ export default class extends Controller {
       final = current - adjust
     }
 
-    this.finalQuantityTarget.textContent = final.toFixed(3)
+    // Mostrar resultado formateado
+    this.finalQuantityTarget.textContent = Number(final.toFixed(3)).toLocaleString('en-US', { 
+      minimumFractionDigits: 0, 
+      maximumFractionDigits: 3 
+    })
   }
 }

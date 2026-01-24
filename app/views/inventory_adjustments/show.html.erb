@@ -214,8 +214,15 @@
 
             <div>
               <label class="block text-xs font-medium text-gray-500 mb-1">Stock Actual</label>
+              <%
+                display_quantity = if @inventory.product.presentation?
+                  @inventory.product.available_stock(@inventory.warehouse)
+                else
+                  @inventory.quantity
+                end
+              %>
               <p class="text-3xl font-bold text-purple-600">
-                <%= number_with_delimiter(@inventory.quantity.to_i) %>
+                <%= number_with_delimiter(display_quantity.to_i) %>
                 <span class="text-sm text-gray-500"><%= @inventory.product.sale_unit.abbreviation %></span>
               </p>
             </div>

@@ -186,8 +186,15 @@
           <!-- Stock Actual -->
           <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center flex-1">
             <label class="block text-xs font-medium text-blue-700 mb-1">Stock Actual</label>
+            <%
+              display_quantity = if @inventory.product.presentation?
+                @inventory.product.available_stock(@inventory.warehouse)
+              else
+                @inventory.quantity
+              end
+            %>
             <div class="text-2xl font-bold text-blue-600" data-inventory-adjustment-target="currentQuantity">
-              <%= number_with_delimiter(@inventory.quantity.to_i) %>
+              <%= number_with_delimiter(display_quantity.to_i) %>
             </div>
             <p class="text-xs text-blue-600"><%= @inventory.product.sale_unit.abbreviation %></p>
           </div>
