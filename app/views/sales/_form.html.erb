@@ -1,16 +1,16 @@
 <div data-controller="quick-flow" data-session-id="<%= @current_session&.id %>"> 
-  <%= form_with model: sale, local: true, data: { controller: "pos-sale", action: "submit->pos-sale#validateSubmit" }, class: "space-y-3" do |f| %>
+  <%= form_with model: sale, local: true, data: { controller: "pos-sale", action: "submit->pos-sale#validateSubmit" }, class: "space-y-2" do |f| %>
     
     <!-- Errores -->
     <% if sale.errors.any? %>
-      <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-        <div class="flex items-center gap-2 text-red-800 font-semibold text-sm mb-1">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+      <div class="bg-red-50 border-l-4 border-red-500 p-2 rounded">
+        <div class="flex items-center gap-2 text-red-800 font-semibold text-xs mb-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
           </svg>
           <%= pluralize(sale.errors.count, "error") %>
         </div>
-        <ul class="text-xs text-red-700 ml-7 space-y-0.5">
+        <ul class="text-xs text-red-700 ml-6 space-y-0.5">
           <% sale.errors.full_messages.each do |message| %>
             <li><%= message %></li>
           <% end %>
@@ -18,285 +18,334 @@
       </div>
     <% end %>
 
-    <!-- Configuración (Cliente, Almacén, Método de pago) -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <!-- LAYOUT 2 COLUMNAS -->
+    <div class="grid grid-cols-1 lg:grid-cols-[68%_30%] gap-3">
+      
+      <!-- ==================== COLUMNA IZQUIERDA (68%) ==================== -->
+      <div class="space-y-2">
         
-        <!-- Cliente -->
-        <div>
-          <%= f.label :customer_id, "Cliente", class: "block text-xs font-semibold text-gray-700 mb-1" %>
-          <%= f.collection_select :customer_id, 
-            Customer.order(:name), 
-            :id, 
-            :name, 
-            { selected: Customer.find_by(name: "Público General")&.id }, 
-            class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition",
-            data: { 'pos-sale-target': 'customerSelect' } %>
-        </div>
-
-        <!-- Almacén -->
-        <div>
-          <%= f.label :warehouse_id, "Almacén", class: "block text-xs font-semibold text-gray-700 mb-1" %>
-          <%= f.collection_select :warehouse_id, 
-            Warehouse.all, 
-            :id, 
-            :name, 
-            {}, 
-            { 
-              class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
-              required: true,
-              data: { 
-                action: "change->pos-sale#saveWarehousePreference",
-                'pos-sale-target': 'warehouseSelect'
-              }
-            } %>
-        </div>
-
-        <!-- Método de pago -->
-        <div>
-          <%= f.label :payment_method, "Método de pago", class: "block text-xs font-semibold text-gray-700 mb-1" %>
-          <%= f.select :payment_method,
-            [
-              ['💵 Efectivo', 'cash'],
-              ['💳 Tarjeta', 'card'],
-              ['📝 Crédito', 'credit'],
-              ['🔀 Mixto', 'mixed']
-            ],
-            { selected: 'cash' },
-            { 
-              class: "w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
-              required: true,
-              data: { action: "change->pos-sale#handlePaymentMethodChange" }
-            } %>
-        </div>
-      </div>
-    </div>
-
-    <!-- Búsqueda de productos -->
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-        </svg>
-      </div>
-      <input 
-        type="text" 
-        placeholder="🔍 Escanea código de barras o busca producto... (F1)"
-        class="w-full pl-12 pr-4 py-3 text-base border-2 border-green-500 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-600 transition shadow-sm"
-        data-pos-sale-target="searchInput"
-        data-action="input->pos-sale#searchProducts keydown->pos-sale#handleSearchKeydown"
-        autocomplete="off"
-      >
-      <!-- Resultados de búsqueda MEJORADOS -->
-      <div class="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-green-500 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50 hidden" data-pos-sale-target="searchResults"></div>
-    </div>
-
-    <!-- Tabla de productos con botón de notas a la derecha -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <!-- Header con botones de flujos y notas -->
-      <div class="flex items-center justify-between px-3 py-2 bg-gray-100 border-b border-gray-200">
-        <h3 class="text-sm font-semibold text-gray-700">Productos</h3>
-        
-        <!-- Botones de acción -->
-        <div class="flex gap-2">
-          
-          <!-- NUEVO: Dropdown de Tickets en Espera -->
-          <div class="relative" data-controller="dropdown">
-            <button type="button"
-                    data-action="click->dropdown#toggle"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow transition">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-              📋 Tickets
-              <span data-pos-sale-target="pendingCount"
-                    class="hidden bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5 ml-1">
-                0
-              </span>
-            </button>
+        <!-- Configuración COMPACTA (Cliente, Almacén, Método de pago) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+          <div class="grid grid-cols-3 gap-2">
             
-            <!-- Dropdown menu -->
-            <div data-dropdown-target="menu"
-                class="hidden absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto border-2 border-blue-500">
-              <div class="p-4">
-                <h3 class="font-bold text-gray-800 mb-3 text-base">Tickets Pausados</h3>
-                <div data-pos-sale-target="pendingList">
-                  <!-- Lista dinámica de tickets -->
+            <!-- Cliente -->
+            <div>
+              <%= f.label :customer_id, "Cliente", class: "block text-xs font-semibold text-gray-700 mb-0.5" %>
+              <%= f.collection_select :customer_id, 
+                Customer.order(:name), 
+                :id, 
+                :name, 
+                { selected: Customer.find_by(name: "Público General")&.id }, 
+                class: "w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent transition",
+                data: { 'pos-sale-target': 'customerSelect' } %>
+            </div>
+
+            <!-- Almacén -->
+            <div>
+              <%= f.label :warehouse_id, "Almacén", class: "block text-xs font-semibold text-gray-700 mb-0.5" %>
+              <%= f.collection_select :warehouse_id, 
+                Warehouse.all, 
+                :id, 
+                :name, 
+                {}, 
+                { 
+                  class: "w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
+                  required: true,
+                  data: { 
+                    action: "change->pos-sale#saveWarehousePreference",
+                    'pos-sale-target': 'warehouseSelect'
+                  }
+                } %>
+            </div>
+
+            <!-- Método de pago -->
+            <div>
+              <%= f.label :payment_method, "Método de pago", class: "block text-xs font-semibold text-gray-700 mb-0.5" %>
+              <%= f.select :payment_method,
+                [
+                  ['💵 Efectivo', 'cash'],
+                  ['💳 Tarjeta', 'card'],
+                  ['📝 Crédito', 'credit'],
+                  ['🔀 Mixto', 'mixed']
+                ],
+                { selected: 'cash' },
+                { 
+                  class: "w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent transition", 
+                  required: true,
+                  data: { action: "change->pos-sale#handlePaymentMethodChange" }
+                } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Búsqueda de productos -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            placeholder="🔍 Escanea código de barras o busca producto... (F1)"
+            class="w-full pl-10 pr-3 py-2 text-sm border-2 border-green-500 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-600 transition shadow-sm"
+            data-pos-sale-target="searchInput"
+            data-action="input->pos-sale#searchProducts keydown->pos-sale#handleSearchKeydown"
+            autocomplete="off"
+          >
+          <!-- Resultados de búsqueda -->
+          <div class="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-green-500 rounded-lg shadow-xl max-h-64 overflow-y-auto z-50 hidden" data-pos-sale-target="searchResults"></div>
+        </div>
+
+        <!-- Área de notas colapsable -->
+        <div class="hidden px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg" data-pos-sale-target="notesContainer">
+          <%= f.text_area :notes, 
+            class: "w-full px-2 py-1.5 text-xs border border-blue-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none", 
+            rows: 2, 
+            placeholder: "Observaciones sobre esta venta..." %>
+        </div>
+
+        <!-- Tabla de productos -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto" style="min-height: 400px; max-height: 500px; overflow-y: auto;">
+            <table class="min-w-full divide-y divide-gray-200">
+              <!-- THEAD compacto -->
+              <thead class="bg-gray-700 sticky top-0 z-10">
+                <tr>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-20">Stock</th>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Cant.</th>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-20">Precio</th>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-20">Desc.</th>
+                  <th class="px-2 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Subtotal</th>
+                  <th class="px-2 py-1 w-12"></th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200" data-pos-sale-target="itemsContainer">
+                <%# Items se agregan vía JavaScript %>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Estado vacío -->
+          <div class="text-center py-10" data-pos-sale-target="emptyCart">
+            <svg class="w-14 h-14 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <p class="text-gray-500 font-medium text-sm">Carrito vacío</p>
+            <p class="text-xs text-gray-400 mt-0.5">Escanea o busca productos</p>
+          </div>
+        </div>
+
+        <!-- Atajos de teclado (compactos) -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-1.5">
+          <details>
+            <summary class="text-xs font-semibold text-gray-600 cursor-pointer hover:text-green-600 transition flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+              Atajos de teclado
+            </summary>
+            <div class="grid grid-cols-3 gap-1.5 mt-1.5">
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F1</kbd>
+                <span class="text-gray-600">Buscar</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F2</kbd>
+                <span class="text-gray-600">Pago</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F3</kbd>
+                <span class="text-gray-600">Efectivo</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Enter</kbd>
+                <span class="text-gray-600">Registrar</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Esc</kbd>
+                <span class="text-gray-600">Cancelar</span>
+              </div>
+              <div class="flex items-center gap-1 text-xs">
+                <kbd class="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">↑↓</kbd>
+                <span class="text-gray-600">Navegar</span>
+              </div>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <!-- ==================== COLUMNA DERECHA (30%) - STICKY ==================== -->
+      <div class="space-y-2 lg:sticky lg:top-2 lg:self-start">
+        
+        <!-- Total a pagar -->
+        <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 text-white shadow-lg">
+          <div class="text-xs uppercase tracking-wider mb-1 opacity-90">Total a pagar</div>
+          <div class="text-4xl font-bold" data-pos-sale-target="totalAmount">$0.00</div>
+        </div>
+
+        <!-- Pago en Efectivo (condicional) -->
+        <div class="bg-amber-50 border-2 border-amber-400 rounded-lg p-3 hidden" data-pos-sale-target="paymentSection">
+          <h3 class="text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            💵 Pago en Efectivo
+          </h3>
+          <div class="space-y-2">
+            <div>
+              <label class="block text-xs font-semibold text-amber-800 mb-1">Recibido: (F3)</label>
+              <input 
+                type="number" 
+                step="0.01" 
+                min="0"
+                placeholder="0.00"
+                class="w-full px-3 py-2 text-lg font-bold text-right border-2 border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
+                data-pos-sale-target="receivedAmount"
+                data-action="input->pos-sale#calculateChange"
+              >
+            </div>
+            <div class="bg-white border-2 border-green-500 rounded-lg px-3 py-2 flex items-center justify-between">
+              <span class="text-xs font-semibold text-green-700">Cambio:</span>
+              <span class="text-xl font-bold text-green-700" data-pos-sale-target="changeAmount">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón Registrar Venta -->
+        <%= f.submit "✓ Registrar Venta", 
+          class: "w-full px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white text-base font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-[1.02] transition duration-200", 
+          data: { 'pos-sale-target': 'submitButton' } %>
+        <p class="text-center text-xs text-gray-500 -mt-1">(Enter)</p>
+        
+        <!-- Botón Cancelar -->
+        <button 
+          type="button" 
+          class="w-full px-4 py-3 bg-gray-600 text-white text-base font-semibold rounded-lg hover:bg-gray-700 transition duration-200"
+          data-action="click->pos-sale#clearSale"
+        >
+          ✕ Cancelar
+        </button>
+        <p class="text-center text-xs text-gray-500 -mt-1">(Esc)</p>
+
+        <!-- ACCIONES RÁPIDAS -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-2">
+          <h3 class="text-xs font-bold text-blue-800 mb-2 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Acciones Rápidas
+          </h3>
+          <div class="grid grid-cols-5 gap-1">
+            
+            <!-- Dropdown de Tickets -->
+            <div class="relative" data-controller="dropdown">
+              <button type="button"
+                      data-action="click->dropdown#toggle"
+                      title="Tickets en Espera"
+                      class="w-full aspect-square flex flex-col items-center justify-center text-white bg-blue-600 hover:bg-blue-700 rounded shadow transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span class="text-xs mt-0.5">📋</span>
+                <span data-pos-sale-target="pendingCount"
+                      class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  0
+                </span>
+              </button>
+              
+              <!-- Dropdown menu -->
+              <div data-dropdown-target="menu"
+                  class="hidden absolute right-0 top-full mt-2 w-96 bg-white rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto border-2 border-blue-500">
+                <div class="p-4">
+                  <h3 class="font-bold text-gray-800 mb-3 text-sm">Tickets Pausados</h3>
+                  <div data-pos-sale-target="pendingList">
+                    <!-- Lista dinámica de tickets -->
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <!-- NUEVO: Botón Pausar Venta -->
-          <button type="button"
-                  data-action="click->pos-sale#pauseSale"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            ⏸️ Pausar
-          </button>
-          
-          <!-- Botón Egreso - Siempre visible -->
-          <button 
-            type="button"
-            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow transition"
-            data-action="click->quick-flow#openEgreso"
-          >
-            💸 Egreso
-          </button>
-          
-          <!-- Botón Ingreso - Siempre visible -->
-          <button 
-            type="button"
-            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow transition"
-            data-action="click->quick-flow#openIngreso"
-          >
-            💵 Ingreso
-          </button>
-          
-          <!-- Botón Nota (ya existente) -->
-          <button 
-            type="button" 
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition"
-            data-action="click->pos-sale#toggleNotes"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            Nota
-          </button>
-        </div>
-      </div>
-
-      <!-- Área de notas colapsable -->
-      <div class="hidden px-3 py-2 bg-blue-50 border-b border-blue-200" data-pos-sale-target="notesContainer">
-        <%= f.text_area :notes, 
-          class: "w-full px-3 py-2 text-sm border border-blue-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none", 
-          rows: 2, 
-          placeholder: "Observaciones sobre esta venta..." %>
-      </div>
-
-      <!-- Tabla -->
-      <div class="overflow-x-auto" style="max-height: 320px; overflow-y: auto;">
-        <table class="min-w-full divide-y divide-gray-200">
-          <!-- THEAD más compacto y oscuro -->
-          <thead class="bg-gray-700 sticky top-0 z-10">
-            <tr>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider">Producto</th>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Stock</th>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Cant.</th>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Precio</th>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-24">Desc.</th>
-              <th class="px-3 py-1 text-left text-xs font-bold text-white uppercase tracking-wider w-28">Subtotal</th>
-              <th class="px-3 py-1 w-16"></th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200" data-pos-sale-target="itemsContainer">
-            <%# NO renderizar items vacíos iniciales - se agregan vía JavaScript %>
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Estado vacío -->
-      <div class="text-center py-12" data-pos-sale-target="emptyCart">
-        <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-        </svg>
-        <p class="text-gray-500 font-medium">Carrito vacío</p>
-        <p class="text-xs text-gray-400 mt-1">Escanea o busca productos</p>
-      </div>
-    </div>
-
-    <!-- Total y Pago -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      
-      <!-- Pago en Efectivo (solo si payment_method = cash) -->
-      <div class="bg-amber-50 border-2 border-amber-400 rounded-lg p-3 hidden" data-pos-sale-target="paymentSection">
-        <h3 class="text-sm font-bold text-amber-800 mb-2 flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-          </svg>
-          Pago en Efectivo
-        </h3>
-        <div class="space-y-2">
-          <div>
-            <label class="block text-xs font-semibold text-amber-800 mb-1">Recibido: (F3)</label>
-            <input 
-              type="number" 
-              step="0.01" 
-              min="0"
-              placeholder="0.00"
-              class="w-full px-3 py-2 text-lg font-bold text-right border-2 border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
-              data-pos-sale-target="receivedAmount"
-              data-action="input->pos-sale#calculateChange"
+            
+            <!-- Botón Pausar -->
+            <button type="button"
+                    data-action="click->pos-sale#pauseSale"
+                    title="Pausar Venta"
+                    class="w-full aspect-square flex flex-col items-center justify-center text-white bg-yellow-600 hover:bg-yellow-700 rounded shadow transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-xs mt-0.5">⏸️</span>
+            </button>
+            
+            <!-- Botón Egreso -->
+            <button 
+              type="button"
+              title="Egreso de Caja"
+              class="w-full aspect-square flex flex-col items-center justify-center text-white bg-red-600 hover:bg-red-700 rounded shadow transition"
+              data-action="click->quick-flow#openEgreso"
             >
-          </div>
-          <div class="bg-white border-2 border-green-500 rounded-lg px-3 py-2 flex items-center justify-between">
-            <span class="text-xs font-semibold text-green-700">Cambio:</span>
-            <span class="text-xl font-bold text-green-700" data-pos-sale-target="changeAmount">$0.00</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total -->
-      <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg p-4 text-white shadow-lg">
-        <div class="text-xs uppercase tracking-wider mb-1">Total a pagar</div>
-        <div class="text-3xl font-bold" data-pos-sale-target="totalAmount">$0.00</div>
-      </div>
-    </div>
-
-    <!-- Botones de acción -->
-    <div class="grid grid-cols-2 gap-3">
-      <%= f.submit "✓ Registrar Venta (Enter)", 
-        class: "px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white text-base font-bold rounded-lg shadow-lg hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition duration-200", 
-        data: { 'pos-sale-target': 'submitButton' } %>
-      
-      <button 
-        type="button" 
-        class="px-6 py-3 bg-gray-600 text-white text-base font-semibold rounded-lg hover:bg-gray-700 transition duration-200"
-        data-action="click->pos-sale#clearSale"
-      >
-        ✕ Cancelar (Esc)
-      </button>
-    </div>
-
-    <!-- Atajos de teclado (compactos) -->
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-2">
-      <details>
-        <summary class="text-xs font-semibold text-gray-600 cursor-pointer hover:text-green-600 transition flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-          </svg>
-          Atajos de teclado
-        </summary>
-        <div class="grid grid-cols-3 gap-2 mt-2">
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F1</kbd>
-            <span class="text-gray-600">Buscar</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F2</kbd>
-            <span class="text-gray-600">Cambiar pago</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">F3</kbd>
-            <span class="text-gray-600">Efectivo</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Enter</kbd>
-            <span class="text-gray-600">Registrar</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">Esc</kbd>
-            <span class="text-gray-600">Cancelar</span>
-          </div>
-          <div class="flex items-center gap-1 text-xs">
-            <kbd class="px-2 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">↑↓</kbd>
-            <span class="text-gray-600">Navegar</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="text-xs mt-0.5">💸</span>
+            </button>
+            
+            <!-- Botón Ingreso -->
+            <button 
+              type="button"
+              title="Ingreso de Caja"
+              class="w-full aspect-square flex flex-col items-center justify-center text-white bg-green-600 hover:bg-green-700 rounded shadow transition"
+              data-action="click->quick-flow#openIngreso"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <span class="text-xs mt-0.5">💵</span>
+            </button>
+            
+            <!-- Botón Nota -->
+            <button 
+              type="button"
+              title="Agregar Nota"
+              class="w-full aspect-square flex flex-col items-center justify-center text-gray-700 bg-white border-2 border-gray-300 hover:bg-gray-50 rounded shadow transition"
+              data-action="click->pos-sale#toggleNotes"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              <span class="text-xs mt-0.5">📝</span>
+            </button>
           </div>
         </div>
-      </details>
+
+        <!-- RESUMEN DE VENTA -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-3">
+          <h3 class="text-xs font-bold text-purple-800 mb-2 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            Resumen
+          </h3>
+          <div class="space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-purple-700 font-medium">Items:</span>
+              <span class="font-bold text-purple-900" data-pos-sale-target="itemsCount">0</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-purple-700 font-medium">Unidades:</span>
+              <span class="font-bold text-purple-900" data-pos-sale-target="unitsCount">0</span>
+            </div>
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-purple-700 font-medium">Descuento:</span>
+              <span class="font-bold text-red-600" data-pos-sale-target="discountTotal">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
   <% end %>
@@ -306,74 +355,90 @@
   
 </div>
 
-  <!-- Estilos MEJORADOS para resultados de búsqueda y tabla -->
-  <style>
-    /* Mostrar resultados cuando estén activos */
-    [data-pos-sale-target="searchResults"].active {
-      display: block !important;
-    }
-    
-    /* Items de búsqueda - HOVER MUY VISIBLE CON GRIS */
-    .search-result-item {
-      @apply px-4 py-3 cursor-pointer border-b border-gray-200 transition duration-150;
-      position: relative;
-      background-color: #ffffff;
-    }
-    
-    /* HOVER con mouse - FONDO GRIS EVIDENTE */
-    .search-result-item:hover {
-      background-color: #e5e7eb; /* Gris 200 */
-      border-left: 5px solid #16a34a; /* Verde */
-      padding-left: calc(1rem - 5px);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* SELECCIONADO con teclado - GRIS MÁS OSCURO + VERDE */
-    .search-result-item.selected {
-      background-color: #d1d5db; /* Gris 300 */
-      border-left: 6px solid #15803d; /* Verde oscuro */
-      padding-left: calc(1rem - 6px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-      transform: translateX(2px);
-    }
-    
-    .search-result-item .product-name {
-      @apply font-semibold text-gray-800 text-sm flex items-center gap-2;
-    }
-    
-    /* Agregar flecha cuando está seleccionado */
-    .search-result-item.selected .product-name::before {
-      content: "▶";
-      @apply text-green-600 font-bold text-base;
-      animation: pulse 1s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    .search-result-item .product-details {
-      @apply flex justify-between items-center mt-1 text-xs;
-    }
-    
-    .search-result-item .product-price {
-      @apply text-green-600 font-bold;
-    }
-    
-    .search-result-item .product-stock {
-      @apply px-2 py-0.5 rounded-full text-xs font-semibold;
-    }
-    
-    .search-result-item .product-stock.in-stock {
-      @apply bg-green-100 text-green-800;
-    }
-    
-    .search-result-item .product-stock.low-stock {
-      @apply bg-yellow-100 text-yellow-800;
-    }
-    
-    .search-result-item .product-stock.out-of-stock {
-      @apply bg-red-100 text-red-800;
-    }
-  </style>
+<!-- Estilos para resultados de búsqueda -->
+<style>
+  /* Mostrar resultados cuando estén activos */
+  [data-pos-sale-target="searchResults"].active {
+    display: block !important;
+  }
+  
+  /* Items de búsqueda - HOVER MUY VISIBLE CON GRIS */
+  .search-result-item {
+    @apply px-4 py-3 cursor-pointer border-b border-gray-200 transition duration-150;
+    position: relative;
+    background-color: #ffffff;
+  }
+  
+  /* HOVER con mouse - FONDO GRIS EVIDENTE */
+  .search-result-item:hover {
+    background-color: #e5e7eb; /* Gris 200 */
+    border-left: 5px solid #16a34a; /* Verde */
+    padding-left: calc(1rem - 5px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* SELECCIONADO con teclado - GRIS MÁS OSCURO + VERDE */
+  .search-result-item.selected {
+    background-color: #d1d5db; /* Gris 300 */
+    border-left: 6px solid #15803d; /* Verde oscuro */
+    padding-left: calc(1rem - 6px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transform: translateX(2px);
+  }
+  
+  .search-result-item .product-name {
+    @apply font-semibold text-gray-800 text-sm flex items-center gap-2;
+  }
+  
+  /* Agregar flecha cuando está seleccionado */
+  .search-result-item.selected .product-name::before {
+    content: "▶";
+    @apply text-green-600 font-bold text-base;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .search-result-item .product-details {
+    @apply flex justify-between items-center mt-1 text-xs;
+  }
+  
+  .search-result-item .product-price {
+    @apply text-green-600 font-bold;
+  }
+  
+  .search-result-item .product-stock {
+    @apply px-2 py-0.5 rounded-full text-xs font-semibold;
+  }
+  
+  .search-result-item .product-stock.in-stock {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .search-result-item .product-stock.low-stock {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .search-result-item .product-stock.out-of-stock {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  /* Quitar flechitas de campos numéricos en la tabla */
+  input[name*="[quantity]"]::-webkit-outer-spin-button,
+  input[name*="[quantity]"]::-webkit-inner-spin-button,
+  input[name*="[discount]"]::-webkit-outer-spin-button,
+  input[name*="[discount]"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[name*="[quantity]"],
+  input[name*="[discount]"] {
+    -moz-appearance: textfield;
+  }
+  
+
+</style>

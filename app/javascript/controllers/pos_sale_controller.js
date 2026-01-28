@@ -16,7 +16,10 @@ export default class extends Controller {
     "changeAmount",
     "pendingCount",        // Badge de contador
     "pendingList",         // Dropdown de tickets
-    "customerSelect"       // Select de cliente         
+    "customerSelect",       // Select de cliente   
+    "itemsCount",          // Resumen: número de items
+    "unitsCount",          // Resumen: total de unidades
+    "discountTotal"        // Resumen: total de descuentos      
   ]
 
   connect() {
@@ -628,6 +631,44 @@ export default class extends Controller {
     if (this.hasPaymentSectionTarget && this.paymentSectionTarget.style.display !== 'none') {
       this.calculateChange()
     }
+    
+    // Actualizar resumen
+    this.updateSummary()
+  }
+
+  updateSummary() {
+    // Contar items (filas visibles)
+    const rows = this.itemsContainerTarget.querySelectorAll('.sale-item-row:not([style*="display: none"])')
+    
+    // Calcular unidades totales y descuentos
+    let totalUnits = 0
+    let totalDiscount = 0
+    
+    rows.forEach(row => {
+      const quantityInput = row.querySelector('input[name*="[quantity]"]')
+      const discountInput = row.querySelector('input[name*="[discount]"]')
+      
+      if (quantityInput) {
+        totalUnits += parseFloat(quantityInput.value) || 0
+      }
+      
+      if (discountInput) {
+        totalDiscount += parseFloat(discountInput.value) || 0
+      }
+    })
+    
+    // Actualizar targets si existen
+    if (this.hasItemsCountTarget) {
+      this.itemsCountTarget.textContent = rows.length
+    }
+    
+    if (this.hasUnitsCountTarget) {
+      this.unitsCountTarget.textContent = totalUnits.toFixed(3).replace(/\.?0+$/, '')
+    }
+    
+    if (this.hasDiscountTotalTarget) {
+      this.discountTotalTarget.textContent = `$${totalDiscount.toFixed(2)}`
+    }
   }
 
   updateEmptyCartVisibility() {
@@ -651,6 +692,7 @@ export default class extends Controller {
     this.itemIndex = 0
     
     this.updateTotal()
+    this.updateSummary()
     this.updateEmptyCartVisibility()
     this.focusSearch()
   }
