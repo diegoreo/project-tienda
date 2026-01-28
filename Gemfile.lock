@@ -205,12 +205,12 @@ GEM
     parser (3.3.9.0)
       ast (~> 2.4.1)
       racc
-    pg (1.6.1)
-    pg (1.6.1-aarch64-linux)
-    pg (1.6.1-aarch64-linux-musl)
-    pg (1.6.1-arm64-darwin)
-    pg (1.6.1-x86_64-linux)
-    pg (1.6.1-x86_64-linux-musl)
+    pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
+    pg (1.6.3-aarch64-linux-musl)
+    pg (1.6.3-arm64-darwin)
+    pg (1.6.3-x86_64-linux)
+    pg (1.6.3-x86_64-linux-musl)
     pg_search (2.3.7)
       activerecord (>= 6.1)
       activesupport (>= 6.1)
@@ -413,7 +413,7 @@ DEPENDENCIES
   kamal
   pagy (~> 6.2)
   paper_trail
-  pg (~> 1.1)
+  pg (~> 1.6)
   pg_search (~> 2.3)
   propshaft
   puma (>= 5.0)
