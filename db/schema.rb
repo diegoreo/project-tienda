@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_20_225953) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_30_184736) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -52,6 +52,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_20_225953) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "companies", force: :cascade do |t|
+    t.string "business_name", limit: 100, default: "", null: false
+    t.string "legal_name", limit: 150
+    t.string "rfc", limit: 13
+    t.string "phone", limit: 20
+    t.string "email", limit: 100
+    t.text "address"
+    t.string "city", limit: 100
+    t.string "state", limit: 50
+    t.string "postal_code", limit: 10
+    t.string "tax_regime", limit: 100
+    t.string "cfdi_use", limit: 50
+    t.string "subdomain", limit: 50
+    t.boolean "active", default: true, null: false
+    t.string "plan", limit: 20, default: "free", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["active"], name: "index_companies_on_active"
+    t.index ["email"], name: "index_companies_on_email", where: "(email IS NOT NULL)"
+    t.index ["rfc"], name: "index_companies_on_rfc", unique: true, where: "((rfc IS NOT NULL) AND ((rfc)::text <> ''::text))"
+    t.index ["subdomain"], name: "index_companies_on_subdomain", unique: true, where: "(subdomain IS NOT NULL)"
   end
 
   create_table "customers", force: :cascade do |t|

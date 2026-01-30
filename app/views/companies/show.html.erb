@@ -1,0 +1,187 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-5xl mx-auto px-4 py-6">
+    
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold mb-2">🏢 Información de la Empresa</h1>
+          <p class="text-blue-100">Datos que aparecen en los tickets de venta</p>
+        </div>
+        
+        <% if policy(@company).edit? %>
+          <%= link_to edit_company_path, class: "inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg hover:bg-blue-50 transition shadow-lg" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Editar
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Alerta si no está configurado -->
+    <% unless @company.configured? %>
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-6 h-6 text-yellow-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <h3 class="text-yellow-800 font-semibold mb-1">⚠️ Configuración Incompleta</h3>
+            <p class="text-yellow-700 text-sm">Completa la información para que aparezca correctamente en los tickets.</p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Información Básica -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            Información Básica
+          </h2>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Nombre Comercial</label>
+            <p class="text-lg font-bold text-gray-900"><%= @company.display_name %></p>
+          </div>
+          
+          <% if @company.legal_name.present? %>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Razón Social</label>
+              <p class="text-base text-gray-800"><%= @company.legal_name %></p>
+            </div>
+          <% end %>
+          
+          <% if @company.rfc.present? %>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">RFC</label>
+              <p class="text-base font-mono text-gray-800"><%= @company.rfc.upcase %></p>
+            </div>
+          <% end %>
+          
+          <% if @company.phone.present? %>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Teléfono</label>
+              <p class="text-base text-gray-800"><%= @company.phone %></p>
+            </div>
+          <% end %>
+          
+          <% if @company.email.present? %>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Correo Electrónico</label>
+              <p class="text-base text-gray-800"><%= @company.email %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Dirección -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Dirección
+          </h2>
+        </div>
+        
+        <div class="p-6 space-y-4">
+          <% if @company.full_address.present? %>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Dirección Completa</label>
+              <p class="text-base text-gray-800 whitespace-pre-line"><%= @company.full_address %></p>
+            </div>
+          <% else %>
+            <div class="text-center py-8">
+              <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <p class="text-gray-500 font-medium">Sin dirección registrada</p>
+              <% if policy(@company).edit? %>
+                <p class="text-sm text-gray-400 mt-1">Agrega una dirección para los tickets</p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Facturación -->
+      <% if @company.tax_regime.present? || @company.cfdi_use.present? %>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden lg:col-span-2">
+          <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              Facturación Electrónica
+            </h2>
+          </div>
+          
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <% if @company.tax_regime.present? %>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-500 mb-1">Régimen Fiscal</label>
+                  <p class="text-base text-gray-800"><%= @company.tax_regime %></p>
+                </div>
+              <% end %>
+              
+              <% if @company.cfdi_use.present? %>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-500 mb-1">Uso de CFDI</label>
+                  <p class="text-base text-gray-800"><%= @company.cfdi_use %></p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Vista Previa del Ticket -->
+      <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg p-6 lg:col-span-2">
+        <h2 class="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          Vista Previa del Ticket
+        </h2>
+        
+        <div class="bg-white rounded-lg p-6 font-mono text-sm border-2 border-dashed border-orange-300">
+          <div class="text-center space-y-1">
+            <div class="font-bold text-lg"><%= @company.display_name %></div>
+            <% if @company.rfc.present? %>
+              <div>RFC: <%= @company.rfc.upcase %></div>
+            <% end %>
+            <% if @company.phone.present? %>
+              <div>Tel: <%= @company.phone %></div>
+            <% end %>
+            <% if @company.full_address.present? %>
+              <div class="whitespace-pre-line text-xs"><%= @company.full_address %></div>
+            <% end %>
+          </div>
+          
+          <div class="border-t-2 border-dashed border-gray-300 my-4"></div>
+          
+          <div class="text-center text-gray-500 text-xs">
+            Así aparecerá en los tickets
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

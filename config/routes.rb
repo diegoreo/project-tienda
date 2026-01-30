@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   # Rate limiting check
   get 'rate_limit/check_login', to: 'rate_limit#check_login'
 
+  # gestion de info company
+  resource :company, only: [:show, :edit, :update]
+
   # Gestión de usuarios (CRUD) - SOLO para admin
   resources :users do
     member do

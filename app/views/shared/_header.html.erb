@@ -178,6 +178,13 @@
                   🏪 Gestión de Cajas
                 <% end %>
               <% end %>
+              
+              <% if policy(Company).show? %>
+                <%= link_to company_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-b-md" do %>
+                  🏢 Empresa
+                <% end %>
+              <% end %>
+              
             </div>
           </div>
         <% end %>
@@ -357,6 +364,11 @@
         <% if policy(Register).index? %>
           <%= link_to registers_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
             🏪 Cajas
+          <% end %>
+        <% end %>
+        <% if policy(Company).show? %>
+          <%= link_to company_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            🏢 Empresa
           <% end %>
         <% end %>
       <% end %>
