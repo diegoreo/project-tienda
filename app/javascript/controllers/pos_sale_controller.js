@@ -46,6 +46,94 @@ export default class extends Controller {
     
     // Atajos de teclado globales
     document.addEventListener('keydown', this.handleGlobalKeydown.bind(this))
+  
+    // Verificar si viene de venta exitosa
+    this.checkSuccessfulSale()
+  }
+
+
+  // Verificar si viene de una venta exitosa
+  checkSuccessfulSale() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const isSuccess = urlParams.get('success')
+    const saleId = urlParams.get('sale_id')
+    
+    if (isSuccess === 'true' && saleId) {
+      // Obtener configuración de impresión
+      const printingMode = this.getPrintingMode()
+      console.log('🎯 Printing Mode:', printingMode)
+      
+      if (printingMode === 'always') {
+        // Imprimir automáticamente
+        this.printTicketSilent(saleId)
+      } else if (printingMode === 'ask') {
+        // Preguntar al usuario
+        this.showPrintModal(saleId)
+      }
+      // Si es 'manual', no hace nada
+    }
+  }
+
+  // Obtener modo de impresión desde el HTML
+  getPrintingMode() {
+    return this.element.dataset.printingMode || 'ask'
+  }
+
+  // Mostrar modal preguntando si quiere imprimir
+  showPrintModal(saleId) {
+    Swal.fire({
+      title: '¿Imprimir ticket?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '🖨️ Sí, imprimir',
+      cancelButtonText: 'No imprimir',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      customClass: {
+        popup: 'rounded-lg shadow-2xl',
+        confirmButton: 'px-6 py-3 rounded-lg font-semibold',
+        cancelButton: 'px-6 py-3 rounded-lg font-semibold'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.printTicketSilent(saleId)
+      }
+    })
+  }
+
+  // Imprimir ticket silenciosamente (sin abrir ventana)
+  printTicketSilent(saleId) {
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.right = '0'
+    iframe.style.bottom = '0'
+    iframe.style.width = '0'
+    iframe.style.height = '0'
+    iframe.style.border = 'none'
+    iframe.src = `/sales/${saleId}/print_ticket`
+    
+    document.body.appendChild(iframe)
+    
+    iframe.onload = () => {
+      try {
+        setTimeout(() => {
+          iframe.contentWindow.print()
+        }, 500)
+      } catch(e) {
+        console.error('Error al imprimir:', e)
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al imprimir',
+          text: 'No se pudo enviar el ticket a la impresora',
+          confirmButtonColor: '#ef4444'
+        })
+      }
+      
+      // Destruir iframe después de imprimir
+      setTimeout(() => {
+        document.body.removeChild(iframe)
+      }, 2000)
+    }
   }
 
   disconnect() {

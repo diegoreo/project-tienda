@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_30_184736) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_03_020512) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -71,10 +71,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_184736) do
     t.string "plan", limit: 20, default: "free", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "ticket_printing_mode", default: "ask", null: false
     t.index ["active"], name: "index_companies_on_active"
     t.index ["email"], name: "index_companies_on_email", where: "(email IS NOT NULL)"
     t.index ["rfc"], name: "index_companies_on_rfc", unique: true, where: "((rfc IS NOT NULL) AND ((rfc)::text <> ''::text))"
     t.index ["subdomain"], name: "index_companies_on_subdomain", unique: true, where: "(subdomain IS NOT NULL)"
+    t.index ["ticket_printing_mode"], name: "index_companies_on_ticket_printing_mode"
   end
 
   create_table "customers", force: :cascade do |t|
@@ -338,6 +340,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_184736) do
     t.index ["rfc"], name: "index_suppliers_on_rfc"
   end
 
+  create_table "ticket_printings", force: :cascade do |t|
+    t.bigint "sale_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "print_number", null: false
+    t.string "printer_name"
+    t.datetime "printed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["sale_id", "print_number"], name: "index_ticket_printings_on_sale_id_and_print_number", unique: true
+    t.index ["sale_id"], name: "index_ticket_printings_on_sale_id"
+    t.index ["user_id"], name: "index_ticket_printings_on_user_id"
+  end
+
   create_table "units", force: :cascade do |t|
     t.string "name", null: false
     t.string "abbreviation"
@@ -418,4 +433,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_30_184736) do
   add_foreign_key "sales", "register_sessions"
   add_foreign_key "sales", "users", column: "cancelled_by_id"
   add_foreign_key "sales", "warehouses"
+  add_foreign_key "ticket_printings", "sales"
+  add_foreign_key "ticket_printings", "users"
 end

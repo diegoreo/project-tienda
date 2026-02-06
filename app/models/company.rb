@@ -2,6 +2,12 @@ class Company < ApplicationRecord
   # ==================== CONSTANTES ====================
   
   PLANS = %w[free basic premium].freeze
+
+  TICKET_PRINTING_MODES = [
+    ['Imprimir automáticamente', 'always'],
+    ['Preguntar antes de imprimir', 'ask'],
+    ['No imprimir (solo manual)', 'manual']
+  ].freeze
   
   MEXICAN_STATES = [
     'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche',
@@ -118,11 +124,16 @@ class Company < ApplicationRecord
   
   # Plan
   validates :plan, presence: true, inclusion: { in: PLANS }
+
+
   
   # Facturación (opcional)
   validates :tax_regime, length: { maximum: 100 }, allow_blank: true
   validates :cfdi_use, length: { maximum: 50 }, allow_blank: true
   
+  # Ticket printing
+  validates :ticket_printing_mode, presence: true, inclusion: { in: %w[always ask manual] }
+
   # ==================== SCOPES ====================
   
   scope :active, -> { where(active: true) }
@@ -213,4 +224,17 @@ class Company < ApplicationRecord
     
     self
   end
+
+  def auto_print_tickets?
+    ticket_printing_mode == 'always'
+  end
+  
+  def ask_before_printing?
+    ticket_printing_mode == 'ask'
+  end
+  
+  def manual_print_only?
+    ticket_printing_mode == 'manual'
+  end
+
 end

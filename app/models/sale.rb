@@ -8,6 +8,8 @@ class Sale < ApplicationRecord
   has_many :sale_items, dependent: :destroy
   has_many :products, through: :sale_items
   has_many :payments, dependent: :destroy
+  # Tickets
+  has_many :ticket_printings, dependent: :destroy
 
   accepts_nested_attributes_for :sale_items, allow_destroy: true, reject_if: :all_blank
 
@@ -279,6 +281,28 @@ class Sale < ApplicationRecord
       register_session.decrement!(:total_outflows, amount)
     end
     register_session.update_expected_balance!
+  end
+
+  # ==================== MÉTODOS PARA TICKETS ====================
+
+  def ticket_printed?
+    ticket_printings.exists?
+  end
+
+  def print_count
+    ticket_printings.count
+  end
+
+  def last_printed_at
+    ticket_printings.maximum(:printed_at)
+  end
+
+  def first_printed_at
+    ticket_printings.minimum(:printed_at)
+  end
+
+  def next_print_number
+    TicketPrinting.next_print_number(self)
   end
 
   private

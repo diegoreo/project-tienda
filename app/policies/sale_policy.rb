@@ -17,6 +17,11 @@ class SalePolicy < ApplicationPolicy
     user.role.in?([ "cajero", "supervisor", "gerente", "admin" ])
   end
 
+  def print_ticket?
+    # Cualquier usuario autenticado puede imprimir tickets
+    true
+  end
+
   # Formulario de nueva venta
   def new?
     create?
@@ -57,6 +62,8 @@ class SalePolicy < ApplicationPolicy
     # Contador, Supervisor, Gerente, Admin (SIN cajero ni almacenista)
     accountant? # Este helper sí funciona bien para view_costs
   end
+
+  
 
   class Scope < ApplicationPolicy::Scope
     def resolve

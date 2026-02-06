@@ -88,3 +88,7 @@ gem "paper_trail"
 
 # Rate limiting y protección contra ataques
 gem 'rack-attack'
+
+# PDF generation for tickets
+gem 'prawn'
+gem 'prawn-table'

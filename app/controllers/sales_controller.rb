@@ -211,6 +211,23 @@ class SalesController < ApplicationController
     end
   end
 
+  def print_ticket
+    @sale = Sale.find(params[:id])
+    authorize @sale
+    
+    begin
+      pdf = SaleTicketService.new(@sale, current_user).generate_pdf
+      
+      send_data pdf,
+        filename: "ticket_#{@sale.id}.pdf",
+        type: 'application/pdf',
+        disposition: 'inline'
+    rescue => e
+      Rails.logger.error "Error generando ticket: #{e.message}"
+      redirect_to @sale, alert: "Error al generar el ticket: #{e.message}"
+    end
+  end
+
   private
 
   def set_sale
@@ -255,4 +272,5 @@ class SalesController < ApplicationController
   def find_active_register_session
     current_user_open_session
   end
+
 end

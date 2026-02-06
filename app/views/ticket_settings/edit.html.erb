@@ -1,0 +1,95 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md p-6 mb-6">
+      <h1 class="text-3xl font-bold mb-2">🖨️ Configuración de Tickets</h1>
+      <p class="text-blue-100">Configura el comportamiento de impresión en el Punto de Venta</p>
+    </div>
+
+    <%= form_with model: @company, url: ticket_settings_path, method: :patch, class: "space-y-6" do |f| %>
+      
+      <!-- Errores -->
+      <% if @company.errors.any? %>
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-red-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+              <h3 class="text-red-800 font-semibold mb-2"><%= pluralize(@company.errors.count, "error") %></h3>
+              <ul class="list-disc list-inside text-red-700 text-sm space-y-1">
+                <% @company.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Configuración de Impresión -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+            Comportamiento en Venta de Mostrador
+          </h2>
+        </div>
+        
+        <div class="p-6">
+          <p class="text-sm text-gray-600 mb-6">
+            Elige cómo se comportará la impresión de tickets al completar una venta en el POS
+          </p>
+          
+          <div class="space-y-3">
+            <% Company::TICKET_PRINTING_MODES.each do |label, value| %>
+              <label class="flex items-start p-4 border-2 rounded-lg cursor-pointer transition hover:bg-blue-50
+                <%= @company.ticket_printing_mode == value ? 'border-blue-500 bg-blue-50' : 'border-gray-200' %>">
+                <%= f.radio_button :ticket_printing_mode, value, class: "mt-1 mr-3 w-5 h-5 text-blue-600" %>
+                <div class="flex-1">
+                  <div class="font-semibold text-gray-800 text-base">
+                    <%= label %>
+                  </div>
+                  <div class="text-sm text-gray-600 mt-1">
+                    <%= case value
+                        when 'always' then '✅ El ticket se imprime automáticamente al completar cada venta. Ideal para flujo rápido.'
+                        when 'ask' then '⏸️ Se pregunta al cajero si desea imprimir el ticket antes de continuar. Recomendado para control.'
+                        when 'manual' then '🚫 No se imprime automáticamente. El ticket solo se puede imprimir manualmente desde el historial de ventas.'
+                        end %>
+                  </div>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nota importante -->
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          <div class="text-sm text-blue-800">
+            <p class="font-semibold mb-1">📝 Nota importante:</p>
+            <p>Sin importar la configuración seleccionada, siempre podrás reimprimir tickets manualmente desde el historial de ventas.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <%= f.submit "💾 Guardar Configuración", 
+          class: "flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base font-bold rounded-lg shadow-lg hover:from-blue-700 hover:to-blue-800 transform hover:scale-[1.02] transition duration-200" %>
+        
+        <%= link_to "Cancelar", company_path, 
+          class: "flex-1 text-center px-6 py-3 bg-gray-200 text-gray-700 text-base font-semibold rounded-lg hover:bg-gray-300 transition duration-200" %>
+      </div>
+
+    <% end %>
+
+  </div>
+</div>

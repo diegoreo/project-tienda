@@ -52,6 +52,7 @@ Rails.application.routes.draw do
     member do
       post :cancel
       get :payments
+      get :print_ticket  
     end
   end
 
@@ -83,7 +84,9 @@ Rails.application.routes.draw do
       patch :toggle_active                # Activar/desactivar (si existe)
     end
   end
-
+  
+  # Configuración de tickets
+  resource :ticket_settings, only: [:edit, :update], path: 'tickets/settings'
 
   get "up" => "rails/health#show", as: :rails_health_check
 

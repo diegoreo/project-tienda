@@ -184,6 +184,12 @@
                   🏢 Empresa
                 <% end %>
               <% end %>
+
+              <% if policy(Company).edit? %>
+                <%= link_to edit_ticket_settings_path, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 rounded-b-md" do %>
+                  🖨️ Tickets
+                <% end %>
+              <% end %>
               
             </div>
           </div>
@@ -369,6 +375,11 @@
         <% if policy(Company).show? %>
           <%= link_to company_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
             🏢 Empresa
+          <% end %>
+        <% end %>
+        <% if policy(Company).edit? %>
+          <%= link_to edit_ticket_settings_path, class: "block px-3 py-2 rounded-md text-sm hover:bg-blue-600 pl-8" do %>
+            🖨️ Tickets
           <% end %>
         <% end %>
       <% end %>
