@@ -72,7 +72,7 @@ group :test do
 end
 
 # diseño de views
-gem "tailwindcss-rails", "~> 4.3"
+gem "tailwindcss-rails", "~> 4.4"
 
 # Authentication
 gem "devise"
