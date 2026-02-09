@@ -128,10 +128,15 @@ class SaleTicketService
     # Fecha y hora
     pdf.text "Fecha: #{I18n.l(sale.created_at, format: :short)}", size: 8
     
+    # Cliente
+    if sale.customer
+      pdf.text "Cliente: #{sale.customer.name}", size: 8, style: :bold
+    end
+
     # Cajero
-  cajero_name = sale.user.name.presence || sale.user.email
-  pdf.text "Cajero: #{cajero_name}", size: 8
-    
+    cajero_name = sale.user.name.presence || sale.user.email
+    pdf.text "Cajero: #{cajero_name}", size: 8
+      
     # Caja (si existe)
     if sale.register_session
       pdf.text "Caja: #{sale.register_session.register.name}", size: 8
