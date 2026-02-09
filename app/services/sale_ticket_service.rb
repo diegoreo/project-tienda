@@ -91,6 +91,8 @@ class SaleTicketService
       size: 14, 
       style: :bold, 
       align: :center
+
+      pdf.move_down 3
     
     # RFC
     if company.rfc.present?
@@ -203,6 +205,10 @@ class SaleTicketService
     pdf.text "Vuelva Pronto", 
       size: 8, 
       align: :center
+
+    # Espacio en blanco para que el ticket salga completamente
+    pdf.move_down 20
+    pdf.text " ", size: 1  # Línea invisible para forzar espacio
   end
   
   def draw_reprint_info(pdf)
