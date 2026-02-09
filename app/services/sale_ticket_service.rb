@@ -30,7 +30,7 @@ class SaleTicketService
   def create_pdf
     Prawn::Document.new(
       page_size: [226.77, 841.89], # 80mm ancho (térmica)
-      margin: [10, 10, 10, 10]      # Margen mínimo
+      margin: [10, 15, 10, 15]      # Margen: [top, right, bottom, left]
     ) do |pdf|
       # Header de la empresa
       draw_company_header(pdf)
