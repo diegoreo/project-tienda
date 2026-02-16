@@ -228,6 +228,20 @@ class SalesController < ApplicationController
     end
   end
 
+  def print_ticket_escpos
+    @sale = Sale.find(params[:id])
+    authorize @sale
+    
+    begin
+      commands_data = EscposTicketService.new(@sale, current_user).generate_commands
+      
+      render json: commands_data, status: :ok
+    rescue => e
+      Rails.logger.error "Error generando comandos ESC/POS: #{e.message}"
+      render json: { error: e.message }, status: :internal_server_error
+    end
+  end
+
   private
 
   def set_sale

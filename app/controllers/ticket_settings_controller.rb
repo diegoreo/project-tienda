@@ -30,6 +30,6 @@ class TicketSettingsController < ApplicationController
   end
   
   def ticket_params
-    params.require(:company).permit(:ticket_printing_mode)
+    params.require(:company).permit(:ticket_printing_mode, :printing_method)
   end
 end

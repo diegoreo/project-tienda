@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_03_020512) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_16_193807) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -72,6 +72,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_03_020512) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "ticket_printing_mode", default: "ask", null: false
+    t.string "printing_method", default: "webusb", null: false
     t.index ["active"], name: "index_companies_on_active"
     t.index ["email"], name: "index_companies_on_email", where: "(email IS NOT NULL)"
     t.index ["rfc"], name: "index_companies_on_rfc", unique: true, where: "((rfc IS NOT NULL) AND ((rfc)::text <> ''::text))"

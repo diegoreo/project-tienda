@@ -53,7 +53,7 @@ export default class extends Controller {
 
 
   // Verificar si viene de una venta exitosa
-  checkSuccessfulSale() {
+  async checkSuccessfulSale() {
     const urlParams = new URLSearchParams(window.location.search)
     const isSuccess = urlParams.get('success')
     const saleId = urlParams.get('sale_id')
@@ -61,14 +61,17 @@ export default class extends Controller {
     if (isSuccess === 'true' && saleId) {
       // Obtener configuración de impresión
       const printingMode = this.getPrintingMode()
+      const printingMethod = this.getPrintingMethod()
+      
       console.log('🎯 Printing Mode:', printingMode)
+      console.log('🖨️ Printing Method:', printingMethod)
       
       if (printingMode === 'always') {
         // Imprimir automáticamente
-        this.printTicketSilent(saleId)
+        await this.executePrint(saleId, printingMethod)
       } else if (printingMode === 'ask') {
         // Preguntar al usuario
-        this.showPrintModal(saleId)
+        this.showPrintModal(saleId, printingMethod)
       }
       // Si es 'manual', no hace nada
     }
@@ -79,8 +82,13 @@ export default class extends Controller {
     return this.element.dataset.printingMode || 'ask'
   }
 
+  // Obtener método de impresión desde el HTML
+  getPrintingMethod() {
+    return this.element.dataset.printingMethod || 'webusb'
+  }
+
   // Mostrar modal preguntando si quiere imprimir
-  showPrintModal(saleId) {
+  showPrintModal(saleId, printingMethod) {
     Swal.fire({
       title: '¿Imprimir ticket?',
       icon: 'question',
@@ -94,15 +102,63 @@ export default class extends Controller {
         confirmButton: 'px-6 py-3 rounded-lg font-semibold',
         cancelButton: 'px-6 py-3 rounded-lg font-semibold'
       }
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        this.printTicketSilent(saleId)
+        await this.executePrint(saleId, printingMethod)
       }
     })
   }
 
-  // Imprimir ticket silenciosamente (sin abrir ventana)
-  printTicketSilent(saleId) {
+  // Ejecutar impresión según el método configurado
+  async executePrint(saleId, printingMethod) {
+    if (printingMethod === 'webusb') {
+      await this.printTicketWebUSB(saleId)
+    } else {
+      this.printTicketPDF(saleId)
+    }
+  }
+
+  // Imprimir con WebUSB
+  async printTicketWebUSB(saleId) {
+    try {
+      // Verificar soporte WebUSB
+      if (!navigator.usb) {
+        throw new Error('Tu navegador no soporta WebUSB. Cambia a método PDF en configuración.')
+      }
+
+      // Usar el controller de thermal_printer
+      const thermalPrinterController = this.application.getControllerForElementAndIdentifier(
+        document.body,
+        'thermal-printer'
+      )
+
+      if (!thermalPrinterController) {
+        // Si no existe el controller, lo creamos dinámicamente
+        const thermalPrinter = await this.createThermalPrinterController()
+        await thermalPrinter.printTicket(saleId)
+      } else {
+        await thermalPrinterController.printTicket(saleId)
+      }
+
+    } catch (error) {
+      console.error('Error imprimiendo con WebUSB:', error)
+      
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al imprimir',
+        html: `
+          <p class="mb-3">${error.message}</p>
+          <p class="text-sm text-gray-600">
+            Puedes cambiar a método PDF en Config > Tickets
+          </p>
+        `,
+        confirmButtonColor: '#ef4444'
+      })
+    }
+  }
+
+  // Imprimir con PDF (método actual)
+  printTicketPDF(saleId) {
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'
     iframe.style.right = '0'
@@ -129,11 +185,16 @@ export default class extends Controller {
         })
       }
       
-      // Destruir iframe después de imprimir
       setTimeout(() => {
         document.body.removeChild(iframe)
       }, 2000)
     }
+  }
+
+  // Crear controller de thermal printer dinámicamente
+  async createThermalPrinterController() {
+    const { default: ThermalPrinterController } = await import('./thermal_printer_controller')
+    return new ThermalPrinterController()
   }
 
   disconnect() {

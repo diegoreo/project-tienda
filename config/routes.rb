@@ -53,6 +53,7 @@ Rails.application.routes.draw do
       post :cancel
       get :payments
       get :print_ticket  
+      get :print_ticket_escpos
     end
   end
 

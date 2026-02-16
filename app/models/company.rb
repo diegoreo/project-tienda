@@ -3,6 +3,11 @@ class Company < ApplicationRecord
   
   PLANS = %w[free basic premium].freeze
 
+  PRINTING_METHODS = [
+    ['PDF (Windows/Mac con drivers instalados)', 'pdf'],
+    ['WebUSB (Conexión directa USB - Recomendado)', 'webusb']
+  ].freeze
+
   TICKET_PRINTING_MODES = [
     ['Imprimir automáticamente', 'always'],
     ['Preguntar antes de imprimir', 'ask'],
@@ -71,6 +76,8 @@ class Company < ApplicationRecord
   
   # Nombre comercial (siempre requerido internamente)
   validates :business_name, presence: true, length: { maximum: 100 }
+
+  validates :printing_method, inclusion: { in: %w[pdf webusb] }
   
   # RFC (opcional pero si existe debe ser válido)
   validates :rfc, length: { is: 13 }, allow_blank: true
