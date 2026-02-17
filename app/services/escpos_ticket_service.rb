@@ -209,13 +209,16 @@ class EscposTicketService
   def center_text(text, bold: false)
     line = text.to_s
     line = "\x1B\x45\x01#{line}\x1B\x45\x00" if bold # ESC E - Bold
-    line = "#{' ' * ((48 - text.length) / 2)}#{line}" # Centrar (48 caracteres)
+    
+    # Calcular espacios para centrar (evitar negativos)
+    spaces = ((48 - text.length) / 2).clamp(0, 48)
+    line = "#{' ' * spaces}#{line}"
+    
     "#{line}\n"
   end
   
   def align_right(text, large: false)
-    spaces = 48 - text.length
-    spaces = [spaces, 0].max
+    spaces = (48 - text.length).clamp(0, 48)
     line = "#{' ' * spaces}#{text}"
     line = "\x1D\x21\x11#{line}\x1D\x21\x00" if large # GS ! - Tamaño doble
     "#{line}\n"

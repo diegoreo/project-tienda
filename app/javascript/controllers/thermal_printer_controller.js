@@ -11,6 +11,8 @@ export default class extends Controller {
 
   // Método principal para imprimir
   async printTicket(saleId) {
+    let device = null
+    
     try {
       // 1. Verificar si hay impresora guardada
       const savedPrinter = this.getSavedPrinter()
@@ -24,20 +26,31 @@ export default class extends Controller {
       const commands = await this.fetchEscposCommands(saleId)
       
       // 3. Conectar a la impresora
-      const device = await this.connectToPrinter()
+      device = await this.connectToPrinter()
       
       if (!device) {
         throw new Error("No se pudo conectar a la impresora")
       }
       
-      // 4. Enviar comandos a la impresora
-      await this.sendCommands(device, commands)
+      // 4. Enviar comandos a la impresora CON TIMEOUT
+      await this.sendCommandsWithTimeout(device, commands, 10000) // 10 segundos timeout
       
       console.log("✅ Ticket impreso correctamente")
       
     } catch (error) {
       console.error("❌ Error al imprimir:", error)
       this.handlePrintError(error)
+      
+    } finally {
+      // 🧹 CRÍTICO: Siempre limpiar conexión
+      if (device && device.opened) {
+        try {
+          await device.close()
+          console.log("🔌 Conexión USB cerrada correctamente")
+        } catch (e) {
+          console.warn('Error cerrando dispositivo:', e)
+        }
+      }
     }
   }
 
@@ -98,7 +111,7 @@ export default class extends Controller {
     )
 
     if (!device) {
-      throw new Error(`Impresora "${savedPrinter.productName}" no encontrada. Ve a Config > Tickets para cambiar de impresora.`)
+      throw new Error(`Impresora "${savedPrinter.productName}" no encontrada. Verifica que esté conectada o ve a Config > Tickets para cambiar de impresora.`)
     }
 
     // Abrir conexión
@@ -129,34 +142,73 @@ export default class extends Controller {
     return data.commands
   }
 
-  // Enviar comandos a la impresora
+  // 📍 Enviar comandos a la impresora (con detección automática de endpoint)
   async sendCommands(device, commands) {
-    // Convertir array de strings a Uint8Array
-    const fullText = commands.join('')
-    const encoder = new TextEncoder()
-    const data = encoder.encode(fullText)
+    try {
+      // Convertir array de strings a Uint8Array
+      const fullText = commands.join('')
+      const encoder = new TextEncoder()
+      const data = encoder.encode(fullText)
 
-    // Enviar a la impresora (endpoint 1 suele ser el de escritura)
-    const endpointNumber = 1
-    await device.transferOut(endpointNumber, data)
+      // 🎯 MEJORA: Detectar endpoint automáticamente
+      const config = device.configurations[0]
+      const iface = config.interfaces[0]
+      const endpoint = iface.alternate.endpoints.find(
+        ep => ep.direction === 'out'
+      )
 
-    console.log(`📤 Enviados ${data.length} bytes a la impresora`)
+      if (!endpoint) {
+        throw new Error('No se encontró endpoint de salida en la impresora')
+      }
+
+      // Enviar a la impresora
+      await device.transferOut(endpoint.endpointNumber, data)
+
+      console.log(`📤 Enviados ${data.length} bytes a la impresora (endpoint ${endpoint.endpointNumber})`)
+      
+    } catch (error) {
+      // 🔌 MEJORA: Errores USB más claros
+      if (error.name === 'NetworkError') {
+        throw new Error('La impresora se desconectó durante la impresión. Verifica el cable USB.')
+      } else if (error.name === 'InvalidStateError') {
+        throw new Error('Error de conexión con la impresora. Intenta desconectar y volver a conectar.')
+      } else if (error.message && error.message.includes('endpoint')) {
+        throw new Error('Impresora incompatible o mal configurada. Intenta con método PDF en Config > Tickets.')
+      }
+      throw error
+    }
+  }
+
+  // ⏱️ MEJORA: Enviar comandos CON TIMEOUT
+  async sendCommandsWithTimeout(device, commands, timeout = 10000) {
+    const sendPromise = this.sendCommands(device, commands)
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Timeout: La impresora no respondió en ${timeout/1000} segundos. Verifica que esté encendida y lista.`))
+      }, timeout)
+    })
+    
+    return Promise.race([sendPromise, timeoutPromise])
   }
 
   // Manejar errores
   handlePrintError(error) {
     let message = error.message
+    let icon = 'error'
 
-    if (error.message.includes("no encontrada")) {
-      // Error de impresora no conectada
-      alert(`❌ ${message}`)
-    } else if (error.name === 'NotFoundError') {
-      // Usuario canceló selección
+    // Mensajes personalizados según tipo de error
+    if (message.includes('no encontrada') || message.includes('desconectó')) {
+      icon = 'warning'
+    } else if (message.includes('No se seleccionó')) {
+      // Usuario canceló, no mostrar error
       console.log("Usuario canceló selección de impresora")
-    } else {
-      // Error general
-      alert(`❌ Error al imprimir: ${message}`)
+      return
+    } else if (message.includes('Timeout')) {
+      icon = 'warning'
     }
+
+    alert(`❌ ${message}`)
   }
 
   // Método para detectar impresoras (llamado desde settings)
@@ -166,11 +218,42 @@ export default class extends Controller {
       
       if (device) {
         alert(`✅ Impresora "${device.productName}" configurada correctamente`)
+        
+        // Actualizar UI mostrando impresora guardada
+        const statusDiv = document.getElementById('printer-status')
+        if (statusDiv) {
+          const config = this.getSavedPrinter()
+          statusDiv.innerHTML = `
+            <div class="p-2 bg-green-50 border border-green-200 rounded mt-3">
+              ✅ Impresora configurada: <strong>${config.productName || 'Impresora USB'}</strong>
+            </div>
+          `
+        }
       }
       
     } catch (error) {
       console.error("Error al detectar impresoras:", error)
-      alert("❌ Error al detectar impresoras")
+      
+      if (error.message !== "No se seleccionó ninguna impresora") {
+        alert("❌ Error al detectar impresoras: " + error.message)
+      }
+    }
+  }
+
+  // Método para reimprimir desde show de venta
+  async reprintTicket(event) {
+    const button = event.currentTarget
+    const saleId = button.dataset.saleId
+    const printingMethod = button.dataset.printingMethod
+    
+    console.log('🔄 Reimprimiendo ticket:', saleId, 'Método:', printingMethod)
+    
+    if (printingMethod === 'webusb') {
+      // Usar WebUSB
+      await this.printTicket(saleId)
+    } else {
+      // Usar PDF (abrir en nueva ventana)
+      window.open(`/sales/${saleId}/print_ticket`, '_blank')
     }
   }
 }

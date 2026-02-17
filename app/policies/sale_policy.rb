@@ -22,6 +22,10 @@ class SalePolicy < ApplicationPolicy
     true
   end
 
+  def print_ticket_escpos?
+    true
+  end
+  
   # Formulario de nueva venta
   def new?
     create?
