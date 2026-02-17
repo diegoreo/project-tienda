@@ -244,7 +244,9 @@ export default class extends Controller {
   async reprintTicket(event) {
     const button = event.currentTarget
     const saleId = button.dataset.saleId
-    const printingMethod = button.dataset.printingMethod
+    
+    // Leer método desde localStorage (igual que en POS)
+    const printingMethod = localStorage.getItem('printing_method') || 'webusb'
     
     console.log('🔄 Reimprimiendo ticket:', saleId, 'Método:', printingMethod)
     

@@ -30,6 +30,7 @@ class TicketSettingsController < ApplicationController
   end
   
   def ticket_params
-    params.require(:company).permit(:ticket_printing_mode, :printing_method)
+    params.require(:company).permit(:ticket_printing_mode)
+    # printing_method ahora se guarda en localStorage (por PC)
   end
 end

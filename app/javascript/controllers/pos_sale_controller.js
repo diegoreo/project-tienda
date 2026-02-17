@@ -82,9 +82,10 @@ export default class extends Controller {
     return this.element.dataset.printingMode || 'ask'
   }
 
-  // Obtener método de impresión desde el HTML
+  // Obtener método de impresión desde localStorage (por PC)
   getPrintingMethod() {
-    return this.element.dataset.printingMethod || 'webusb'
+    const saved = localStorage.getItem('printing_method')
+    return saved || 'webusb' // Default: webusb
   }
 
   // Mostrar modal preguntando si quiere imprimir

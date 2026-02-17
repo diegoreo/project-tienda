@@ -1,7 +1,6 @@
 <div data-controller="quick-flow pos-sale" 
      data-session-id="<%= @current_session&.id %>"
-     data-printing-mode="<%= Company.current.ticket_printing_mode %>"
-     data-printing-method="<%= Company.current.printing_method %>">
+     data-printing-mode="<%= Company.current.ticket_printing_mode %>">
   <%= form_with model: sale, local: true, data: { action: "submit->pos-sale#validateSubmit" }, class: "space-y-2" do |f| %>
     
     <!-- Errores -->
