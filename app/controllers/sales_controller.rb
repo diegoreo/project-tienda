@@ -250,7 +250,7 @@ class SalesController < ApplicationController
 
   def sale_params
     params.require(:sale).permit(
-      :customer_id, :warehouse_id, :payment_method, :notes,
+      :customer_id, :warehouse_id, :payment_method, :notes, :amount_received, :change_given,
       sale_items_attributes: [
         :id, :product_id, :quantity, :unit_price, :discount, :subtotal, :_destroy
       ]

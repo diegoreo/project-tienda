@@ -389,6 +389,12 @@ export default class extends Controller {
         
         return false
       }
+      
+      // ✅ NUEVO: Agregar campos hidden para enviar al servidor
+      this.addHiddenFields(received, total)
+    } else {
+      // Si NO es efectivo, asegurarse de NO enviar amount_received
+      this.removeHiddenFields()
     }
     
     // Si pasa todas las validaciones, permitir el submit
@@ -1322,6 +1328,44 @@ export default class extends Controller {
       
       checkResults()
     })
+  }
+
+  // Agregar campos hidden para enviar amount_received y change_given
+  addHiddenFields(received, total) {
+    const form = this.element.querySelector('form')
+    
+    // Remover campos previos si existen
+    this.removeHiddenFields()
+    
+    // Calcular cambio
+    const change = received - total
+    
+    // Crear campo amount_received
+    const receivedField = document.createElement('input')
+    receivedField.type = 'hidden'
+    receivedField.name = 'sale[amount_received]'
+    receivedField.value = received.toFixed(2)
+    receivedField.id = 'hidden_amount_received'
+    form.appendChild(receivedField)
+    
+    // Crear campo change_given
+    const changeField = document.createElement('input')
+    changeField.type = 'hidden'
+    changeField.name = 'sale[change_given]'
+    changeField.value = change.toFixed(2)
+    changeField.id = 'hidden_change_given'
+    form.appendChild(changeField)
+    
+    console.log('💰 Campos agregados - Recibido:', received, 'Cambio:', change)
+  }
+  
+  // Remover campos hidden si existen
+  removeHiddenFields() {
+    const existingReceived = document.getElementById('hidden_amount_received')
+    const existingChange = document.getElementById('hidden_change_given')
+    
+    if (existingReceived) existingReceived.remove()
+    if (existingChange) existingChange.remove()
   }
 
 }

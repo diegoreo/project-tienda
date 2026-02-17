@@ -197,7 +197,15 @@ class SaleTicketService
   def draw_payment(pdf)
     pdf.text "Metodo de pago: #{payment_method_label}", size: 8
     
-    # Nota: Campos amount_received y change_amount se agregarán después
+    # Si es efectivo y tiene datos de recibido/cambio
+    if sale.payment_method == 'cash' && sale.amount_received.present?
+      pdf.move_down 2
+      pdf.text "Recibido: $#{sprintf('%.2f', sale.amount_received)}", size: 8
+      
+      if sale.change_given && sale.change_given > 0
+        pdf.text "Cambio: $#{sprintf('%.2f', sale.change_given)}", size: 8, style: :bold
+      end
+    end
   end
   
   def draw_footer(pdf)

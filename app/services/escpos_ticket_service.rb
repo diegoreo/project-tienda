@@ -176,6 +176,16 @@ class EscposTicketService
   def build_payment
     lines = []
     lines << "Metodo de pago: #{payment_method_label}\n"
+    
+    # Si es efectivo y tiene datos de recibido/cambio
+    if sale.payment_method == 'cash' && sale.amount_received.present?
+      lines << "Recibido: $#{sprintf('%.2f', sale.amount_received)}\n"
+      
+      if sale.change_given && sale.change_given > 0
+        lines << "Cambio: $#{sprintf('%.2f', sale.change_given)}\n"
+      end
+    end
+    
     lines << "\n"
     lines
   end

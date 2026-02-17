@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_16_193807) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_17_000932) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -305,6 +305,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_16_193807) do
     t.datetime "cancelled_at"
     t.bigint "cancelled_by_id"
     t.text "cancellation_reason"
+    t.decimal "amount_received", precision: 10, scale: 2
+    t.decimal "change_given", precision: 10, scale: 2
     t.index ["cancelled_at"], name: "index_sales_on_cancelled_at"
     t.index ["cancelled_by_id"], name: "index_sales_on_cancelled_by_id"
     t.index ["customer_id", "payment_status"], name: "index_sales_on_customer_id_and_payment_status", where: "(pending_amount > (0)::numeric)"
