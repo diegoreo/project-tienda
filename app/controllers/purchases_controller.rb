@@ -197,21 +197,30 @@ class PurchasesController < ApplicationController
     @purchase.purchase_items.each do |item|
       next if item.marked_for_destruction?
   
-      # Buscar dato anterior
       old_data = old_items_data.find { |d| d[:id] == item.id }
   
       if old_data
-        # Item existente - calcular diferencia
-        old_qty = old_data[:old_quantity_sale_units].to_f
-        new_qty = item.quantity_sale_units.to_f
-        difference = new_qty - old_qty
+        product_changed = old_data[:product_id] != item.product_id
   
-        next if difference.zero?
+        if product_changed
+          # 1. Revertir inventario del producto anterior
+          old_product = Product.find(old_data[:product_id])
+          adjust_inventory_for_item_removal(old_product, old_data[:old_quantity_sale_units].to_f)
   
-        adjust_inventory_for_item(item, difference)
+          # 2. Agregar inventario del producto nuevo
+          adjust_inventory_for_item(item, item.quantity_sale_units.to_f)
+        else
+          # Mismo producto - solo calcular diferencia
+          old_qty = old_data[:old_quantity_sale_units].to_f
+          new_qty = item.quantity_sale_units.to_f
+          difference = new_qty - old_qty
+  
+          next if difference.zero?
+  
+          adjust_inventory_for_item(item, difference)
+        end
       else
         # Item nuevo agregado en la edición
-        # Calcular unidades base correctamente
         base_units = if item.product.presentation?
           item.product.calculate_base_units(item.quantity_sale_units / item.product.conversion_factor)
         else
@@ -225,7 +234,6 @@ class PurchasesController < ApplicationController
     old_items_data.each do |old_data|
       item = @purchase.purchase_items.find { |i| i.id == old_data[:id] }
       if item.nil? || item.marked_for_destruction?
-        # Item fue eliminado - restar del inventario
         product = Product.find(old_data[:product_id])
         adjust_inventory_for_item_removal(product, old_data[:old_quantity_sale_units].to_f)
       end

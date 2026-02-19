@@ -26,7 +26,11 @@
       <div class="bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-lg px-4 py-3 shadow-sm">
         <div class="flex items-center justify-between gap-3">
           <div class="flex-1 min-w-0">
-            <div class="text-base font-bold text-green-900 truncate" data-purchase-product-search-target="productNameDisplay"></div>
+            <div class="text-base font-bold text-green-900 truncate max-w-[180px] cursor-help" 
+                data-purchase-product-search-target="productNameDisplay"
+                title="<%= f.object.product&.name %>">
+              <%= f.object.product&.name %>
+            </div>
             <div class="text-xs text-green-700 mt-0.5">Producto seleccionado</div>
           </div>
           <button 

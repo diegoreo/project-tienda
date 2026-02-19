@@ -242,6 +242,7 @@ export default class extends Controller {
     // Llenar campos
     this.productIdInputTarget.value = product.id
     this.productNameDisplayTarget.textContent = product.name
+    this.productNameDisplayTarget.title = product.name 
     
     console.log('Nombre mostrado en:', this.productNameDisplayTarget.textContent)
     
@@ -271,6 +272,7 @@ export default class extends Controller {
     // Limpiar producto
     this.productIdInputTarget.value = ''
     this.productNameDisplayTarget.textContent = ''
+    this.productNameDisplayTarget.title = ''
     
     // Cambiar a vista de búsqueda
     this.showSearchView()

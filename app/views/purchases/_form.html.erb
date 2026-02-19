@@ -98,21 +98,13 @@
       <!-- Productos de la Compra -->
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="bg-gradient-to-r from-green-50 to-green-100 px-6 py-4 border-b border-gray-200">
-          <div class="flex items-center justify-between">
+          <div class="flex items-center">
             <h3 class="text-lg font-semibold text-gray-800 flex items-center">
               <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
               </svg>
               Productos
             </h3>
-            <button type="button" 
-                    data-action="purchase-items#addItem"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              Agregar Producto
-            </button>
           </div>
         </div>
 
@@ -149,6 +141,18 @@
               <% end %>
             </tbody>
           </table>
+        </div>
+
+        <!-- Botón agregar producto (abajo para no scrollear) -->
+        <div class="px-6 py-3 border-t border-gray-200 bg-white">
+          <button type="button" 
+                  data-action="purchase-items#addItem"
+                  class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar Producto
+          </button>
         </div>
 
         <!-- Total -->
