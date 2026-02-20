@@ -237,30 +237,30 @@ export default class extends Controller {
     const product = this.searchResultsData[index]
     if (!product) return
     
-    console.log('Producto seleccionado:', product.name)
-    
     // Llenar campos
     this.productIdInputTarget.value = product.id
     this.productNameDisplayTarget.textContent = product.name
-    this.productNameDisplayTarget.title = product.name 
-    
-    console.log('Nombre mostrado en:', this.productNameDisplayTarget.textContent)
-    
-    // Llenar conversión si existe
-    if (this.hasConversionInputTarget && product.unit_conversion) {
-      this.conversionInputTarget.value = product.unit_conversion
+    this.productNameDisplayTarget.title = product.name
+  
+    // Buscar la fila completa
+    const row = this.element.closest('tr')
+  
+    // Llenar conversión automáticamente
+    const conversionInput = row ? row.querySelector('input[name*="[conversion_factor]"]') : null
+    if (conversionInput) {
+      conversionInput.value = product.conversion_factor && product.conversion_factor > 1 ? product.conversion_factor : 1
+      conversionInput.dispatchEvent(new Event('input'))
     }
-    
+  
     // Limpiar búsqueda y cerrar resultados
     this.searchInputTarget.value = ''
     this.closeSearchResults()
-    
+  
     // Cambiar a vista de producto seleccionado
     this.showSelectedView()
-    
-    // Enfocar siguiente campo
-    const row = this.element.closest('tr')
-    const quantityInput = row.querySelector('input[name*="[quantity]"]')
+  
+    // Enfocar campo cantidad
+    const quantityInput = row ? row.querySelector('input[name*="[quantity]"]') : null
     if (quantityInput) {
       setTimeout(() => quantityInput.focus(), 100)
     }

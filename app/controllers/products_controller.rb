@@ -253,7 +253,8 @@ class ProductsController < ApplicationController
       has_stock: stock > 0,
       barcodes: product.barcodes.pluck(:code),
       unit: product.sale_unit.abbreviation,
-      unit_conversion: product.unit_conversion.to_f
+      unit_conversion: product.unit_conversion.to_f,
+      conversion_factor: product.conversion_factor.to_f
     }
   end
 end
