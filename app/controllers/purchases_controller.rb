@@ -50,15 +50,15 @@ class PurchasesController < ApplicationController
     # Ordenamiento
     case params[:sort]
     when "date_desc"
-      purchases = purchases.order(purchase_date: :desc)
+      purchases = purchases.order(purchase_date: :desc, created_at: :desc)
     when "date_asc"
-      purchases = purchases.order(purchase_date: :asc)
+      purchases = purchases.order(purchase_date: :asc, created_at: :asc)
     when "total_desc"
-      purchases = purchases.order(total: :desc)
+      purchases = purchases.order(total: :desc, created_at: :desc)
     when "total_asc"
-      purchases = purchases.order(total: :asc)
+      purchases = purchases.order(total: :asc, created_at: :desc)
     else
-      purchases = purchases.order(purchase_date: :desc) # Default
+      purchases = purchases.order(purchase_date: :desc, created_at: :desc)
     end
 
     # CALCULAR TOTAL ANTES DE PAGINAR (respeta filtros)
